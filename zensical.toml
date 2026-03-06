@@ -14,13 +14,13 @@ nav = [
         {"Browse plugins" = "plugins.md"},
         {"hello-world" = "plugins/hello-world.md"},
     ]},
-    {"Installing" = [
-        {"Installation" = "installing/index.md"},
+    {"Install" = [
+        {"Installation" = "install/index.md"},
     ]},
-    {"Contributing" = [
-        {"Contributing" = "contributing/index.md"},
-        {"Creating a new plugin" = "contributing/creating-a-new-plugin.md"},
-        {"Evaluating skills" = "contributing/evaluating-skills.md"},
+    {"Contribute" = [
+        {"Contributing" = "contribute/index.md"},
+        {"Creating a new plugin" = "contribute/creating-a-new-plugin.md"},
+        {"Evaluating skills" = "contribute/evaluating-skills.md"},
     ]},
 ]
 

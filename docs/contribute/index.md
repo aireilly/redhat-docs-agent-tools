@@ -23,7 +23,7 @@ The following files are auto-generated and should not be edited manually:
 
 - `plugins.md`
 - `docs/plugins.md`
-- `docs/installing/index.md`
+- `docs/install/index.md`
 
 These are regenerated on every merge to main via CI.
 

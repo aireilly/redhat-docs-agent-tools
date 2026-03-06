@@ -4,7 +4,7 @@ icon: lucide/flask-conical
 
 # Evaluating skills
 
-Use the [skill-creator](https://claude.com/plugins/skill-creator) skill to test plugin commands and skills against defined test cases. This helps verify that commands produce consistent, expected output.
+Use the [skill-creator](https://claude.com/plugins/skill-creator) Claude Code skill to test plugin commands and skills against defined test cases. This helps verify that commands produce consistent, expected output.
 
 ## Eval structure
 

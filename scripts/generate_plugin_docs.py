@@ -127,7 +127,7 @@ def generate_plugin_detail_page(plugin: dict) -> str:
         "",
         p["description"],
         "",
-        "## Installation",
+        "## Install the tools",
         "",
         "```bash",
         f"/plugin install {p['name']}@redhat-docs-agent-tools",
@@ -210,16 +210,16 @@ def generate_docs_plugins_index(plugins: list[dict]) -> str:
 def generate_installation_page(plugins: list[dict]) -> str:
     """Generate the docs/installation.md page."""
     lines = [
-        "# Installation",
+        "# Install Claude Code and plugins",
         "",
         '!!! note',
         '    This page is auto-generated.',
         "",
         "## Prerequisites",
         "",
-        "- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI installed",
+        "- Install [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI",
         "",
-        "## Install from marketplace",
+        "## Install plugins from the marketplace",
         "",
         "Add the plugin marketplace to your Claude Code configuration:",
         "",
@@ -275,10 +275,10 @@ def main():
         page_path.write_text(generate_plugin_detail_page(p))
         print(f"Generated docs/plugins/{p['name']}.md")
 
-    installing_dir = DOCS_DIR / "installing"
+    installing_dir = DOCS_DIR / "install"
     installing_dir.mkdir(exist_ok=True)
     (installing_dir / "index.md").write_text(generate_installation_page(plugins))
-    print("Generated docs/installing/index.md")
+    print("Generated docs/install/index.md")
 
     # Update zensical.toml with version status entries and nav
     update_zensical_config(plugins)
