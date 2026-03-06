@@ -11,9 +11,6 @@ Documentation review, writing, and workflow tools for Red Hat AsciiDoc and Markd
 | `/docs-tools:docs-review --pr <url> --post-comments` | Review and post inline comments to PR/MR |
 | `/docs-tools:docs-review --action-comments [url]` | Interactively action unresolved PR/MR review comments (auto-detects PR from branch) |
 | `/docs-tools:docs-workflow` | Run the multi-stage documentation workflow |
-| `/docs-tools:docs-technical-review` | Run the two-phase technical review workflow |
-| `/docs-tools:docs-upstream-pr-sync` | Review upstream PRs with documentation labels |
-| `/docs-tools:docs-summarize-claude-work` | Summarize Claude-assisted documentation work |
 
 ## Agents
 
@@ -58,13 +55,6 @@ Documentation review, writing, and workflow tools for Red Hat AsciiDoc and Markd
 | `rh-ssg-release-notes` | Release note style, tenses, Jira refs |
 | `rh-ssg-structure` | Admonitions, lead-ins, prerequisites, short descriptions |
 | `rh-ssg-technical-examples` | Root privileges, YAML, IPs/MACs, syntax highlighting |
-
-### Other Skills
-
-| Skill | Focus |
-|-------|-------|
-| `docs-technical-review-validate` | Validate documentation against code repositories |
-| `docs-technical-review-apply` | Interactively apply fixes from technical review |
 
 ## Installation
 
