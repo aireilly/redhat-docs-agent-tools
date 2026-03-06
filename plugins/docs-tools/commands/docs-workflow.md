@@ -1,5 +1,5 @@
 ---
-description: Run the multi-stage documentation workflow
+description: Run the multi-stage documentation workflow for a JIRA ticket. Orchestrates agents sequentially — requirements analysis, planning, writing, and review
 argument-hint: [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--format adoc|mkdocs]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Task, WebSearch, WebFetch
 ---
@@ -23,7 +23,7 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 **AsciiDoc format (`--format adoc`, default):**
 
 ```
-.claude_docs/
+.claude/docs/
 ├── workflow/           # Workflow state files (JSON)
 ├── requirements/       # Stage 1 outputs
 ├── plans/              # Stage 2 outputs
@@ -41,7 +41,7 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 **MkDocs format (`--format mkdocs`):**
 
 ```
-.claude_docs/
+.claude/docs/
 ├── workflow/           # Workflow state files (JSON)
 ├── requirements/       # Stage 1 outputs
 ├── plans/              # Stage 2 outputs
@@ -192,7 +192,7 @@ set -a && source ~/.env.jira_internal && set +a
 Create the workflow state file or load existing state.
 
 ```bash
-CLAUDE_DOCS_DIR="${PWD}/.claude_docs"
+CLAUDE_DOCS_DIR="${PWD}/.claude/docs"
 SAFE_TICKET=$(echo "$TICKET" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
 STATE_FILE="${CLAUDE_DOCS_DIR}/workflow/workflow_${SAFE_TICKET}.json"
 

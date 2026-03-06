@@ -105,7 +105,7 @@ Proceeding with incorrect or assumed information leads to:
    - Define documentation acceptance criteria
    - **Include reference links** to source materials for each requirement
 
-4. Save all output and intermediary files to `.claude_docs/`
+4. Save all output and intermediary files to `.claude/docs/`
 
 ## Reference tracking
 
@@ -225,10 +225,10 @@ For each search result, evaluate relevance and incorporate into your requirement
 
 **Save web search findings:**
 
-Save a summary of web search findings to `.claude_docs/research/`:
+Save a summary of web search findings to `.claude/docs/research/`:
 
 ```
-.claude_docs/
+.claude/docs/
 ├── research/
 │   └── web_search_<topic>_<yyyymmdd>.md
 ```
@@ -298,10 +298,10 @@ Documentation impact:
 
 ## Output location
 
-Save all output and intermediary files to the `.claude_docs/` directory:
+Save all output and intermediary files to the `.claude/docs/` directory:
 
 ```
-.claude_docs/
+.claude/docs/
 ├── requirements/             # Requirements documents
 │   └── requirements_<release>_<yyyymmdd>.md
 ├── jira-exports/             # JIRA query results
@@ -312,7 +312,7 @@ Save all output and intermediary files to the `.claude_docs/` directory:
     └── web_search_<topic>_<yyyymmdd>.md
 ```
 
-Create the `.claude_docs/` directory structure if it does not exist. Saving intermediary files allows users to review and edit requirements before proceeding to documentation work.
+Create the `.claude/docs/` directory structure if it does not exist. Saving intermediary files allows users to review and edit requirements before proceeding to documentation work.
 
 ## Output format
 
@@ -510,12 +510,12 @@ The following modules need to be drafted. Invoke the docs-writer agent for each:
 1. **[module-name.adoc]** (TYPE)
    - Requirement: REQ-XXX
    - Summary: [Brief description of what to write]
-   - Save to: .claude_docs/drafts/[module-name].adoc
+   - Save to: .claude/docs/drafts/[module-name].adoc
 
 2. **[module-name.adoc]** (TYPE)
    - Requirement: REQ-XXX
    - Summary: [Brief description of what to write]
-   - Save to: .claude_docs/drafts/[module-name].adoc
+   - Save to: .claude/docs/drafts/[module-name].adoc
 
 Invoke docs-writer agents in parallel for efficiency.
 ```

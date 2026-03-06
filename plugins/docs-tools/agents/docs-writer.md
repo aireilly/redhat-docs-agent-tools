@@ -55,7 +55,7 @@ Use outcome-driven titles with natural language:
    - Convert to lowercase for folder naming: `jira-123`, `rhaistrat-248`
    - This ID determines the output folder structure
 
-2. **Read the documentation plan** from `.claude_docs/plans/` to understand what modules to write
+2. **Read the documentation plan** from `.claude/docs/plans/` to understand what modules to write
 
 3. **Understand the documentation request:**
    - Read existing documentation for context
@@ -75,10 +75,10 @@ Use outcome-driven titles with natural language:
    - Create proper cross-references and includes
    - Write COMPLETE, production-ready content (not placeholders)
 
-6. **Save files to the JIRA-based folder structure** in `.claude_docs/drafts/<jira-id>/`:
-   - Modules go in: `.claude_docs/drafts/<jira-id>/modules/<module-name>.adoc`
-   - Assemblies go in: `.claude_docs/drafts/<jira-id>/<assembly-name>.adoc`
-   - Index goes in: `.claude_docs/drafts/<jira-id>/_index.md`
+6. **Save files to the JIRA-based folder structure** in `.claude/docs/drafts/<jira-id>/`:
+   - Modules go in: `.claude/docs/drafts/<jira-id>/modules/<module-name>.adoc`
+   - Assemblies go in: `.claude/docs/drafts/<jira-id>/<assembly-name>.adoc`
+   - Index goes in: `.claude/docs/drafts/<jira-id>/_index.md`
    - Use descriptive filenames: `<module-name>.adoc`
    - Do NOT use type prefixes (no `con-`, `proc-`, `ref-`)
    - Create one file per module
@@ -92,7 +92,7 @@ You MUST write complete `.adoc` files organized by JIRA ID. Each file must be:
 
 **Output folder structure:**
 ```
-.claude_docs/drafts/<jira-id>/
+.claude/docs/drafts/<jira-id>/
 ├── _index.md                           # Index of all modules
 ├── assembly_<name>.adoc                # Assembly files (root of jira-id folder)
 └── modules/                            # All module files
@@ -103,7 +103,7 @@ You MUST write complete `.adoc` files organized by JIRA ID. Each file must be:
 
 **Example for RHAISTRAT-248:**
 ```
-.claude_docs/drafts/rhaistrat-248/
+.claude/docs/drafts/rhaistrat-248/
 ├── _index.md
 ├── assembly_deploying-feature.adoc
 ├── assembly_getting-started.adoc
@@ -115,13 +115,13 @@ You MUST write complete `.adoc` files organized by JIRA ID. Each file must be:
 
 **Example workflow:**
 1. Extract JIRA ID from plan filename (e.g., `plan_rhaistrat_248_*.md` → `rhaistrat-248`)
-2. Read plan from `.claude_docs/plans/plan_*.md`
+2. Read plan from `.claude/docs/plans/plan_*.md`
 3. Create drafts folder and set up symlinks to repo directories (`_attributes/`, `snippets/`, etc.)
 4. For each module in the plan:
    - Write the complete AsciiDoc content
-   - Save to `.claude_docs/drafts/<jira-id>/modules/<module-name>.adoc`
-5. Write assembly files to `.claude_docs/drafts/<jira-id>/assembly_<name>.adoc`
-6. Create an index file at `.claude_docs/drafts/<jira-id>/_index.md`
+   - Save to `.claude/docs/drafts/<jira-id>/modules/<module-name>.adoc`
+5. Write assembly files to `.claude/docs/drafts/<jira-id>/assembly_<name>.adoc`
+6. Create an index file at `.claude/docs/drafts/<jira-id>/_index.md`
 
 ## Module templates
 
@@ -516,10 +516,10 @@ The `docs-review-modular-docs` and `docs-review-content-quality` skills provide 
 
 ## Output location
 
-**All documentation MUST be saved to `.claude_docs/drafts/<jira-id>/` organized by JIRA ticket ID.**
+**All documentation MUST be saved to `.claude/docs/drafts/<jira-id>/` organized by JIRA ticket ID.**
 
 ```
-.claude_docs/
+.claude/docs/
 ├── drafts/
 │   └── <jira-id>/                        # Folder per JIRA ticket (e.g., rhaistrat-248)
 │       ├── _index.md                     # Index of all modules for this ticket
@@ -551,10 +551,10 @@ When creating a new drafts folder for a JIRA ticket, set up symlinks to the repo
 **Example setup:**
 ```bash
 # Create the drafts folder
-mkdir -p .claude_docs/drafts/<jira-id>/modules
+mkdir -p .claude/docs/drafts/<jira-id>/modules
 
 # Create symlinks to repo directories (adjust paths based on actual repo structure)
-cd .claude_docs/drafts/<jira-id>
+cd .claude/docs/drafts/<jira-id>
 ln -s ../../../_attributes _attributes      # or whatever the attributes folder is called
 ln -s ../../../snippets snippets            # if snippets folder exists
 ln -s ../../../assemblies assemblies        # if assemblies folder exists
@@ -590,7 +590,7 @@ Extract the JIRA ID from:
 
 ### Index file
 
-After writing all modules, create `.claude_docs/drafts/<jira-id>/_index.md` listing:
+After writing all modules, create `.claude/docs/drafts/<jira-id>/_index.md` listing:
 - JIRA ticket reference
 - Directory structure
 - All modules with types and descriptions

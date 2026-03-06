@@ -207,7 +207,7 @@ Run doc impact assessment as the **first analytical step** when multiple issues 
 
 5. Verify output before delivering (see Self-review verification below)
 
-6. Save all planning output and intermediary files to `.claude_docs/`
+6. Save all planning output and intermediary files to `.claude/docs/`
 
 ## Reference tracking
 
@@ -424,10 +424,10 @@ Fix the issue before saving. If you cannot fix it (e.g., a source is ambiguous),
 
 ## Output location
 
-Save all planning output and intermediary files to the `.claude_docs/` directory:
+Save all planning output and intermediary files to the `.claude/docs/` directory:
 
 ```
-.claude_docs/
+.claude/docs/
 ├── plans/                    # Documentation plans
 │   └── plan_<project>_<yyyymmdd>.md
 ├── gap-analysis/             # Gap analysis reports
@@ -436,7 +436,7 @@ Save all planning output and intermediary files to the `.claude_docs/` directory
     └── discovery_<topic>_<yyyymmdd>.md
 ```
 
-Create the `.claude_docs/` directory structure if it does not exist. Saving intermediary files allows users to review and edit planning outputs before proceeding to documentation work.
+Create the `.claude/docs/` directory structure if it does not exist. Saving intermediary files allows users to review and edit planning outputs before proceeding to documentation work.
 
 ## Output format
 
@@ -444,7 +444,7 @@ The planner produces two outputs from the same research: a full documentation pl
 
 ### 1. Full documentation plan (attachment)
 
-Save the fully populated template below to `.claude_docs/plans/plan_<project>_<yyyymmdd>.md`. This is the comprehensive planning artifact with all sections completed.
+Save the fully populated template below to `.claude/docs/plans/plan_<project>_<yyyymmdd>.md`. This is the comprehensive planning artifact with all sections completed.
 
 ### 2. JIRA ticket description
 
