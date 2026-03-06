@@ -1,0 +1,9 @@
+{
+  "name": "docs-tools",
+  "version": "0.0.1",
+  "description": "Documentation review, writing, and workflow tools for Red Hat AsciiDoc and Markdown documentation",
+  "author": {
+    "name": "Red Hat Documentation Team",
+    "email": "aireilly@redhat.com, amcleod@redhat.com"
+  }
+}
