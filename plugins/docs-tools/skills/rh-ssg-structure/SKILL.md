@@ -1,7 +1,6 @@
 ---
 name: rh-ssg-structure
 description: Review documentation for Red Hat Supplementary Style Guide structure issues including admonitions, lead-in sentences, prerequisites, and short descriptions. Use this skill for structure-focused peer reviews of Red Hat docs.
-model: claude-opus-4-5@20251101
 ---
 
 # Red Hat SSG: Structure review skill

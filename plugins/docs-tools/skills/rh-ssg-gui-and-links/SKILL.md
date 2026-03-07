@@ -1,7 +1,6 @@
 ---
 name: rh-ssg-gui-and-links
 description: Review documentation for Red Hat Supplementary Style Guide graphical interface and link issues including UI elements, screenshots, link text, cross-references, and external links. Use this skill for GUI and links-focused peer reviews of Red Hat docs.
-model: claude-opus-4-5@20251101
 ---
 
 # Red Hat SSG: Graphical Interfaces and Links review skill

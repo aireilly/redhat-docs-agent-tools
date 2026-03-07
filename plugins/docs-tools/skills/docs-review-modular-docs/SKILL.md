@@ -1,7 +1,6 @@
 ---
 name: docs-review-modular-docs
 description: Review AsciiDoc files for Red Hat modular documentation compliance including module types, structure, and assembly formation. Use this skill for modular docs-focused peer reviews of .adoc files only.
-model: claude-opus-4-5@20251101
 ---
 
 # Modular documentation review skill

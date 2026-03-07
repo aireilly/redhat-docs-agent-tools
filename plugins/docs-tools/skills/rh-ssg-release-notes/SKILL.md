@@ -1,7 +1,6 @@
 ---
 name: rh-ssg-release-notes
 description: Review release notes for Red Hat Supplementary Style Guide compliance including style, tenses, headings, Jira references, formatting, and release note types (features, rebases, Tech Preview, deprecated, removed, known issues, fixed issues). Use this skill for release-notes-focused peer reviews.
-model: claude-opus-4-5@20251101
 ---
 
 # Red Hat SSG: Release Notes review skill

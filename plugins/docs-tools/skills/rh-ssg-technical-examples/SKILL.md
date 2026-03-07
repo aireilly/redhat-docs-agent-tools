@@ -1,7 +1,6 @@
 ---
 name: rh-ssg-technical-examples
 description: Review documentation for Red Hat Supplementary Style Guide technical example issues including root privileges, IP addresses, code examples, and syntax highlighting. Use this skill for technical-examples-focused peer reviews of Red Hat docs.
-model: claude-opus-4-5@20251101
 ---
 
 # Red Hat SSG: Technical Examples review skill

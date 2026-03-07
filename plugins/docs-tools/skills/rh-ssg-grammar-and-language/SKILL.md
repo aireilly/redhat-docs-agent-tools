@@ -1,7 +1,6 @@
 ---
 name: rh-ssg-grammar-and-language
 description: Review documentation for Red Hat Supplementary Style Guide grammar and language issues including conscious language, contractions, conversational style, minimalism, and user references. Use this skill for grammar-focused peer reviews of Red Hat docs.
-model: claude-opus-4-5@20251101
 ---
 
 # Red Hat SSG: Grammar and Language review skill
