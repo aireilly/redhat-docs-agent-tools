@@ -1,4 +1,5 @@
 ---
+context: fork
 name: ibm-sg-audience-and-medium
 description: Review documentation for IBM Style Guide audience and medium issues including accessibility, global audiences, tone, and conversational style. Use this skill for audience-focused peer reviews.
 ---

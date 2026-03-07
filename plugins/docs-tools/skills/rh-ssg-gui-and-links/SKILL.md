@@ -1,4 +1,5 @@
 ---
+context: fork
 name: rh-ssg-gui-and-links
 description: Review documentation for Red Hat Supplementary Style Guide graphical interface and link issues including UI elements, screenshots, link text, cross-references, and external links. Use this skill for GUI and links-focused peer reviews of Red Hat docs.
 ---

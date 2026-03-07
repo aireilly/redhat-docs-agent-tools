@@ -1,4 +1,5 @@
 ---
+context: fork
 name: ibm-sg-legal-information
 description: Review documentation for IBM Style Guide legal issues including claims, trademarks, copyright, personal information, and republishing. Use this skill for legal-focused peer reviews.
 ---

@@ -1,4 +1,5 @@
 ---
+context: fork
 name: docs-review-modular-docs
 description: Review AsciiDoc files for Red Hat modular documentation compliance including module types, structure, and assembly formation. Use this skill for modular docs-focused peer reviews of .adoc files only.
 ---
@@ -10,6 +11,7 @@ Review AsciiDoc source files for Red Hat modular documentation compliance: modul
 **Applies to**: `.adoc` files only
 
 ---
+context: fork
 
 ## Module types overview
 
@@ -92,6 +94,7 @@ If a concept module is large and complex:
 - [ ] Additional resources focused on relevant items only
 
 ---
+context: fork
 
 ## Procedure modules (do)
 
@@ -306,6 +309,7 @@ Consider these factors when choosing between lists and tables:
 - [ ] Additional resources focused on relevant items only
 
 ---
+context: fork
 
 ## Assemblies
 
@@ -404,6 +408,7 @@ All CONCEPT, PROCEDURE, and REFERENCE module anchor IDs must include the `{conte
 ```
 
 ---
+context: fork
 
 ## Text snippets
 
@@ -445,6 +450,7 @@ include::snippets/snip-beta-note.adoc[]
 | Writers defining user stories | Writer creates user story | Product management defines user stories |
 
 ---
+context: fork
 
 ## How to use
 

@@ -1,4 +1,5 @@
 ---
+context: fork
 name: ibm-sg-references
 description: Review documentation for IBM Style Guide reference issues including citations, product names, trademarks, versions, and geographic locations. Use this skill for reference-focused peer reviews.
 ---

@@ -1,4 +1,5 @@
 ---
+context: fork
 name: rh-ssg-legal-and-support
 description: Review documentation for Red Hat Supplementary Style Guide legal and support issues including cost references, future releases, Developer Preview, and Technology Preview. Use this skill for legal and support-focused peer reviews of Red Hat docs.
 ---
