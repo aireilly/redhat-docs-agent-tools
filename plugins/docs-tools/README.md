@@ -2,6 +2,8 @@
 
 Documentation review, writing, and workflow tools for Red Hat AsciiDoc and Markdown documentation.
 
+**Important:** Always run Claude Code from a terminal in the root of the documentation repository you are working on. The docs-tools commands and agents operate on the current working directory — they read local files, check git branches, and write output relative to the repo root.
+
 ## Commands
 
 | Command | Description |
@@ -20,6 +22,7 @@ Documentation review, writing, and workflow tools for Red Hat AsciiDoc and Markd
 | `docs-writer` | Technical writer for AsciiDoc documentation |
 | `docs-planner` | Documentation architect for planning and analysis |
 | `requirements-analyst` | Requirements analyst for JIRA issues, PRs, and specs |
+| `technical-reviewer` | Technical accuracy reviewer for code examples, commands, and prerequisites |
 
 ## Skills
 
