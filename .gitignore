@@ -8,7 +8,6 @@ __pycache__/
 *-workspace/
 
 # Auto-generated docs (built by CI, not tracked in source)
-PLUGINS.md
 docs/plugins.md
 docs/plugins/
 docs/install/
