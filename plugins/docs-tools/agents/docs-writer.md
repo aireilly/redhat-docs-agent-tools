@@ -125,171 +125,21 @@ You MUST write complete `.adoc` files organized by JIRA ID. Each file must be:
 
 ## Module templates
 
-### CONCEPT module
+Read the AsciiDoc module templates before writing any modules:
 
-```asciidoc
-:_mod-docs-content-type: CONCEPT
-[id="descriptive-id_{context}"]
-= Title as noun phrase
-
-[role="_abstract"]
-Brief description explaining what this concept is and why users should care.
-Focus on user benefits and use active voice.
-Each sentence goes on its own line.
-
-Main concept content goes here.
-Explain the concept clearly with:
-
-* Key points as bullet lists
-* Diagrams or examples where helpful
-* Connections to related concepts
-
-.Additional resources
-* xref:related-module.adoc[Related topic]
-* link:https://external-resource.com[External resource^]
+```bash
+cat ${CLAUDE_PLUGIN_ROOT}/templates/asciidoc-templates.md
 ```
 
-### PROCEDURE module
+This file contains the canonical templates for ASSEMBLY, CONCEPT, PROCEDURE, REFERENCE, and SNIPPET module types. Use these templates as the starting structure for every new module.
 
-```asciidoc
-:_mod-docs-content-type: PROCEDURE
-[id="descriptive-id_{context}"]
-= Title as imperative phrase (e.g., "Configure the server")
+### Key template rules
 
-[role="_abstract"]
-Brief description explaining what the user will accomplish and why.
-Use active voice and focus on user goals.
-Each sentence goes on its own line.
+**Assembly IDs:** Do not use `_{context}` suffix in the Anchor ID for ASSEMBLY files. Use a simple descriptive ID: `[id="deploying-the-application"]`.
 
-.Prerequisites
-* First prerequisite (written as completed condition)
-* Second prerequisite
+**Assembly attributes:** Always include the repository's attributes file immediately after the content type declaration. Use a simple path (e.g., `_attributes/attributes.adoc`) that works via the symlinks set up in the drafts folder.
 
-.Procedure
-. First step in imperative mood.
-+
-Additional information for the step if needed.
-+
-[source,terminal]
-----
-$ command example
-----
-
-. Second step.
-.. Substep if needed.
-.. Another substep.
-
-. Third step.
-
-.Verification
-* Run this command to verify success:
-+
-[source,terminal]
-----
-$ verification command
-----
-+
-Expected output:
-+
-[source,terminal]
-----
-expected output here
-----
-
-.Additional resources
-* xref:related-module.adoc[Related topic]
-```
-
-### REFERENCE module
-
-```asciidoc
-:_mod-docs-content-type: REFERENCE
-[id="descriptive-id_{context}"]
-= Title as noun phrase describing the reference data
-
-[role="_abstract"]
-Brief description explaining what reference information is provided.
-Explain when users would need this information.
-Each sentence goes on its own line.
-
-.Table title
-[cols="1,2,1", options="header"]
-|===
-|Parameter
-|Description
-|Default
-
-|`parameter-name`
-|Description of what this parameter does.
-|`default-value`
-
-|`another-parameter`
-|Description of this parameter.
-|`value`
-|===
-
-Alternatively, use a labeled list:
-
-parameter-name:: Description of the parameter and its usage.
-
-another-parameter:: Description of this parameter.
-
-.Additional resources
-* xref:related-module.adoc[Related topic]
-```
-
-### ASSEMBLY
-
-**Do not use `_{context}` suffix in the Anchor ID for ASSEMBLY files.**
-
-**IMPORTANT:** Always include the repository's attributes file immediately after the content type declaration. Use a simple path (e.g., `_attributes/attributes.adoc`) that works via the symlinks set up in the drafts folder. This path will also work when the assembly is moved to the repository root.
-
-```asciidoc
-:_mod-docs-content-type: ASSEMBLY
-include::_attributes/attributes.adoc[]
-[id="assembly-id"]
-= Assembly title
-
-:context: assembly-context
-
-[role="_abstract"]
-Brief introduction explaining the user story this assembly addresses.
-Describe what the user will accomplish by following this assembly.
-Each sentence goes on its own line.
-
-.Prerequisites
-* Assembly-level prerequisites if any
-
-include::modules/concept-module.adoc[leveloffset=+1]
-
-include::modules/procedure-module.adoc[leveloffset=+1]
-
-include::modules/reference-module.adoc[leveloffset=+1]
-
-.Additional resources
-* xref:related-assembly.adoc[Related assembly]
-* link:https://external-resource.com[External resource^]
-```
-
-**IMPORTANT: Assembly ID rules**
-
-- Assembly IDs must NEVER end with `_{context}` suffix
-- Use a simple descriptive ID: `[id="deploying-the-application"]`
-- Do NOT use: `[id="deploying-the-application_{context}"]`
-
-**IMPORTANT: No parent-context constructions**
-
-Since topics in this documentation are not reused across multiple assemblies, do NOT include parent-context preservation patterns. The following constructions must NOT be used:
-
-```asciidoc
-// DO NOT USE - parent-context patterns are prohibited
-ifdef::context[:parent-context: {context}]
-
-ifdef::parent-context[:context: {parent-context}]
-ifndef::parent-context[:!context:]
-```
-
-These patterns are only needed when modules are reused in multiple assemblies with different contexts. Since our modules are not reused, omit these entirely.
+**No parent-context constructions:** Since topics in this documentation are not reused across multiple assemblies, do NOT include parent-context preservation patterns (`ifdef::context[:parent-context: {context}]` etc.).
 
 ## Writing guidelines
 
