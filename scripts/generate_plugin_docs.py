@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate PLUGINS.md and docs pages from plugin metadata and commands."""
+"""Generate docs pages from plugin metadata and commands."""
 
 import json
 import os
@@ -55,11 +55,30 @@ def load_plugins() -> list[dict]:
         skills = []
         skills_dir = plugin_dir / "skills"
         if skills_dir.is_dir():
+            # Support both flat skills/*.md and subdirectory skills/<name>/SKILL.md
             for skill_file in sorted(skills_dir.glob("*.md")):
                 skill_text = skill_file.read_text()
                 fm = parse_frontmatter(skill_text)
                 skills.append({
                     "name": skill_file.stem,
+                    "description": fm.get("description", ""),
+                })
+            for skill_file in sorted(skills_dir.glob("*/SKILL.md")):
+                skill_text = skill_file.read_text()
+                fm = parse_frontmatter(skill_text)
+                skills.append({
+                    "name": skill_file.parent.name,
+                    "description": fm.get("description", fm.get("name", "")),
+                })
+
+        agents = []
+        agents_dir = plugin_dir / "agents"
+        if agents_dir.is_dir():
+            for agent_file in sorted(agents_dir.glob("*.md")):
+                agent_text = agent_file.read_text()
+                fm = parse_frontmatter(agent_text)
+                agents.append({
+                    "name": fm.get("name", agent_file.stem),
                     "description": fm.get("description", ""),
                 })
 
@@ -69,49 +88,11 @@ def load_plugins() -> list[dict]:
             "description": meta.get("description", ""),
             "commands": commands,
             "skills": skills,
+            "agents": agents,
         })
 
     return plugins
 
-
-def generate_plugins_md(plugins: list[dict]) -> str:
-    """Generate the PLUGINS.md content."""
-    lines = [
-        "# Plugins",
-        "",
-        "> This file is auto-generated. Do not edit manually.",
-        "> Run `make update` or merge to main to regenerate.",
-        "",
-    ]
-
-    for p in plugins:
-        lines.append(f"## {p['name']} (v{p['version']})")
-        lines.append("")
-        lines.append(p["description"])
-        lines.append("")
-
-        if p["commands"]:
-            lines.append("### Commands")
-            lines.append("")
-            lines.append("| Command | Description |")
-            lines.append("|---------|-------------|")
-            for cmd in p["commands"]:
-                hint = f" {cmd['argument_hint']}" if cmd["argument_hint"] else ""
-                lines.append(
-                    f"| `/{p['name']}:{cmd['name']}{hint}` | {cmd['description']} |"
-                )
-            lines.append("")
-
-        if p["skills"]:
-            lines.append("### Skills")
-            lines.append("")
-            lines.append("| Skill | Description |")
-            lines.append("|-------|-------------|")
-            for skill in p["skills"]:
-                lines.append(f"| `{skill['name']}` | {skill['description']} |")
-            lines.append("")
-
-    return "\n".join(lines)
 
 
 def generate_plugin_detail_page(plugin: dict) -> str:
@@ -127,10 +108,16 @@ def generate_plugin_detail_page(plugin: dict) -> str:
         "",
         p["description"],
         "",
-        "## Install the tools",
+        "## Install",
         "",
         "```bash",
         f"/plugin install {p['name']}@redhat-docs-agent-tools",
+        "```",
+        "",
+        "## Update",
+        "",
+        "```bash",
+        "/plugin marketplace update redhat-docs-agent-tools",
         "```",
         "",
     ]
@@ -147,22 +134,23 @@ def generate_plugin_detail_page(plugin: dict) -> str:
             lines.append(cmd["description"])
             lines.append("")
 
+    if p.get("agents"):
+        lines.append("## Agents")
+        lines.append("")
+        lines.append("| Agent | Description |")
+        lines.append("|-------|-------------|")
+        for agent in p["agents"]:
+            lines.append(f"| `{agent['name']}` | {agent['description']} |")
+        lines.append("")
+
     if p["skills"]:
         lines.append("## Skills")
         lines.append("")
+        lines.append("| Skill | Description |")
+        lines.append("|-------|-------------|")
         for skill in p["skills"]:
-            lines.append(f"### {skill['name']}")
-            lines.append("")
-            lines.append(skill["description"])
-            lines.append("")
-
-    lines.extend([
-        "## Update",
-        "",
-        "```bash",
-        "/plugin marketplace update redhat-docs-agent-tools",
-        "```",
-    ])
+            lines.append(f"| `{skill['name']}` | {skill['description']} |")
+        lines.append("")
 
     return "\n".join(lines)
 
@@ -184,9 +172,12 @@ def generate_docs_plugins_index(plugins: list[dict]) -> str:
     for p in plugins:
         cmd_count = len(p["commands"])
         skill_count = len(p["skills"])
+        agent_count = len(p.get("agents", []))
         summary_parts = []
         if cmd_count:
             summary_parts.append(f"{cmd_count} command{'s' if cmd_count != 1 else ''}")
+        if agent_count:
+            summary_parts.append(f"{agent_count} agent{'s' if agent_count != 1 else ''}")
         if skill_count:
             summary_parts.append(f"{skill_count} skill{'s' if skill_count != 1 else ''}")
         summary = " | ".join(summary_parts) if summary_parts else "Plugin"
@@ -254,11 +245,6 @@ def generate_installation_page(plugins: list[dict]) -> str:
 
 def main():
     plugins = load_plugins()
-
-    # Write PLUGINS.md at repo root
-    plugins_md = generate_plugins_md(plugins)
-    (REPO_ROOT / "PLUGINS.md").write_text(plugins_md)
-    print(f"Generated PLUGINS.md ({len(plugins)} plugins)")
 
     # Write docs pages
     DOCS_DIR.mkdir(exist_ok=True)
