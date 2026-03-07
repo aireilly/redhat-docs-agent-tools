@@ -1,4 +1,5 @@
 ---
+context: fork
 name: ibm-sg-language-and-grammar
 description: Review documentation for IBM Style Guide language and grammar issues including abbreviations, capitalization, inclusive language, verbs, and preferred terminology. Use this skill for language-focused peer reviews.
 ---

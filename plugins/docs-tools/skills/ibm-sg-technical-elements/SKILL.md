@@ -1,4 +1,5 @@
 ---
+context: fork
 name: ibm-sg-technical-elements
 description: Review documentation for IBM Style Guide technical element issues including code examples, commands, UI elements, keyboard keys, and file paths. Use this skill for technical-element-focused peer reviews.
 ---

@@ -1,4 +1,5 @@
 ---
+context: fork
 name: rh-ssg-formatting
 description: Review documentation for Red Hat Supplementary Style Guide formatting issues including code blocks, user-replaced values, titles, product names, and date formats. Use this skill for formatting-focused peer reviews of Red Hat docs.
 ---

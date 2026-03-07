@@ -1,4 +1,5 @@
 ---
+context: fork
 name: ibm-sg-structure-and-format
 description: Review documentation for IBM Style Guide structure and format issues including headings, lists, procedures, tables, notes, and emphasis. Use this skill for structure-focused peer reviews.
 ---
