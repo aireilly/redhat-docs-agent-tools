@@ -14,6 +14,7 @@ nav = [
         {"Browse plugins" = "plugins.md"},
         {"docs-tools" = "plugins/docs-tools.md"},
         {"hello-world" = "plugins/hello-world.md"},
+        {"vale-tools" = "plugins/vale-tools.md"},
     ]},
     {"Install" = [
         {"Installation" = "install/index.md"},
