@@ -1,7 +1,6 @@
 ---
 name: ibm-sg-structure-and-format
 description: Review documentation for IBM Style Guide structure and format issues including headings, lists, procedures, tables, notes, and emphasis. Use this skill for structure-focused peer reviews.
-model: claude-opus-4-5@20251101
 ---
 
 # IBM Style Guide: Structure and Format review skill

@@ -1,7 +1,6 @@
 ---
 name: ibm-sg-references
 description: Review documentation for IBM Style Guide reference issues including citations, product names, trademarks, versions, and geographic locations. Use this skill for reference-focused peer reviews.
-model: claude-opus-4-5@20251101
 ---
 
 # IBM Style Guide: References review skill

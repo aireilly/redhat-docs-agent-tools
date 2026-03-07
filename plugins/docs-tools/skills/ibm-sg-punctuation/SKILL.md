@@ -1,7 +1,6 @@
 ---
 name: ibm-sg-punctuation
 description: Review documentation for IBM Style Guide punctuation issues including commas, colons, dashes, hyphens, quotation marks, and semicolons. Use this skill for punctuation-focused peer reviews.
-model: claude-opus-4-5@20251101
 ---
 
 # IBM Style Guide: Punctuation review skill

@@ -1,7 +1,6 @@
 ---
 name: rh-ssg-accessibility
 description: Review documentation for Red Hat Supplementary Style Guide accessibility issues including colors, images, links, tables, and meaningful HTML structure. Use this skill for accessibility-focused peer reviews of Red Hat docs.
-model: claude-opus-4-5@20251101
 ---
 
 # Red Hat SSG: Accessibility review skill

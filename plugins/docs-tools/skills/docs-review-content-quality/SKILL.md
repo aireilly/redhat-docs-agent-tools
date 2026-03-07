@@ -1,7 +1,6 @@
 ---
 name: docs-review-content-quality
 description: Review documentation for content quality including logical flow, user journey alignment, scannability, conciseness, and customer focus. Use this skill for content quality peer reviews.
-model: claude-opus-4-5@20251101
 ---
 
 # Content quality review skill

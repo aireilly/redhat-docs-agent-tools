@@ -1,7 +1,6 @@
 ---
 name: ibm-sg-legal-information
 description: Review documentation for IBM Style Guide legal issues including claims, trademarks, copyright, personal information, and republishing. Use this skill for legal-focused peer reviews.
-model: claude-opus-4-5@20251101
 ---
 
 # IBM Style Guide: Legal Information review skill

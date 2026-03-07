@@ -1,7 +1,6 @@
 ---
 name: ibm-sg-language-and-grammar
 description: Review documentation for IBM Style Guide language and grammar issues including abbreviations, capitalization, inclusive language, verbs, and preferred terminology. Use this skill for language-focused peer reviews.
-model: claude-opus-4-5@20251101
 ---
 
 # IBM Style Guide: Language and Grammar review skill

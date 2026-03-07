@@ -1,7 +1,6 @@
 ---
 name: ibm-sg-numbers-and-measurement
 description: Review documentation for IBM Style Guide number and measurement issues including numerals, dates, times, currency, and units. Use this skill for numbers-focused peer reviews.
-model: claude-opus-4-5@20251101
 ---
 
 # IBM Style Guide: Numbers and Measurement review skill
