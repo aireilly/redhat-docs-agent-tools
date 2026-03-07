@@ -102,7 +102,7 @@ fi
 # Validate ticket is provided
 if [[ -z "$TICKET" ]]; then
     echo "ERROR: Ticket identifier is required."
-    echo "Usage: /docs-tools:docs-workflow [start|resume|status] <TICKET> [--pr <url>] [--create-jira <PROJECT>]"
+    echo "Usage: /docs-tools:docs-create [start|resume|status] <TICKET> [--pr <url>] [--create-jira <PROJECT>]"
     exit 1
 fi
 
@@ -249,7 +249,7 @@ Load the existing state file and add any new `--pr` URLs:
 ```bash
 test -f "$STATE_FILE" || {
     echo "No workflow found for ${TICKET}."
-    echo "Use: /docs-tools:docs-workflow start ${TICKET}"
+    echo "Use: /docs-tools:docs-create start ${TICKET}"
     exit 1
 }
 
@@ -994,7 +994,7 @@ If any stage fails due to access issues (JIRA, GitHub, GitLab):
 4. **Mark the stage as failed** in the state file
 5. **Await user action** — User must fix credentials and resume with:
    ```
-   /docs-tools:docs-workflow resume <TICKET>
+   /docs-tools:docs-create resume <TICKET>
    ```
 6. **NEVER guess or infer** — No assumptions about ticket or PR content
 
@@ -1006,47 +1006,47 @@ If JIRA access fails and the workflow proceeded anyway, it would make assumption
 
 Start a new workflow:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123
+/docs-tools:docs-create start RHAISTRAT-123
 ```
 
 Start with a related PR/MR:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --pr https://github.com/org/repo/pull/456
+/docs-tools:docs-create start RHAISTRAT-123 --pr https://github.com/org/repo/pull/456
 ```
 
 Start with a GitLab MR:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --pr https://gitlab.com/org/repo/-/merge_requests/789
+/docs-tools:docs-create start RHAISTRAT-123 --pr https://gitlab.com/org/repo/-/merge_requests/789
 ```
 
 Check workflow status:
 ```bash
-/docs-tools:docs-workflow status RHAISTRAT-123
+/docs-tools:docs-create status RHAISTRAT-123
 ```
 
 Resume and add a PR URL:
 ```bash
-/docs-tools:docs-workflow resume RHAISTRAT-123 --pr https://github.com/org/repo/pull/456
+/docs-tools:docs-create resume RHAISTRAT-123 --pr https://github.com/org/repo/pull/456
 ```
 
 Start with MkDocs Markdown output:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --format mkdocs
+/docs-tools:docs-create start RHAISTRAT-123 --format mkdocs
 ```
 
 Start with MkDocs format and a related PR:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --format mkdocs --pr https://github.com/org/repo/pull/456
+/docs-tools:docs-create start RHAISTRAT-123 --format mkdocs --pr https://github.com/org/repo/pull/456
 ```
 
 Start with JIRA creation in INFERENG project:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --create-jira INFERENG
+/docs-tools:docs-create start RHAISTRAT-123 --create-jira INFERENG
 ```
 
 Add JIRA creation on resume (after review completes):
 ```bash
-/docs-tools:docs-workflow resume RHAISTRAT-123 --create-jira INFERENG
+/docs-tools:docs-create resume RHAISTRAT-123 --create-jira INFERENG
 ```
 
 ## Prerequisites

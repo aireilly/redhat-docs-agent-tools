@@ -10,7 +10,7 @@ Documentation review, writing, and workflow tools for Red Hat AsciiDoc and Markd
 | `/docs-tools:docs-review --pr <url>` | Multi-agent review of a GitHub PR or GitLab MR |
 | `/docs-tools:docs-review --pr <url> --post-comments` | Review and post inline comments to PR/MR |
 | `/docs-tools:docs-review --action-comments [url]` | Interactively action unresolved PR/MR review comments (auto-detects PR from branch) |
-| `/docs-tools:docs-workflow` | Run the multi-stage documentation workflow |
+| `/docs-tools:docs-create` | Run the multi-stage documentation workflow |
 
 ## Agents
 
