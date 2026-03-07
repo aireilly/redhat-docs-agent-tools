@@ -1,12 +1,12 @@
 ---
-description: Run the multi-stage documentation workflow for a JIRA ticket. Orchestrates agents sequentially — requirements analysis, planning, writing, and review
+description: Run the multi-stage documentation workflow for a JIRA ticket. Orchestrates agents sequentially — requirements analysis, planning, writing, technical review, and style review
 argument-hint: [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--format adoc|mkdocs]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Task, WebSearch, WebFetch
 ---
 
 # Documentation Workflow
 
-Run the multi-stage documentation workflow for a JIRA ticket. This command orchestrates four specialized agents sequentially — requirements analysis, planning, writing, and review — to produce complete documentation in AsciiDoc (default) or Material for MkDocs Markdown format.
+Run the multi-stage documentation workflow for a JIRA ticket. This command orchestrates five specialized agents sequentially — requirements analysis, planning, writing, technical review, and style review — to produce complete documentation in AsciiDoc (default) or Material for MkDocs Markdown format.
 
 ## Agents
 
@@ -15,8 +15,9 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 | 1. Requirements | requirements-analyst | `docs-tools:requirements-analyst` | Parses JIRA issues, PRs, and specs to extract documentation requirements |
 | 2. Planning | docs-planner | `docs-tools:docs-planner` | Creates documentation plans with JTBD framework and gap analysis |
 | 3. Writing | docs-writer | `docs-tools:docs-writer` | Writes complete AsciiDoc modules following Red Hat modular docs standards |
-| 4. Review | docs-reviewer | `docs-tools:docs-reviewer` | Reviews with Vale linting and style guide checks, edits files in place |
-| 5. Create JIRA | *(direct bash/curl)* | — | Optional: creates a docs JIRA ticket linked to the parent ticket |
+| 4. Technical review | technical-reviewer | `docs-tools:technical-reviewer` | Reviews for technical accuracy — code examples, prerequisites, commands, failure paths |
+| 5. Style review | docs-reviewer | `docs-tools:docs-reviewer` | Reviews with Vale linting and style guide checks, edits files in place |
+| 6. Create JIRA | *(direct bash/curl)* | — | Optional: creates a docs JIRA ticket linked to the parent ticket |
 
 ## Output Structure
 
@@ -233,6 +234,7 @@ cat > "$STATE_FILE" << EOF
     "requirements": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
     "planning": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
     "writing": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
+    "technical_review": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
     "review": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
     "create_jira": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null}
   }
@@ -299,7 +301,7 @@ echo ""
 echo "Stages:"
 
 CREATE_JIRA_PROJ=$(jq -r '.options.create_jira_project // ""' "$STATE_FILE")
-STAGES="requirements planning writing review"
+STAGES="requirements planning writing technical_review review"
 case "$CREATE_JIRA_PROJ" in
     ""|"null") ;;
     *) STAGES="$STAGES create_jira" ;;
@@ -335,7 +337,7 @@ Find the first stage that is not completed. If all stages are completed, report 
 
 ```bash
 CREATE_JIRA_PROJ=$(jq -r '.options.create_jira_project // ""' "$STATE_FILE")
-STAGES="requirements planning writing review"
+STAGES="requirements planning writing technical_review review"
 case "$CREATE_JIRA_PROJ" in
     ""|"null") ;;
     *) STAGES="$STAGES create_jira" ;;
@@ -360,7 +362,7 @@ If all stages are completed, show the status summary and STOP.
 
 ### Step 5: Run Stages Sequentially
 
-Run each remaining stage in order: `requirements` → `planning` → `writing` → `review` → `create_jira` (if `--create-jira` was specified).
+Run each remaining stage in order: `requirements` → `planning` → `writing` → `technical_review` → `review` → `create_jira` (if `--create-jira` was specified).
 
 For each stage:
 
@@ -578,7 +580,57 @@ PREV_OUTPUT=$(jq -r '.stages.planning.output_file // ""' "$STATE_FILE")
 
 After the agent completes, verify the index file exists at `<DRAFTS_DIR>/_index.md`.
 
-### Stage 4: Review (docs-reviewer)
+### Stage 4: Technical Review (technical-reviewer) — iterative with writer
+
+The technical reviewer checks documentation for technical accuracy: code examples, prerequisites, commands, failure paths, and architectural coherence. The writer and technical reviewer iterate until the technical review passes.
+
+**Task tool parameters:**
+- `subagent_type`: `docs-tools:technical-reviewer`
+- `description`: `Technical review of documentation for <TICKET>`
+
+**Output path:**
+
+```bash
+TICKET_LOWERCASE=$(echo "$TICKET" | tr '[:upper:]' '[:lower:]')
+DRAFTS_DIR="${CLAUDE_DOCS_DIR}/drafts/${TICKET_LOWERCASE}"
+TECH_REVIEW_FILE="${DRAFTS_DIR}/_technical_review.md"
+```
+
+**Prompt:**
+
+> Perform a technical review of the documentation drafts for ticket `<TICKET>`.
+>
+> Source drafts location: `<DRAFTS_DIR>/`
+>
+> Review all .adoc and .md files in the drafts directory. Follow your standard review methodology — apply the developer lens for procedures and the architect lens for concepts. Check code example integrity, prerequisite completeness, command accuracy, failure path coverage, and architectural coherence.
+>
+> Save your review report to: `<TECH_REVIEW_FILE>`
+
+**Iteration loop:**
+
+After the technical reviewer completes, check the review report for critical or significant issues:
+
+1. Read `<TECH_REVIEW_FILE>` and check the **Overall technical confidence** rating
+2. If confidence is **HIGH**: mark `technical_review` as completed and proceed to the style review stage
+3. If confidence is **MEDIUM** or **LOW**: launch the writer agent to address the issues, then re-run the technical reviewer
+
+**Writer fix prompt (for iteration):**
+
+> The technical reviewer found issues in the documentation for ticket `<TICKET>`.
+>
+> Read the technical review report at: `<TECH_REVIEW_FILE>`
+>
+> Address all **Critical issues** and **Significant issues** listed in the report. Edit the draft files in place at `<DRAFTS_DIR>/`.
+>
+> Do NOT address minor issues or style concerns — those are handled by the style review stage.
+
+**Iteration rules:**
+
+- Maximum 3 iterations (initial review + 2 fix cycles). If confidence is still not HIGH after 3 iterations, mark the stage as completed with a note that manual technical review is recommended
+- Each iteration overwrites `<TECH_REVIEW_FILE>` with the latest review
+- The writer agent uses `subagent_type: docs-tools:docs-writer` for fix iterations
+
+### Stage 5: Style Review (docs-reviewer)
 
 **Task tool parameters:**
 - `subagent_type`: `docs-tools:docs-reviewer`
@@ -656,7 +708,7 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 
 After the agent completes, verify the review report exists.
 
-### Stage 5: Create JIRA (optional — direct bash/curl)
+### Stage 6: Create JIRA (optional — direct bash/curl)
 
 This stage only runs when `--create-jira <PROJECT>` was provided. It does NOT use a Task agent — it uses direct Bash commands with the JIRA REST API.
 
@@ -960,7 +1012,7 @@ mv "$TMP" "$STATE_FILE"
 
 ## Workflow Completion
 
-After all stages complete successfully (four core stages, plus the optional create_jira stage if `--create-jira` was specified), update the overall workflow status:
+After all stages complete successfully (five core stages, plus the optional create_jira stage if `--create-jira` was specified), update the overall workflow status:
 
 ```bash
 TMP=$(mktemp)
