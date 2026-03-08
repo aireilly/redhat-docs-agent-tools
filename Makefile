@@ -13,4 +13,4 @@ update: ## Regenerate plugin docs (PLUGINS.md, docs/plugins/*, docs/install/*)
 	python scripts/generate_plugin_docs.py
 
 clean: ## Remove build artifacts
-	rm -rf site/
+	rm -rf site/ docs/plugins.md docs/plugins/ docs/install/
