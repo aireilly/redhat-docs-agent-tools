@@ -15,7 +15,7 @@ nav = [
         {"hello-world" = "plugins/hello-world.md"},
     ]},
     {"Install" = [
-        {"Installation" = "install/index.md"},
+        {"Install plugins" = "install/index.md"},
     ]},
     {"Contribute" = [
         {"Contributing" = "contribute/index.md"},
@@ -75,6 +75,7 @@ pygments_lang_class = true
 [project.markdown_extensions.md_in_html]
 [project.markdown_extensions.pymdownx.inlinehilite]
 [project.markdown_extensions.pymdownx.snippets]
+base_path = ["."]
 [project.markdown_extensions.pymdownx.superfences]
 [project.markdown_extensions.admonition]
 [project.markdown_extensions.pymdownx.details]

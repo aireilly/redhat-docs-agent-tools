@@ -152,6 +152,12 @@ def generate_plugin_detail_page(plugin: dict) -> str:
             lines.append(f"| `{skill['name']}` | {skill['description']} |")
         lines.append("")
 
+    # Include plugin README via pymdownx.snippets
+    readme_path = PLUGINS_DIR / p["name"] / "README.md"
+    if readme_path.is_file():
+        lines.append(f'--8<-- "plugins/{p["name"]}/README.md"')
+        lines.append("")
+
     return "\n".join(lines)
 
 
