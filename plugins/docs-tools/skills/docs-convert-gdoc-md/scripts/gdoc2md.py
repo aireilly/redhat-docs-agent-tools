@@ -26,6 +26,22 @@ def check_dependencies():
         sys.exit(1)
 
 
+VALID_URL_RE = re.compile(
+    r"^https://docs\.google\.com/"
+    r"(document|presentation|spreadsheets)/d/[a-zA-Z0-9_-]+"
+)
+
+
+def validate_url(url):
+    if not VALID_URL_RE.match(url):
+        print(
+            "Error: URL must be a Google Docs, Slides, or Sheets URL "
+            "(https://docs.google.com/...)",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+
 def detect_mode(url):
     if "/presentation/d/" in url:
         return "slides"
@@ -43,6 +59,7 @@ def parse_args():
         sys.exit(1)
 
     url = sys.argv[1]
+    validate_url(url)
     output = sys.argv[2] if len(sys.argv) > 2 else ""
     mode = detect_mode(url)
     return url, output, mode
