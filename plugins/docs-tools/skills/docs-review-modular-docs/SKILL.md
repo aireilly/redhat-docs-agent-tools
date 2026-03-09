@@ -1,7 +1,7 @@
 ---
 context: fork
 name: docs-review-modular-docs
-description: Review AsciiDoc files for Red Hat modular documentation compliance including module types, structure, and assembly formation. Use this skill for modular docs-focused peer reviews of .adoc files only. Also use when checking anchor IDs, context variables, module type identification, or assembly structure.
+description: Review AsciiDoc (.adoc) files for Red Hat modular documentation compliance — module types (concept, procedure, reference), assembly structure, anchor IDs, context variables, leveloffset, and include directives. Use this skill whenever someone asks about modular docs, checks .adoc file structure, asks if a module is the right type, needs to verify anchor IDs have _{context}, or reviews assemblies. Also triggers for questions about concept vs procedure vs reference modules, prerequisites formatting, or Red Hat doc structure.
 ---
 
 # Modular documentation review skill
@@ -14,17 +14,18 @@ For detailed module type guidance, templates, and structural rules, read @plugin
 
 ## Concept checklist
 
-- [ ] Title is noun phrase (NOT gerund)
+- [ ] Title is noun phrase (NOT gerund) and uses sentence case (not Title Case)
 - [ ] Anchor ID includes `_{context}`
 - [ ] Introduction provides overview (what and why)
 - [ ] No step-by-step instructions (those belong in procedures)
 - [ ] Actions avoided unless highly context-dependent
 - [ ] If subheadings used, first tried splitting into separate modules
+- [ ] Only valid admonition types used: NOTE, IMPORTANT, WARNING, TIP (CAUTION is not supported by the Red Hat Customer Portal)
 - [ ] Additional resources focused on relevant items only
 
 ## Procedure checklist
 
-- [ ] Title uses imperative phrase (verb without -ing)
+- [ ] Title uses imperative phrase (verb without -ing) and sentence case (not Title Case)
 - [ ] Anchor ID includes `_{context}`
 - [ ] Introduction explains why and where
 - [ ] `.Procedure` section present with numbered steps
@@ -34,11 +35,12 @@ For detailed module type guidance, templates, and structural rules, read @plugin
 - [ ] No custom subheadings - only allowed sections used
 - [ ] `.Next steps` contains links only, not instructions
 - [ ] Prerequisites written as conditions, not instructions
+- [ ] Only valid admonition types used: NOTE, IMPORTANT, WARNING, TIP (CAUTION is not supported by the Red Hat Customer Portal)
 - [ ] Optional sections in correct order: Limitations, Prerequisites, Verification, Troubleshooting, Next steps, Additional resources
 
 ## Reference checklist
 
-- [ ] Title is noun phrase
+- [ ] Title is noun phrase and uses sentence case (not Title Case)
 - [ ] Anchor ID includes `_{context}`
 - [ ] Introduction explains what data is provided
 - [ ] Body uses tables or labeled lists

@@ -1,7 +1,7 @@
 ---
 context: fork
 name: rh-ssg-formatting
-description: Review documentation for Red Hat Supplementary Style Guide formatting issues including code blocks, user-replaced values, titles, product names, and date formats. Use this skill for formatting-focused peer reviews of Red Hat docs.
+description: Review Red Hat documentation for SSG formatting compliance — code blocks (one command per step, bold via subs="+quotes", separate input/output), user-replaced values (angle brackets, italics, underscores), sentence-style capitalization in titles, product name/version attributes (not hard-coded), date formats ("3 October 2019"), single-step procedures (bullet not number), non-breaking spaces in "Red Hat", and man page references. Use this skill when checking Red Hat docs for code block formatting, placeholder values, title capitalization, product name attributes, or date formats.
 ---
 
 # Red Hat SSG: Formatting review skill

@@ -1,7 +1,7 @@
 ---
 context: fork
 name: rh-ssg-grammar-and-language
-description: Review documentation for Red Hat Supplementary Style Guide grammar and language issues including conscious language, contractions, conversational style, minimalism, and user references. Use this skill for grammar-focused peer reviews of Red Hat docs.
+description: Review Red Hat documentation for SSG grammar and language compliance — conscious language (no blacklist/whitelist, no master/slave), no contractions in product docs, conversational style levels, minimalism principles (action-oriented, scannable, concise), animate vs. inanimate user pronouns (who vs. that), and homograph avoidance. Use this skill when checking Red Hat docs for inclusive/conscious language, contraction usage, minimalism, wordiness, or grammar compliance. This skill takes precedence over ibm-sg-language-and-grammar for Red Hat content.
 ---
 
 # Red Hat SSG: Grammar and Language review skill
@@ -35,6 +35,8 @@ Review documentation for grammar and language compliance with the Red Hat Supple
 - [ ] Titles and headings are 3–11 words with clear, familiar keywords (Principle 3)
 - [ ] No long introductions or unnecessary context; sentences are concise (Principle 4)
 - [ ] Troubleshooting, error recovery, and verification steps are included where needed (Principle 5)
+- [ ] No self-referential text: "This topic explains...", "This section describes...", "This document covers..."
+- [ ] Verbose or inflated terms are avoided: "leverage" → "use", "utilize" → "use", "in order to" → "to", "via" → "through"
 
 ### Users
 

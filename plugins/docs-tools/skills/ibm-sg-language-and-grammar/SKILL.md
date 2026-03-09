@@ -1,7 +1,7 @@
 ---
 context: fork
 name: ibm-sg-language-and-grammar
-description: Review documentation for IBM Style Guide language and grammar issues including abbreviations, capitalization, inclusive language, verbs, and preferred terminology. Use this skill for language-focused peer reviews.
+description: Review documentation for IBM Style Guide language and grammar — abbreviations/acronyms, capitalization, active voice, inclusive language (master/slave, blacklist/whitelist, gendered pronouns), contractions, anthropomorphism, and preferred terminology (avoid "utilize," "leverage," "via," "in order to," "please"). Use this skill when checking grammar, word choice, inclusive language, or terminology compliance. For Red Hat docs, the rh-ssg-grammar-and-language skill takes precedence on conscious language and contractions.
 ---
 
 # IBM Style Guide: Language and Grammar review skill

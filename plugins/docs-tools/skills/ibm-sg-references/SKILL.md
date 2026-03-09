@@ -1,7 +1,7 @@
 ---
 context: fork
 name: ibm-sg-references
-description: Review documentation for IBM Style Guide reference issues including citations, product names, trademarks, versions, and geographic locations. Use this skill for reference-focused peer reviews.
+description: Review documentation for IBM Style Guide reference issues — citations, footnotes, geographic locations, product and service names (official capitalization, trademark usage), product version formatting ("version 4.12 and later" not "recent versions"), and name/title conventions. Use this skill when checking product names, version references, citation formatting, geographic references, or footnote usage in documentation.
 ---
 
 # IBM Style Guide: References review skill

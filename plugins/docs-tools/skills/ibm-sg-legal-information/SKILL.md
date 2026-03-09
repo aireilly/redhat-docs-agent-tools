@@ -1,7 +1,7 @@
 ---
 context: fork
 name: ibm-sg-legal-information
-description: Review documentation for IBM Style Guide legal issues including claims, trademarks, copyright, personal information, and republishing. Use this skill for legal-focused peer reviews.
+description: Review documentation for IBM Style Guide legal issues — unsubstantiated claims, superlatives, trademarks (™/® usage), copyright notices, personal information (PII in examples), and republishing/attribution of external content. Use this skill when checking for legal risks, trademark compliance, PII exposure in examples, unsupported marketing claims, or content attribution issues. For Red Hat docs, the rh-ssg-legal-and-support skill takes precedence on Technology Preview and Developer Preview.
 ---
 
 # IBM Style Guide: Legal Information review skill

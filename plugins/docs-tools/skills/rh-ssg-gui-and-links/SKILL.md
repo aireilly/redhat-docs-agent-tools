@@ -1,7 +1,7 @@
 ---
 context: fork
 name: rh-ssg-gui-and-links
-description: Review documentation for Red Hat Supplementary Style Guide graphical interface and link issues including UI elements, screenshots, link text, cross-references, and external links. Use this skill for GUI and links-focused peer reviews of Red Hat docs.
+description: Review Red Hat documentation for SSG graphical interface and link compliance — UI element formatting (bold text, correct verbs: click/select/enter), screenshot guidelines, text entry ("enter" not "type"), cross-reference format (xref), external link rules (no bare URLs, no shorteners, descriptive link text), Red Hat docs links (use "latest" in URL path), and Knowledgebase article link formatting. Use this skill when checking Red Hat docs for UI element formatting, link text, cross-references, screenshot usage, or URL formatting. Takes precedence over ibm-sg-technical-elements for UI and link checks on Red Hat content.
 ---
 
 # Red Hat SSG: Graphical Interfaces and Links review skill
@@ -25,6 +25,14 @@ Review documentation for GUI and link compliance with the Red Hat Supplementary 
 - [ ] All GUI element names use bold text: `*Installed Operators*`
 - [ ] Bold is used even for non-clickable elements if the name appears in the GUI
 - [ ] Unlabeled elements use a generic description without bold: "the search field" not "the **Search** field"
+
+### Interaction verbs
+
+- [ ] "Click" is used, not "click on" — the word "on" is unnecessary
+- [ ] "Select" or "choose" is used for menu items and dropdown options
+- [ ] "Enter" is used for text fields (not "type" or "input")
+- [ ] "Clear" is used to deselect a checkbox (not "uncheck" or "deselect")
+- [ ] "Turn on" / "turn off" is used for toggles (not "enable" / "disable")
 
 ### Cross-references
 

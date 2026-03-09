@@ -1,7 +1,7 @@
 ---
 context: fork
 name: ibm-sg-numbers-and-measurement
-description: Review documentation for IBM Style Guide number and measurement issues including numerals, dates, times, currency, and units. Use this skill for numbers-focused peer reviews.
+description: Review documentation for IBM Style Guide number and measurement formatting — numerals vs. spelled-out numbers, commas in large numbers, currency codes (USD/EUR), date formats, 24-hour time, units of measurement (KB/MB/GB with spaces), IEC binary prefixes (KiB/MiB/GiB), and phone numbers. Use this skill when checking number formatting, date/time consistency, unit abbreviations, or measurement conventions in documentation.
 ---
 
 # IBM Style Guide: Numbers and Measurement review skill

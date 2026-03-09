@@ -1,7 +1,7 @@
 ---
 context: fork
 name: rh-ssg-technical-examples
-description: Review documentation for Red Hat Supplementary Style Guide technical example issues including root privileges, IP addresses, code examples, and syntax highlighting. Use this skill for technical-examples-focused peer reviews of Red Hat docs.
+description: Review Red Hat documentation for SSG technical example compliance — root privilege commands (use sudo with $ prompt, not su -), YAML ellipses (use "# ..." not bare "..."), IP addresses (RFC 5737 for IPv4, RFC 3849 for IPv6), MAC addresses (RFC 7042), code block quality (accurate, copy-paste friendly), and syntax highlighting (never use "bash" for terminal commands — use "terminal", "console", or omit). Use this skill when checking Red Hat docs for code examples, IP/MAC addresses in examples, sudo usage, YAML formatting, or source language tags on code blocks. Takes precedence over ibm-sg-technical-elements for Red Hat content.
 ---
 
 # Red Hat SSG: Technical Examples review skill

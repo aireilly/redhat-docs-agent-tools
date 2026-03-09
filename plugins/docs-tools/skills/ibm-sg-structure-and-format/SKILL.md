@@ -1,7 +1,7 @@
 ---
 context: fork
 name: ibm-sg-structure-and-format
-description: Review documentation for IBM Style Guide structure and format issues including headings, lists, procedures, tables, notes, and emphasis. Use this skill for structure-focused peer reviews.
+description: Review documentation for IBM Style Guide structure and format — headings (sentence case, no gerunds), lists (parallel structure, lead-in sentences), procedures (imperative verbs, one action per step, max 9 steps), tables (headers, alignment, captions), notes/warnings/tips, bold/monospace/italic formatting, and figures with alt text. Use this skill when checking doc structure, heading style, list formatting, procedure steps, table layout, or emphasis conventions. For Red Hat docs, the rh-ssg-structure and rh-ssg-formatting skills take precedence.
 ---
 
 # IBM Style Guide: Structure and Format review skill

@@ -1,7 +1,7 @@
 ---
 context: fork
 name: ibm-sg-technical-elements
-description: Review documentation for IBM Style Guide technical element issues including code examples, commands, UI elements, keyboard keys, and file paths. Use this skill for technical-element-focused peer reviews.
+description: Review documentation for IBM Style Guide technical elements — code examples (language tags, realistic values, RFC 2606/5737 addresses), command-line formatting (prompts, line continuation), command syntax notation (<variable>, [optional], {choice1|choice2}), file names/paths (monospace), keyboard keys (bold, Ctrl+C), menus (bold, File > Save), UI elements (bold, correct interaction verbs: click/select/enter/clear), and web/IP/email addresses. Use this skill when checking code blocks, CLI examples, UI element formatting, keyboard shortcuts, or command syntax in docs. For Red Hat docs, rh-ssg-technical-examples and rh-ssg-gui-and-links take precedence.
 ---
 
 # IBM Style Guide: Technical Elements review skill

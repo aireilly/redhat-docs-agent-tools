@@ -1,7 +1,7 @@
 ---
 context: fork
 name: rh-ssg-accessibility
-description: Review documentation for Red Hat Supplementary Style Guide accessibility issues including colors, images, links, tables, and meaningful HTML structure. Use this skill for accessibility-focused peer reviews of Red Hat docs.
+description: Review Red Hat documentation for accessibility compliance (WCAG) — alt text for images/icons, color not as sole information carrier, no directional language ("left"/"right"/"above"), descriptive link text (no "click here"), table structure (no irregular headers, no blank header cells), and correct heading nesting. Use this skill whenever checking Red Hat docs for accessibility, screen reader compatibility, alt text, link text, or WCAG compliance. This skill takes precedence over ibm-sg-audience-and-medium for accessibility checks on Red Hat content.
 ---
 
 # Red Hat SSG: Accessibility review skill
