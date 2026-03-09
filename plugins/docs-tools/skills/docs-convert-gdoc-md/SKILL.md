@@ -18,7 +18,7 @@ Export Google content using the `gcloud` CLI for authentication:
 - The [Red Hat Docs Agent Tools marketplace](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/) is configured
 - `gcloud` CLI is installed
 - User is authenticated via `gcloud auth login --enable-gdrive-access`
-- `python-pptx` is installed for Slides export (`pip install python-pptx`)
+- `python-pptx` is installed for Slides export (`python3 -m pip install python-pptx`)
 
 ## Instructions
 
@@ -47,4 +47,4 @@ python3 plugins/docs-tools/skills/docs-convert-gdoc-md/scripts/gdoc2md.py "<url>
 - **401**: Authentication expired. Tell the user to run `gcloud auth login --enable-gdrive-access`.
 - **403**: No permission. The user needs access to the document.
 - **404**: Wrong URL or the document doesn't exist.
-- **ImportError**: `python-pptx` not installed. Tell the user to run `pip install python-pptx`.
+- **ImportError**: `python-pptx` not installed. Tell the user to run `python3 -m pip install python-pptx`.

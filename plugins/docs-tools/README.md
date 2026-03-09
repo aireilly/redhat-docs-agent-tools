@@ -15,7 +15,7 @@
 - Install Python packages
 
     ```bash
-    pip install python-pptx
+    python3 -m pip install python-pptx
     ```
 
     The `python-pptx` package is only required for Google Slides conversion. Google Docs and Sheets conversion has no extra dependencies.

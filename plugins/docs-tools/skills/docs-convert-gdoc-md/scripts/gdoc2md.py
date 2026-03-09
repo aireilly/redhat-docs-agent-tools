@@ -17,8 +17,7 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
 
-# Anchored at both ends; tolerates trailing segments
-# like /edit, /view, ?usp=sharing
+# tolerates trailing segments like /edit, /view, ?usp=sharing
 VALID_URL_RE = re.compile(
     r"^https://docs\.google\.com/"
     r"(?P<mode>document|presentation|spreadsheets)/d/(?P<id>[a-zA-Z0-9_-]+)"

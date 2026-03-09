@@ -26,3 +26,4 @@ plugins/<name>/
 - Auto-generated files (plugins.md, docs/plugins.md, docs/plugins/, docs/install/) are gitignored and built by CI only. Run `make update` locally to preview them
 - Use the hello-world plugin as a reference implementation
 - Use `.work/` directory for temporary files (gitignored)
+- When referencing Python in install steps or prerequisites, always refer to `python3`. Use `python3 -m pip install` instead of `pip install`
