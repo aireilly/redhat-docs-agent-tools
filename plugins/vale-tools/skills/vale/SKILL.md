@@ -37,7 +37,26 @@ BasedOnStyles = RedHat
 BasedOnStyles = RedHat
 ```
 
-Do NOT create the file automatically — ask the user if they want to create it first.
+Do NOT create the file automatically, ask the user if they want to create it first.
+
+If a temporary config is needed, create it in `.work/` (gitignored) and clean it up after linting:
+
+```bash
+mkdir -p .work
+cat <<'EOF' > .work/vale-temp.ini
+StylesPath = .vale/styles
+MinAlertLevel = suggestion
+Packages = RedHat
+
+[*.adoc]
+BasedOnStyles = RedHat
+
+[*.md]
+BasedOnStyles = RedHat
+EOF
+```
+
+Use `--config=.work/vale-temp.ini` when running Vale, and remove the temp config and `.work/.vale/` directory when done.
 
 ### Sync styles
 
@@ -104,6 +123,24 @@ vale --glob='!**/*-generated.md' docs/
 vale --glob='*.py' src/
 vale --glob='*.go' pkg/
 ```
+
+## Presenting results
+
+After running Vale, organize the output for the user:
+
+1. **Lead with errors.** Errors are must-fix violations. Present them first with the file, line, and what to change.
+2. **Group warnings and suggestions separately.** Warnings need attention; suggestions are optional improvements.
+3. **Summarize by file** when linting multiple files. Show a table with error/warning/suggestion counts per file so the user can prioritize.
+4. **Flag likely false positives.** Common RedHat Vale false positives include:
+   - Technical terms not in the dictionary (e.g., "repo", "docstrings", "deduplicated")
+   - Proper nouns and product names flagged by spelling rules (e.g., "Kubernetes", "Zensical")
+   - Content inside fenced code blocks incorrectly linted (Vale parser limitation)
+   - Acronyms in headings flagged by capitalization rules (e.g., "CLI", "API")
+   - Passive voice in conditionals and prerequisites (e.g., "if no files are found", "must be installed")
+
+   When you spot a likely false positive, note it as such rather than recommending the user change correct text.
+
+5. **Do NOT auto-fix source files.** Report findings and let the user decide what to change.
 
 ## Example invocations
 
