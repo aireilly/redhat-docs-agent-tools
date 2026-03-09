@@ -31,7 +31,7 @@ The documentation site is built with [Zensical](https://zensical.org/) and auto-
 
 ```bash
 # Install zensical
-pip install zensical
+python3 -m pip install zensical
 
 # Start dev server
 make serve
