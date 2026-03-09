@@ -180,10 +180,12 @@ Launch 4 agents in parallel to independently review the documentation changes. E
 
 For `--pr` mode, use `python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py extract` for deterministic line numbers from the diff.
 
-The 4 agents are:
+The 4 agents are defined below. Each agent should read and follow the referenced agent file for detailed review instructions, checklists, and output format.
+
+**Important**: The agent files describe a JIRA-based drafts workflow for their standalone use. In this docs-review command context, ignore the JIRA/drafts workflow sections — instead, review the changed files from the diff (Step 3) and return issues in the format described above (file, line, description, reason, confidence, severity).
 
 **Agent 1: Style guide compliance (sonnet)**
-Check all changed documentation files against the IBM Style Guide and Red Hat Supplementary Style Guide. Apply these review skills:
+Read and follow @plugins/docs-tools/agents/docs-reviewer.md for review checklists and severity levels. Focus on these skills only:
 - `ibm-sg-language-and-grammar` — abbreviations, capitalization, active voice, inclusive language
 - `ibm-sg-punctuation` — colons, commas, dashes, hyphens, quotes
 - `ibm-sg-structure-and-format` — headings, lists, procedures, tables, emphasis
@@ -194,7 +196,7 @@ Check all changed documentation files against the IBM Style Guide and Red Hat Su
 - `rh-ssg-technical-examples` — root privileges, YAML, IPs/MACs, syntax highlighting
 
 **Agent 2: Style guide compliance (sonnet)**
-Check all changed documentation files against the remaining style guide skills:
+Read and follow @plugins/docs-tools/agents/docs-reviewer.md for review checklists and severity levels. Focus on these skills only:
 - `ibm-sg-audience-and-medium` — accessibility, global audiences, tone
 - `ibm-sg-numbers-and-measurement` — numerals, formatting, currency, dates, units
 - `ibm-sg-references` — citations, product names, versions
@@ -205,31 +207,13 @@ Check all changed documentation files against the remaining style guide skills:
 - `rh-ssg-release-notes` — release note style, tenses, Jira refs (apply only to .adoc files that appear to be release notes)
 
 **Agent 3: Modular docs structure and content quality (opus)**
-Check documentation structure and content quality:
-- For .adoc files, apply `docs-review-modular-docs`:
-  - Module type declared with `:_mod-docs-content-type:`
-  - Valid type: CONCEPT, PROCEDURE, REFERENCE, or ASSEMBLY
-  - Anchor ID format correct (with `_{context}` for modules, without for assemblies)
-  - Title follows type convention (imperative for procedures, noun for others)
-  - Short description with `[role="_abstract"]` present
-  - Procedure modules use only allowed sections (.Prerequisites, .Procedure, .Verification)
-  - Assemblies set `:context:` before includes
-- Apply `docs-review-content-quality`:
-  - Information in logical order, prerequisites before procedures
-  - User goal is clear, content focuses on user tasks
-  - Content is scannable and concise
-  - No fluff or unnecessary content
+Read and follow @plugins/docs-tools/agents/docs-reviewer.md for the full modular docs checklist and content quality review process, including Vale integration. Focus on these skills only:
+- `docs-review-modular-docs` — module types, anchor IDs, assemblies, title conventions
+- `docs-review-content-quality` — logical flow, user journey, scannability, conciseness
 - Run Vale once per file if Vale is available. Fix clear errors, skip ambiguous issues.
 
 **Agent 4: Technical accuracy and consistency (opus)**
-Check for issues that will confuse or mislead users:
-- Broken cross-references or include directives
-- Inconsistent terminology within the changed files
-- Code examples with syntax errors or security issues (hardcoded passwords, root-level commands without sudo/oc adm)
-- Mismatched labels, selectors, or resource names in YAML/JSON examples
-- Missing or incorrect placeholder values (e.g. `<your-value>` style)
-- Commands that reference wrong paths, flags, or options
-- Version numbers or product names that don't match the document context
+Read and follow @plugins/docs-tools/agents/technical-reviewer.md for the full technical review process, including doc type detection, reviewer persona (developer/architect lens), the 6 review dimensions (code integrity, prerequisites, command accuracy, failure paths, architectural coherence, audience level), confidence scoring, and output format. Do not duplicate style or formatting checks — those are covered by Agents 1-3.
 
 **CRITICAL: We only want HIGH SIGNAL issues.** Flag issues where:
 - The documentation will actively mislead users (wrong commands, broken examples, incorrect terminology)
