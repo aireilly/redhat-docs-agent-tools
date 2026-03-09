@@ -2,6 +2,7 @@
 .claude/
 site/
 .venv/
+.vale/
 __pycache__/
 *.pyc
 .work/
