@@ -6,6 +6,14 @@ Vale linting tools for validating documentation using the Vale CLI.
 
 ## Prerequisites
 
+### GitHub CLI
+
+Install the [GitHub CLI (`gh`)](https://cli.github.com/) and authenticate:
+
+```bash
+gh auth login
+```
+
 ### Vale CLI
 
 ```bash
