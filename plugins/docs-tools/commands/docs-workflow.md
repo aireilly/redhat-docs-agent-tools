@@ -167,6 +167,10 @@ CLAUDE_DOCS_DIR="${PWD}/.claude/docs"
 SAFE_TICKET=$(echo "$TICKET" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
 STATE_FILE="${CLAUDE_DOCS_DIR}/workflow/workflow_${SAFE_TICKET}.json"
 
+# Resolve the plugin root directory (where this command file lives)
+# This is used to locate agent files in the agents/ directory
+CLAUDE_PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 # Ensure directories exist
 mkdir -p "${CLAUDE_DOCS_DIR}/workflow" "${CLAUDE_DOCS_DIR}/requirements" "${CLAUDE_DOCS_DIR}/plans" "${CLAUDE_DOCS_DIR}/drafts"
 ```
@@ -203,7 +207,7 @@ cat > "$STATE_FILE" << EOF
     "requirements": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
     "planning": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
     "writing": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
-    "technical_review": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
+    "technical_review": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null, "iterations": 0},
     "review": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
     "create_jira": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null}
   }
@@ -383,6 +387,8 @@ Replace `<STAGE>` and `<OUTPUT_FILE>` with actual values for each invocation.
 
 The following sections define the exact prompt to pass to the Agent tool for each stage. Each prompt explicitly tells the agent which agent file to read and follow — this is how custom agents are invoked. All agents use the default `general-purpose` subagent type.
 
+**IMPORTANT — variable expansion**: All `<VARIABLE>` placeholders (e.g., `<TICKET>`, `<PREV_OUTPUT>`, `<DRAFTS_DIR>`, `<OUTPUT_FILE>`) must be expanded to their actual values **before** passing the prompt string to the Agent tool. Subagents start with a fresh context — they cannot access the orchestrator's shell variables. Build each prompt string with the resolved values substituted in.
+
 ### Stage 1: Requirements (requirements-analyst)
 
 **Agent tool parameters:**
@@ -539,11 +545,19 @@ TECH_REVIEW_FILE="${DRAFTS_DIR}/_technical_review.md"
 
 **Iteration loop:**
 
-After the technical reviewer completes, check the review report for critical or significant issues:
+After the technical reviewer completes, increment the iteration counter in state and check the review report:
+
+```bash
+TMP=$(mktemp)
+jq '.stages.technical_review.iterations += 1' "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+ITERATIONS=$(jq '.stages.technical_review.iterations' "$STATE_FILE")
+```
 
 1. Read `<TECH_REVIEW_FILE>` and check the **Overall technical confidence** rating
 2. If confidence is **HIGH**: mark `technical_review` as completed and proceed to the style review stage
-3. If confidence is **MEDIUM** or **LOW**: launch the writer agent to address the issues, then re-run the technical reviewer
+3. If confidence is **MEDIUM** or **LOW** and `ITERATIONS < 3`: launch the writer agent to fix issues, then re-run the technical reviewer
+4. If confidence is **MEDIUM** or **LOW** and `ITERATIONS >= 3`: mark the stage as completed with a note that manual technical review is recommended
 
 **Writer fix prompt (for iteration):**
 
@@ -559,9 +573,9 @@ After the technical reviewer completes, check the review report for critical or 
 
 **Iteration rules:**
 
-- Maximum 3 iterations (initial review + 2 fix cycles). If confidence is still not HIGH after 3 iterations, mark the stage as completed with a note that manual technical review is recommended
+- Maximum 3 iterations (initial review + 2 fix cycles), tracked in `stages.technical_review.iterations`
 - Each iteration overwrites `<TECH_REVIEW_FILE>` with the latest review
-- The writer fix iteration uses the same docs-writer agent prompt pattern
+- On resume, the iteration count is preserved — the workflow continues from where it left off rather than restarting the review cycle
 
 ### Stage 5: Style Review (docs-reviewer)
 
