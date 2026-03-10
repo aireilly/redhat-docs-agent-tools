@@ -366,9 +366,8 @@ For each stage:
 
 1. Update the state to `in_progress`
 2. Invoke the Agent tool with the prompt from the corresponding stage section below
-3. After the agent completes, verify the output file exists
-4. Update the state to `completed` with the output file path
-5. Proceed to the next stage
+3. After the agent completes, use the "Mark stage as completed" command below (it verifies the output file and updates state)
+4. Proceed to the next stage
 
 **IMPORTANT**: Run stages sequentially, not in parallel. Each stage depends on the previous stage's output.
 
@@ -386,15 +385,25 @@ jq --arg stage "<STAGE>" --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
 mv "$TMP" "$STATE_FILE"
 ```
 
-**Mark stage as completed:**
+**Mark stage as completed (with output file verification):**
 
 ```bash
+if [[ ! -f "$OUTPUT_FILE" ]]; then
+    OUTPUT_FILE=$(ls -t "${CLAUDE_DOCS_DIR}/<SUBDIR>/"*"${SAFE_TICKET}"*.md 2>/dev/null | head -1)
+fi
+if [[ ! -f "$OUTPUT_FILE" ]]; then
+    echo "ERROR: Output file not found for stage <STAGE>"
+    exit 1
+fi
 TMP=$(mktemp)
-jq --arg stage "<STAGE>" --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg output "<OUTPUT_FILE>" \
+jq --arg stage "<STAGE>" --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg output "$OUTPUT_FILE" \
    '.stages[$stage].status = "completed" | .stages[$stage].completed_at = $now | .stages[$stage].output_file = $output | .updated_at = $now' \
    "$STATE_FILE" > "$TMP"
 mv "$TMP" "$STATE_FILE"
+echo "Stage <STAGE> completed. Output: $OUTPUT_FILE"
 ```
+
+Replace `<SUBDIR>` with the output directory for the stage (`requirements`, `plans`, or `drafts/<TICKET>`).
 
 **Mark stage as failed:**
 
