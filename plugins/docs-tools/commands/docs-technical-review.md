@@ -1,209 +1,280 @@
 ---
-description: Run the two-phase technical review workflow to validate documentation against code repositories and interactively apply fixes. Phase 1 auto-fixes high-confidence issues, Phase 2 walks through remaining fixes interactively.
-argument-hint: --docs <source> [--docs <source>...] [--code URL] [--jira TICKET] [--pr URL] [--gdoc URL] [--fix] [--auto] [--phase1-only]
-allowed-tools: Read, Write, Bash, Skill, AskUserQuestion
+description: Validate documentation technical accuracy against code repositories. Detects removed commands, changed API signatures, stale code examples, renamed config keys, and moved file paths. Auto-fixes high-confidence issues (>=65%) and interactively walks through lower-confidence fixes. Use this command when asked to check if docs match the code, verify CLI examples still work, validate API references, find outdated commands or stale documentation, compare docs against a PR or JIRA ticket, or run a technical review. Also use when the user says things like "are these docs accurate" or "check the code examples".
+argument-hint: --docs <source> [--docs <source>...] [--code URL] [--jira TICKET] [--pr URL] [--gdoc URL] [--fix] [--apply]
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Skill, WebFetch, AskUserQuestion
 ---
 
-# Technical Review Workflow
+# Technical Review
 
-Orchestrates the complete technical review workflow for validating documentation against code repositories:
-- **Phase 1**: Validate docs against code repos, auto-fix high-confidence issues (>=65%)
-- **Phase 2**: Interactively review and apply lower-confidence fixes (<65%)
+Validate documentation for technical accuracy by comparing against source code repositories. Auto-fixes high-confidence issues and generates detailed reports. Optionally walks through lower-confidence fixes interactively.
 
-This command combines two separate skills into a unified workflow:
-1. `docs-technical-review-validate` - Phase 1 validation and auto-fix
-2. `docs-technical-review-apply` - Phase 2 interactive agentic review
+## Arguments
 
-## Benefits
+### Required
 
-- **Simpler for casual users**: Single command for full workflow
-- **Pause points for review**: User can review Phase 1 results before continuing
-- **Maintains reusability**: Individual skills can still be called independently
+- `--docs <source>` — Documentation to validate (repeatable). Can be a file path, directory, glob pattern, PR/MR URL, Google Doc URL, or remote repo URL.
 
-## Required Argument
+If no `--docs` is provided, stop and ask the user.
 
-- **--docs \<source\>**: (required) Path to documentation files or directory. Can be specified multiple times to review multiple sources.
+### Repository Discovery (at least one required, unless --report)
 
-**IMPORTANT**: This command requires at least one `--docs` argument. If none is provided, stop and ask the user to provide one.
+| Argument | Description |
+|----------|-------------|
+| `--code <URL>` | Explicit code repository URL (repeatable) |
+| `--ref <branch>` | Git ref for previous `--code` (default: main) |
+| `--jira <TICKET-123>` | Auto-discover repos from JIRA ticket |
+| `--pr <URL>` | Auto-discover from PR/MR URL (repeatable) |
+| `--gdoc <URL>` | Auto-discover from Google Doc |
 
-## Repository Discovery Options
+**Discovery priority**: `--code` > `--pr` > `--jira` > `--gdoc` > AsciiDoc `:code-repo-url:` attributes
 
-Specify one or more methods to discover code repositories for validation:
+### Actions
 
-- **--code URL**: Explicit code repository URL
-- **--ref BRANCH**: Git ref for previous --code (default: main)
-- **--jira TICKET-123**: Auto-discover repos from JIRA ticket
-- **--pr URL**: Auto-discover from PR/MR URL (can specify multiple)
-- **--gdoc URL**: Auto-discover from Google Doc
+| Flag | Description |
+|------|-------------|
+| `--fix` | Auto-fix high-confidence issues (>=65%) |
+| `--apply` | After validation, interactively walk through lower-confidence fixes (<65%) |
+| `--dry-run` | Preview changes without applying |
 
-**Discovery priority** (first to last): `--code` > `--pr` > `--jira` > `--gdoc` > AsciiDoc `:code-repo-url:` attributes
+### Resume from Previous Run
 
-## Options
+| Argument | Description |
+|----------|-------------|
+| `--report <path>` | Skip validation, apply fixes from existing report JSON |
+| `--items <ID,ID,...>` | Only process these specific item IDs (with `--report` or `--apply`) |
+| `--confidence <MIN-MAX>` | Only process items in this confidence range (with `--report` or `--apply`) |
 
-| Option | Description |
-|--------|-------------|
-| --fix | Enable auto-fixing of high-confidence issues (>=65%) |
-| --dry-run | Preview changes without applying |
-| --auto | Run both phases without pausing (useful for CI/CD) |
-| --phase1-only | Stop after Phase 1 validation and auto-fix |
-| --confidence RANGE | Phase 2 only: confidence range to apply (e.g., "50-64") |
-| --items ID,ID | Phase 2 only: specific item IDs to apply (e.g., "MR-1,MR-3") |
+### Flag Combinations
+
+| Flags | Behavior |
+|-------|----------|
+| *(none)* | Validate only, write report |
+| `--fix` | Validate + auto-fix >=65%, write report |
+| `--apply` | Validate + interactive apply <65% |
+| `--fix --apply` | Full flow: validate + auto-fix + interactive apply |
+| `--report <path>` | Skip validation, interactive apply from saved report |
 
 ## Usage Examples
 
-### Interactive Mode (Recommended)
-
 ```bash
+# Validate and auto-fix
 /docs-tools:docs-technical-review --docs modules/ \
-  --jira RHAISTRAT-123 --fix
-```
+  --code https://github.com/org/repo --fix
 
-### Multiple Documentation Sources
+# Full flow: auto-fix + interactive apply
+/docs-tools:docs-technical-review --docs modules/ \
+  --jira RHAISTRAT-123 --fix --apply
 
-```bash
+# Multiple doc sources and repos
 /docs-tools:docs-technical-review --docs modules/ --docs guides/admin/ \
-  --jira RHAISTRAT-123 --fix
-```
+  --jira RHAISTRAT-123 --pr https://github.com/org/repo/pull/456 --fix
 
-### Automatic Mode (No Pause)
+# Resume from a previous report
+/docs-tools:docs-technical-review --report .claude_docs/technical-review-report.json \
+  --items MR-1,MR-3
 
-```bash
+# Dry run
 /docs-tools:docs-technical-review --docs modules/ \
-  --jira RHAISTRAT-123 --fix --auto
+  --code https://github.com/org/repo --dry-run
 ```
 
-### Phase 1 Only
-
-```bash
-/docs-tools:docs-technical-review --docs modules/ \
-  --jira RHAISTRAT-123 --fix --phase1-only
-```
-
-### Multiple Repository Sources
-
-```bash
-/docs-tools:docs-technical-review --docs modules/ \
-  --jira RHAISTRAT-123 --pr https://github.com/org/repo/pull/456 \
-  --code https://github.com/org/extra-repo --fix
-```
-
-### Dry Run
-
-```bash
-/docs-tools:docs-technical-review --docs modules/ \
-  --code https://github.com/nodejs/node --dry-run
-```
-
-## Step-by-Step Instructions
+## Implementation Workflow
 
 ### Step 1: Parse Arguments
 
-Extract the following from the user's command arguments:
+Extract arguments from the user's command. If `--report` is provided, skip to Step 10 (interactive apply from saved report).
 
-| Argument | Type | Collects into |
-|----------|------|---------------|
-| `--docs` | repeatable | `DOCS_SOURCES` array |
-| `--code` | single | `CODE_URL` |
-| `--ref` | single | `REF` (default: main) |
-| `--jira` | single | `JIRA` |
-| `--pr` | repeatable | `PR_URLS` array |
-| `--gdoc` | single | `GDOC` |
-| `--fix` | flag | `FIX` |
-| `--dry-run` | flag | `DRY_RUN` |
-| `--auto` | flag | `AUTO` |
-| `--phase1-only` | flag | `PHASE1_ONLY` |
-| `--confidence` | single | `CONFIDENCE_RANGE` (Phase 2 only) |
-| `--items` | single | `ITEM_IDS` (Phase 2 only) |
+If `--docs` is empty and `--report` is not provided, stop and ask the user.
 
-If `DOCS_SOURCES` is empty, stop and ask the user to provide `--docs`.
+### Step 2: Resolve Docs Sources
 
-### Step 2: Validate Prerequisites
+Each `--docs` source is auto-detected and resolved:
 
-Verify at least one repository discovery method is provided (`--code`, `--jira`, `--pr`, or `--gdoc`). If none, stop with an error listing the available options.
+| Source Type | Detection | Resolution |
+|-------------|-----------|------------|
+| Local file | Path exists as file | Use directly |
+| Local directory | Path exists as directory | Glob for `*.adoc` and `*.md` files |
+| Glob pattern | Contains `*` or `?` | Expand pattern to matching files |
+| PR/MR URL | Matches GitHub/GitLab PR URL pattern | Fetch changed doc files via `${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py` |
+| Google Doc URL | Matches `docs.google.com` | Read via `docs-convert-gdoc-md` skill, save to temp file |
+| Remote repo URL | Matches `https://github.com` or `https://gitlab.com` (non-PR) | Clone and glob for doc files |
 
-### Step 3: Run Phase 1 (Validation & Auto-Fix)
+### Step 3: Discover Code Repositories
 
-Build Phase 1 arguments by forwarding `--docs`, `--code`, `--ref`, `--jira`, `--pr`, `--gdoc`, `--fix`, and `--dry-run` to the skill invocation.
+Use discovery methods in priority order. If `--jira` is provided, fetch the JIRA ticket using the `jira-reader` skill, extract linked PR/MR URLs, and parse for repo references. If no repos are found by any method, search for `:code-repo-url:` attributes in AsciiDoc files as a fallback.
 
-Invoke Phase 1 using the Skill tool:
-- skill: `docs-technical-review-validate`
-- args: all forwarded arguments
+Verify at least one repo was found. If not, stop with an error listing the available discovery options.
 
-After Phase 1 completes, verify the report file exists at `.claude_docs/technical-review-report.md`. If missing, stop with an error.
+### Step 4: Clone Code Repositories
 
-### Step 4: Display Phase 1 Summary
+Clone each repo to `/tmp/tech-review/<repo-name>/` using `git clone --depth 1`. Try the specified `--ref` first, fall back to default branch. Skip repos already cloned. Warn and continue if a clone fails.
 
-Read the report file and extract summary statistics:
-- Total items validated
-- Auto-fixed count
-- Manual review needed count
+### Parallelization
 
-Display these to the user.
+When multiple code repositories are involved, parallelize the extract+search pipeline across repos using subagents. Each repo's pipeline (Steps 5-6) is independent and can run concurrently. Merge results before proceeding to Step 7.
 
-### Step 5: Decide Whether to Continue to Phase 2
+For single-repo reviews, run sequentially.
 
-**Phase 1 only mode** (`--phase1-only`): Stop and show how to run Phase 2 later with the `docs-technical-review-apply` skill.
+### Step 5: Extract Technical References
 
-**No manual review items**: Stop with success message.
+Run the `extract_tech_references.rb` script from `${CLAUDE_PLUGIN_ROOT}/commands/scripts/`:
 
-**Auto mode** (`--auto`): Proceed directly to Phase 2.
+```bash
+ruby "${CLAUDE_PLUGIN_ROOT}/commands/scripts/extract_tech_references.rb" \
+  "${DOCS_FILES[@]}" \
+  --output /tmp/tech-review-refs.json
+```
 
-**Interactive mode** (default): Use AskUserQuestion with these options:
-1. **Apply all items interactively** (Recommended) - approve, modify, or skip each fix
-2. **Apply specific confidence range** - follow up to ask which range
-3. **Apply specific items by ID** - follow up to ask which IDs
-4. **I'll do it manually later** - stop and show how to resume
+If the script path cannot be resolved, search for `extract_tech_references.rb` using Glob.
 
-### Step 6: Run Phase 2 (Interactive Apply)
+### Step 6: Search and Validate References Against Code
 
-If user chose to continue, pass the report file path from Phase 1 to Phase 2, plus any filtering options from the user's choice in Step 5.
+Run the `search_tech_references.rb` script:
 
-Invoke Phase 2 using the Skill tool:
-- skill: `docs-technical-review-apply`
-- args: `.claude_docs/technical-review-report.md` plus `--confidence` or `--items` if specified
+```bash
+ruby "${CLAUDE_PLUGIN_ROOT}/commands/scripts/search_tech_references.rb" \
+  /tmp/tech-review-refs.json \
+  /tmp/tech-review/repo1 /tmp/tech-review/repo2 \
+  --output /tmp/tech-review-search.json
+```
 
-### Step 7: Display Final Summary
+**Search results by category**:
 
-Display completion message with next steps:
-1. Review changes made to documentation files
-2. Run Vale to check for style issues
-3. Test updated code examples and commands
-4. Commit changes to version control
+| Category | Result Fields | What It Finds |
+|----------|---------------|---------------|
+| **Commands** | `found`, `found_path`, `flags_missing`, `similar_commands`, `git_log_mentions` | Whether command binary/script exists, which flags are missing, git history for renames |
+| **Code Blocks** | `match_type` (exact/partial/none), `match_ratio`, `matched_file`, `actual_code` | Exact or fuzzy content matches in source files of the matching language |
+| **APIs/Functions** | `definition_found`, `actual_signature`, `type` (function/class/endpoint) | Function/class/endpoint definitions and whether signatures match |
+| **Configuration** | `key_found`, `found_in_file`, `git_log_mentions` | Whether config keys exist in schema/example files, git history for renames |
+| **File Paths** | `exists`, `moved_to`, `similar_files` | Whether referenced paths exist, fuzzy matches if file was moved |
 
-## Output Files
+**Interpreting results and assigning confidence**:
 
-1. **`.claude_docs/technical-review-report.md`** - Human-readable report with summary, auto-fixed diffs, manual review items, and whole-repo scan results
-2. **`.claude_docs/technical-review-report.json`** - Structured issue data for Phase 2 consumption
-3. **`/tmp/tech-review/<repo-name>/`** - Cloned code repositories, retained for inspection
+The search results are raw evidence — use your judgment to assign confidence scores. Confidence reflects how certain you are about both the problem and the fix, not just the problem.
+
+- **Exact matches** with only syntax/formatting differences → high confidence (>=85%), fix is obvious
+- **Git log evidence** of renames or deprecation → medium-high (70-90%), history confirms intentional change
+- **Partial matches** or similar-but-different results → medium (50-64%), right fix is ambiguous
+- **No matches at all** → low (<50%), could be removal, wrong repo, or reference lives elsewhere
+- **Context matters**: a missing flag in a command that otherwise exists is higher confidence than a completely missing command
+
+Cross-reference multiple signals (search results + git history + related files) before finalizing confidence.
+
+**Assigning severity**: `High` = users will hit errors (broken commands, missing APIs). `Medium` = misleading but not blocking (wrong names, stale options). `Low` = cosmetic or informational (undocumented features, formatting).
+
+**Threshold**: >=65% = auto-fixable, <65% = needs manual review.
+
+### Step 7: Perform Whole-Repo Scanning
+
+For each flagged issue, search all `.adoc` and `.md` files for additional occurrences of the same pattern. Record every file and line where the pattern appears so the report captures the full blast radius.
+
+### Step 8: Apply Auto-Fixes (if --fix)
+
+For each issue with confidence >=65%, apply the fix using the Edit tool. Track each fix applied and its before/after text for the report.
+
+### Step 9: Generate Reports
+
+#### Markdown Report
+
+Write `.claude_docs/technical-review-report.md` with these sections:
+
+1. **Header** — docs sources, timestamp, repo count
+2. **Summary table** — per-category counts (validated, issues, auto-fixed, manual review)
+3. **Code Repositories** — URL, ref, source, clone path
+4. **Issues Auto-Fixed** — each with ID (`AF-N`), location, issue, evidence, diff
+5. **Issues Requiring Manual Review** — each with ID (`MR-N`), location, severity, issue, evidence, suggested diff, reasoning
+6. **Whole-Repo Scan Results** — grouped by issue type, listing all files/lines affected
+7. **Next Steps** — review auto-fixes, run with `--apply`, run Vale, test examples
+
+#### JSON Sidecar
+
+Write `.claude_docs/technical-review-report.json` — array of issue objects:
+
+```json
+[
+  {
+    "id": "AF-1",
+    "file": "modules/proc-install.adoc",
+    "line": 42,
+    "category": "commands",
+    "confidence": 90,
+    "old_text": "--enable-feature",
+    "new_text": "--feature-enable",
+    "evidence": "Flag renamed in commit abc123",
+    "description": "Command flag renamed in v2.0",
+    "severity": "Medium",
+    "reasoning": "Git log shows flag renamed in v2.0 release"
+  }
+]
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Issue ID (`AF-N` for auto-fixed, `MR-N` for manual review) |
+| `file` | string | Path to the documentation file |
+| `line` | number | Line number in the file |
+| `category` | string | One of: `commands`, `code_blocks`, `apis`, `configs`, `file_paths`, `conceptual` |
+| `confidence` | number | Confidence score (0-100) |
+| `old_text` | string | Original text in the documentation (used for content-based matching) |
+| `new_text` | string | Suggested or applied replacement text |
+| `evidence` | string | What was found in the code repository |
+| `description` | string | Human-readable description of the issue |
+| `severity` | string | `High`, `Medium`, or `Low` |
+| `reasoning` | string | Why the change is suggested and confidence rationale |
+
+The `old_text` field enables content-based matching so fixes apply correctly even if line numbers shift.
+
+#### Display Summary
+
+Show total issues found, auto-fixed count, manual review count, and paths to both report files.
+
+### Step 10: Interactive Apply (if --apply or --report)
+
+If `--apply` was specified (or `--report` for resume mode), proceed to interactively walk through lower-confidence fixes. If there are no manual review items, stop with a success message.
+
+**Load items**: Read the JSON sidecar. Filter for items with confidence <65%, then apply any `--confidence` or `--items` filters.
+
+If `--report` was provided and the JSON sidecar is missing, fall back to parsing the markdown report (warn the user).
+
+**For each item**:
+
+1. **Read current file** to verify `old_text` exists
+2. **Present** the item:
+
+```
+MR-1 (1 of 5): Command flag renamed | Confidence: 60% | Severity: High
+File: modules/proc-install.adoc
+
+Current:   $ my-tool --enable-feature
+Suggested: $ my-tool --feature-enable
+
+Evidence: Flag renamed in commit abc123, git log confirms deprecation
+Reasoning: Exact command exists, only the flag changed — likely a rename
+```
+
+3. **Ask user** via `AskUserQuestion` with four options:
+   - **Apply suggested fix** — use as-is
+   - **Modify fix** — ask what they want changed, apply modified version
+   - **Skip** — leave for manual editing later
+   - **Delete section** — remove entirely from documentation
+
+4. **Apply fix** using content-based matching: `Edit(file_path=FILE, old_string=old_text, new_string=new_text)`
+
+**After all items**: Display counts of applied, modified, skipped, and deleted items. Back up the report file and mark applied items.
 
 ## Error Handling
 
-- **Phase 1 fails**: Stop workflow, display error, exit
-- **No repos discovered**: Phase 1 will error, workflow stops
-- **Report file missing**: Error and exit
-- **Phase 2 fails**: Display error (Phase 1 changes are already applied)
-- **User cancels Phase 2**: Exit gracefully, remind how to resume
+- **No `--docs` provided**: Stop and ask the user
+- **No repos discovered**: Exit with error, show discovery options
+- **Clone failures**: Warn and skip repo, continue with others
+- **No references found**: Exit gracefully with summary
+- **`old_text` not found in file**: Warn user, show current file content, ask how to proceed
+- **Edit operation fails**: Report error, ask to retry or skip
 
 ## Prerequisites
 
-- `ruby` - Ruby interpreter (for reference extraction and search scripts)
-- `python3` - Python 3 (for JIRA and Git review API scripts)
-- `jq` - JSON processor (for parsing reports)
-- `git` - Git CLI (for cloning repositories)
-- Code repositories must be accessible (public or with valid credentials)
+- `ruby` — for reference extraction and search scripts
+- `python3` — for JIRA and Git review API scripts
+- `git` — for cloning repositories
 - For JIRA discovery: `JIRA_AUTH_TOKEN` in `~/.env`
 - For PR discovery: `GITHUB_TOKEN` or `GITLAB_TOKEN` in `~/.env`
-
-## Notes
-
-- Individual skills can still be called independently for advanced use cases
-- Phase 2 can be run later using the `docs-technical-review-apply` skill
-- Auto mode (`--auto`) skips all pause points
-- The workflow preserves all Phase 1 auto-fixes even if Phase 2 is cancelled
-
-## Related Skills
-
-| Skill | Purpose |
-|-------|---------|
-| `docs-technical-review-validate` | Phase 1: validation and auto-fix |
-| `docs-technical-review-apply` | Phase 2: interactive review and apply |
