@@ -1,0 +1,32 @@
+:_mod-docs-content-type: PROCEDURE
+[id="basic-installation_{context}"]
+= Basic installation
+
+[role="_abstract"]
+Install vLLM using pip.
+
+.Procedure
+
+. Create a virtual environment:
++
+[source,bash]
+----
+python -m venv vllm-env
+source vllm-env/bin/activate
+----
+
+. Install vLLM:
++
+[source,bash]
+----
+pip install vllm
+----
+
+. Verify the installation:
++
+[source,bash]
+----
+python -c "import vllm; print(vllm.__version__)"
+----
+
+This file contains source blocks without any callouts, so the callouts script should leave it unchanged.

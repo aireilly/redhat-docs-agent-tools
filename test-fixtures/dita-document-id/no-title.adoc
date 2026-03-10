@@ -1,0 +1,12 @@
+:_mod-docs-content-type: SNIPPET
+
+This is a snippet file that has no document title.
+
+It contains some reusable content that can be included in other files.
+
+[source,bash]
+----
+vllm serve --model $MODEL_NAME
+----
+
+The document_id script should report "No document title found" for this file.

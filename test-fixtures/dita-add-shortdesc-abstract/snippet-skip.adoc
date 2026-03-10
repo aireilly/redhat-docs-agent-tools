@@ -1,0 +1,10 @@
+:_mod-docs-content-type: SNIPPET
+
+This is a reusable snippet that can be included in multiple files.
+
+[source,bash]
+----
+vllm serve --model meta-llama/Llama-2-7b --port 8000
+----
+
+Snippet files should be skipped by the short_description script because they don't have titles and don't need abstracts.

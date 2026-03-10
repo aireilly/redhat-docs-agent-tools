@@ -1,0 +1,24 @@
+:_mod-docs-content-type: CONCEPT
+[id="comment-handling_{context}"]
+= Comment handling
+
+[role="_abstract"]
+Entities inside comments should NOT be replaced.
+
+////
+This is a comment block.
+It contains entities like &copy; and &mdash; that should NOT be replaced.
+The script should skip over this entire block.
+////
+
+// This single-line comment also has &copy; which should NOT be replaced.
+
+== Regular content
+
+This paragraph has &copy; and &trade; which SHOULD be replaced.
+
+////
+Another comment block with &rarr; and &larr; that should be skipped.
+////
+
+More content with &mdash; that should be replaced.

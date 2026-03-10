@@ -1,0 +1,47 @@
+[id="mixed-scenarios_{context}"]
+= Module with mixed block title scenarios
+
+[role="_abstract"]
+This module tests various block title scenarios together.
+
+.Architecture overview
+image::architecture.png[Architecture overview]
+
+The system uses a client-server model:
+
+.Example configuration
+[source,yaml]
+----
+server:
+  port: 8080
+  host: localhost
+----
+
+.Supported protocols
+|===
+| Protocol | Port
+
+| HTTP
+| 80
+
+| HTTPS
+| 443
+|===
+
+.Manual provisioning
+
+If there are no storage classes, CDI uses any PVCs in the project that match the size requirements for the image. This is a substantial paragraph that explains the manual provisioning process in detail.
+
+.Use cases
+
+* Backup and restore
+* Development testing
+* Production deployments
+
+For example:
+
+.Example command
+[source,terminal]
+----
+$ oc get pvc
+----

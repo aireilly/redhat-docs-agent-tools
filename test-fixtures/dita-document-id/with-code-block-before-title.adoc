@@ -1,0 +1,26 @@
+:_mod-docs-content-type: PROCEDURE
+
+////
+This is a comment block before the title.
+It should be ignored when searching for the title.
+
+= This is NOT the title (inside comment)
+////
+
+// This is a single-line comment
+
+= Configuring environment variables
+
+[role="_abstract"]
+Set up environment variables for vLLM.
+
+The script should correctly identify the title despite the comment block and single-line comments appearing before it.
+
+.Procedure
+
+. Set the model path:
++
+[source,bash]
+----
+export MODEL_PATH=/opt/models/llama
+----

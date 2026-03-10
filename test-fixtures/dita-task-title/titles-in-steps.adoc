@@ -1,0 +1,28 @@
+:_mod-docs-content-type: PROCEDURE
+[id="titles-in-steps"]
+= Procedure with block titles in steps
+
+[role="_abstract"]
+This procedure has block titles within list continuations.
+
+.Procedure
+
+. Create the configuration file:
++
+.config.yaml
+[source,yaml]
+----
+key: value
+----
+
+. Check the output:
++
+.Expected output
+[source,text]
+----
+Success
+----
+
+.Verification
+
+* It worked.

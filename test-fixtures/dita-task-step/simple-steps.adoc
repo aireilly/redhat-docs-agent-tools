@@ -1,0 +1,16 @@
+:_mod-docs-content-type: PROCEDURE
+[id="simple-steps"]
+= Simple procedure
+
+[role="_abstract"]
+A simple procedure with no multi-block steps.
+
+.Procedure
+
+. First step.
+. Second step.
+. Third step.
+
+.Verification
+
+* It worked.

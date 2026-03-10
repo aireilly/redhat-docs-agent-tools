@@ -1,0 +1,26 @@
+:_mod-docs-content-type: PROCEDURE
+:experimental:
+:toc:
+:icons: font
+:source-highlighter: rouge
+
+= Enabling tensor parallelism
+
+[role="_abstract"]
+Configure tensor parallelism for multi-GPU inference.
+
+The script should skip over attribute definitions when searching for the title.
+
+.Prerequisites
+
+* Multiple GPUs available
+* NVLink or PCIe interconnect
+
+.Procedure
+
+. Set the tensor parallel size:
++
+[source,bash]
+----
+vllm serve --model meta-llama/Llama-2-70b --tensor-parallel-size 4
+----

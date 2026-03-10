@@ -1,0 +1,51 @@
+:_mod-docs-content-type: PROCEDURE
+[id="mixed-content_{context}"]
+= Mixed content example
+
+[role="_abstract"]
+This file contains mixed source blocks with and without callouts.
+
+.Procedure
+
+. Set environment variables:
++
+[source,bash]
+----
+export CUDA_VISIBLE_DEVICES=0,1  # <1>
+export HF_TOKEN=your_token_here  # <2>
+----
+<1> Specify which GPUs to use
+<2> Set your Hugging Face token
+
+. Create the configuration file:
++
+[source,yaml]
+----
+server:
+  host: 0.0.0.0  # <1>
+  port: 8000
+model:
+  name: meta-llama/Llama-2-7b  # <2>
+  dtype: float16
+----
+<1> Listen on all interfaces
+<2> Model identifier from Hugging Face
+
+. A code block without callouts:
++
+[source,bash]
+----
+# This block has no callouts
+echo "Starting server..."
+vllm serve --model $MODEL_NAME
+----
+
+. Another block with callouts:
++
+[source,shell]
+----
+docker compose up -d  # <1>
+docker compose logs -f  # <2>
+----
+<1> Start containers in detached mode
+<2> Follow the container logs

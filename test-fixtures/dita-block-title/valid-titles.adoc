@@ -1,0 +1,28 @@
+[id="valid-titles_{context}"]
+= Module with valid block titles
+
+[role="_abstract"]
+This module contains block titles that should NOT be modified.
+
+.Architecture diagram
+image::diagram.png[Architecture diagram]
+
+.Configuration options
+|===
+| Option | Description
+
+| timeout
+| Connection timeout in seconds
+
+| retries
+| Number of retry attempts
+|===
+
+.Sample workflow
+====
+This is an example block showing a sample workflow.
+
+. First step
+. Second step
+. Third step
+====

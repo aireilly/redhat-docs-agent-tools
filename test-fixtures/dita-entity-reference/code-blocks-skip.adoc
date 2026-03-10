@@ -1,0 +1,38 @@
+:_mod-docs-content-type: PROCEDURE
+[id="code-entity-handling_{context}"]
+= Code block entity handling
+
+[role="_abstract"]
+Entities inside code blocks should NOT be replaced unless subs is enabled.
+
+== Code block without subs (entities preserved)
+
+[source,html]
+----
+<p>Copyright &copy; 2024</p>
+<p>Price: &pound;99.99</p>
+<p>Use &amp; for ampersand</p>
+----
+
+The entities above (&copy;, &pound;, &amp;) should NOT be replaced because they are inside a code block.
+
+== Code block with subs (entities replaced)
+
+[source,html,subs="replacements"]
+----
+<p>Copyright &copy; 2024</p>
+<p>Arrow: &rarr;</p>
+----
+
+The entities above SHOULD be replaced because subs="replacements" is set.
+
+== Literal block (entities preserved)
+
+....
+This is a literal block with &copy; and &trade; entities.
+They should NOT be replaced.
+....
+
+== Regular paragraph (entities replaced)
+
+This paragraph is outside code blocks, so &copy; and &mdash; should be replaced.

@@ -1,0 +1,23 @@
+:_mod-docs-content-type: PROCEDURE
+[id="only-supported"]
+= Standard procedure
+
+[role="_abstract"]
+A procedure with only supported titles.
+
+.Prerequisites
+
+* You have access.
+
+.Procedure
+
+. First step.
+. Second step.
+
+.Verification
+
+* Check the result.
+
+.Additional resources
+
+* xref:related-topic[Related topic]

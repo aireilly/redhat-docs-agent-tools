@@ -1,0 +1,54 @@
+:_mod-docs-content-type: PROCEDURE
+[id="tables-and-nested-steps"]
+= Procedure with tables and nested steps
+
+[role="_abstract"]
+This procedure has tables and nested ordered list items.
+
+.Procedure
+
+. First step with a table:
+
+[cols="2,2"]
+|===
+|Header 1 |Header 2
+
+|Cell 1
+|Cell 2
+
+|Cell 3
+|Cell 4
+|===
+
+. Second step with nested sub-steps:
+
+.. First nested step.
+
+.. Second nested step.
+
+... Even deeper nesting.
+
+. Third step with definition list from callouts:
++
+[source,yaml]
+----
+name: example
+----
++
+--
+Where:
+
+`name: example`:: Defines the example name.
+--
+
+.. Nested step after definition list.
+
+. Fourth step with ifdef:
+
+ifdef::condition[]
+Some conditional content.
+endif::[]
+
+.Verification
+
+* It worked.

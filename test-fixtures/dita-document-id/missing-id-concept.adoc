@@ -1,0 +1,16 @@
+:_mod-docs-content-type: CONCEPT
+
+= Understanding vLLM architecture
+
+[role="_abstract"]
+vLLM uses a novel attention algorithm called PagedAttention to efficiently manage attention keys and values.
+
+== PagedAttention overview
+
+PagedAttention partitions the KV cache of each sequence into blocks, where each block contains the key and value vectors of a fixed number of tokens.
+
+== Memory efficiency
+
+Instead of allocating a contiguous memory block for the entire sequence, PagedAttention allocates memory on-demand in a paged fashion, similar to virtual memory in operating systems.
+
+This file is missing the [id="..."] attribute before the title and should have one generated.

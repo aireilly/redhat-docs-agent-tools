@@ -21,6 +21,12 @@
       "source": "./plugins/vale-tools",
       "description": "Vale linting tools for validating documentation using Vale CLI.",
       "version": "0.0.1"
+    },
+    {
+      "name": "dita-tools",
+      "source": "./plugins/dita-tools",
+      "description": "AsciiDoc cleanup, validation, and rewriting tools for DITA conversion preparation.",
+      "version": "0.0.1"
     }
   ]
 }

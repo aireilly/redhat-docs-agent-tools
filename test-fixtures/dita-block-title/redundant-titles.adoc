@@ -1,0 +1,31 @@
+[id="redundant-titles_{context}"]
+= Module with redundant block titles
+
+[role="_abstract"]
+This module tests removal of redundant block titles.
+
+You can create an instance type manifest by using the `virtctl` CLI utility. For example:
+
+.Example `virtctl` command with required fields
+[source,terminal]
+----
+$ virtctl create instancetype --cpu 2 --memory 256Mi
+----
+
+The output is shown below:
+
+.Example output
+[source,terminal]
+----
+NAME                    DNS
+node-exporter-service   node-exporter-service.apps.example.org
+----
+
+The manifest looks as follows:
+
+.Sample YAML file
+[source,yaml]
+----
+apiVersion: v1
+kind: ConfigMap
+----

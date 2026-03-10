@@ -1,0 +1,6 @@
+[id="some-content_{context}"]
+= Some content
+
+This file has no indicators of what type it is - no prefix, no folder pattern, no procedure markers, no tables, and no includes.
+
+It is just regular prose content that could be anything.

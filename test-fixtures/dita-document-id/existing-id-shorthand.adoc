@@ -1,0 +1,8 @@
+:_mod-docs-content-type: CONCEPT
+[#vllm-installation_{context}]
+= vLLM installation
+
+[role="_abstract"]
+How to install vLLM.
+
+This file uses the shorthand ID syntax [#id] which should also be recognized as an existing ID.

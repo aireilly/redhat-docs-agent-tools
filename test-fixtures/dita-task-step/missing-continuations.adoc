@@ -1,0 +1,36 @@
+:_mod-docs-content-type: PROCEDURE
+[id="missing-continuations"]
+= Configuring the application
+
+[role="_abstract"]
+Configure the application settings.
+
+.Prerequisites
+
+* You have admin access.
+
+.Procedure
+
+. Run the following command:
+
+[source,bash]
+----
+oc get pods
+----
+
+. Configure the settings.
+
+The configuration file is located at `/etc/myapp/config.yaml`.
+
+. Run the installer.
+
+[NOTE]
+====
+The installation may take several minutes.
+====
+
+. Verify the installation.
+
+.Verification
+
+* Check that the service is running.

@@ -1,0 +1,19 @@
+:_mod-docs-content-type: REFERENCE
+[id="quantization-comparison_{context}"]
+= Quantization methods comparison
+
+The following table lists quantization methods.
+
+.Comparison table
+[options="header"]
+|===
+|Method |Bits |Quality |Speed |Memory savings
+|AWQ |4 |High |Fast |~75%
+|GPTQ |4 |High |Fast |~75%
+|SqueezeLLM |4 |Medium |Medium |~75%
+|FP8 |8 |Very High |Very Fast |~50%
+|===
+
+Choose based on your quality and performance requirements.
+
+This file is missing [role="_abstract"] and has a poor short description that is vague with no context.

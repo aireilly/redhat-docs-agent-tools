@@ -1,0 +1,34 @@
+:_mod-docs-content-type: REFERENCE
+[id="unknown-entities_{context}"]
+= Unknown entity references
+
+[role="_abstract"]
+This file contains unknown entity references that should be reported but not replaced.
+
+== Known entities
+
+These should be replaced:
+
+* Copyright: &copy;
+* Em dash: &mdash;
+* Right arrow: &rarr;
+
+== Unknown entities
+
+These should be reported as unknown:
+
+* Custom entity: &myentity;
+* Misspelled: &copyrigt;
+* Made up: &foobar;
+* Numeric but named style: &x123;
+
+The script should replace the known entities and report the unknown ones.
+
+== Accented characters
+
+These should all be replaced:
+
+* &Aacute; (A with acute)
+* &eacute; (e with acute)
+* &ntilde; (n with tilde)
+* &uuml; (u with umlaut)

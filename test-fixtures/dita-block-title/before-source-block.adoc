@@ -1,0 +1,34 @@
+[id="test-module_{context}"]
+= Test module for block titles before source blocks
+
+[role="_abstract"]
+This module tests block titles that appear before source blocks.
+
+The following example shows a YAML configuration:
+
+.Example manifest
+[source,yaml]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test
+----
+
+You can also use JSON format:
+
+.Example JSON configuration
+[source,json]
+----
+{
+  "name": "test"
+}
+----
+
+Run the following command:
+
+.Example command
+[source,terminal]
+----
+$ oc get pods
+----

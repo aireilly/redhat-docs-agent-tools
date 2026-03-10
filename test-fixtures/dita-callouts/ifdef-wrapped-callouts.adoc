@@ -1,0 +1,57 @@
+:_mod-docs-content-type: PROCEDURE
+
+[id='test-ifdef-wrapped-callouts_{context}']
+= Test ifdef-wrapped callouts
+
+[role="_abstract"]
+This tests callouts inside ifdef blocks where endif comes between code block and callout definitions.
+
+.Procedure
+
+. Create a subscription:
++
+ifndef::disconnected[]
+[source,YAML,subs="+quotes"]
+----
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: rhods-operator
+  namespace: redhat-ods-operator
+spec:
+  name: rhods-operator
+  channel: __<channel>__
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  startingCSV: rhods-operator.x.y.z
+----
++
+--
+`namespace: redhat-ods-operator`:: Defines the operator namespace.
+--
+endif::[]
+ifdef::disconnected[]
+[source,YAML,subs="+quotes"]
+----
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: rhods-operator
+  namespace: redhat-ods-operator <1>
+spec:
+  name: rhods-operator
+  channel: __<channel>__ <2>
+  source: cs-redhat-operator-index
+  sourceNamespace: openshift-marketplace
+  startingCSV: rhods-operator.x.y.z <3>
+----
+endif::[]
++
+<1> Defines the operator namespace.
+ifndef::disconnected[]
+<2> Sets the update channel for non-disconnected environments.
+endif::[]
+ifdef::disconnected[]
+<2> Sets the update channel for disconnected environments.
+endif::[]
+<3> Optional: Sets the operator version.

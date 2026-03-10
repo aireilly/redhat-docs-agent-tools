@@ -1,0 +1,20 @@
+:_mod-docs-content-type: CONCEPT
+[id="with-conditionals"]
+= Topic with conditionals in resources
+
+[role="_abstract"]
+This topic uses conditionals in Additional resources.
+
+.Additional resources
+
+ifdef::product-a[]
+* link:https://product-a.example.com[Product A docs]
+endif::[]
+
+This text should be removed.
+
+ifdef::product-b[]
+* link:https://product-b.example.com[Product B docs]
+endif::[]
+
+* xref:common-topic[Common topic for all products]

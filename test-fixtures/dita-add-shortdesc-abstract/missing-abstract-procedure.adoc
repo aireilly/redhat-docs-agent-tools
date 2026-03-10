@@ -1,0 +1,32 @@
+:_mod-docs-content-type: PROCEDURE
+[id="enabling-awq_{context}"]
+= Enabling AWQ quantization
+
+Follow these steps to enable AWQ quantization.
+
+.Prerequisites
+
+* A model with AWQ quantization available
+* vLLM 0.4.0 or later
+
+.Procedure
+
+. Download the AWQ-quantized model:
++
+[source,bash]
+----
+huggingface-cli download TheBloke/Llama-2-7B-AWQ
+----
+
+. Run the server with quantization:
++
+[source,bash]
+----
+vllm serve --model TheBloke/Llama-2-7B-AWQ --quantization awq
+----
+
+.Verification
+
+* Check memory usage to confirm quantization is active.
+
+This file is missing [role="_abstract"] and has a poor short description that states the obvious.

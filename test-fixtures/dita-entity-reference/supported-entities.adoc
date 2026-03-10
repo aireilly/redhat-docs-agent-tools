@@ -1,0 +1,34 @@
+:_mod-docs-content-type: REFERENCE
+[id="xml-entities_{context}"]
+= Supported XML entities
+
+[role="_abstract"]
+These entities are supported in DITA and should NOT be replaced.
+
+== Ampersand
+
+Use &amp; for the ampersand character.
+
+Example: AT&amp;T
+
+== Less than and greater than
+
+Use &lt; for less than.
+
+Use &gt; for greater than.
+
+Example: if (a &lt; b &amp;&amp; b &gt; c)
+
+== Quotation marks
+
+Use &apos; for apostrophe in XML attributes.
+
+Use &quot; for double quotes in XML attributes.
+
+Example: &lt;element attr=&quot;value&quot;/&gt;
+
+== Mixed content
+
+This line has both supported (&amp;, &lt;, &gt;) and unsupported (&copy;, &mdash;) entities.
+
+The script should replace &copy; and &mdash; but leave &amp;, &lt;, and &gt; unchanged.

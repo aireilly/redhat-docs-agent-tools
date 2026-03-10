@@ -1,0 +1,14 @@
+:_mod-docs-content-type: CONCEPT
+[id="not-procedure-title"]
+= Concept with block titles
+
+[role="_abstract"]
+This is a concept, not a procedure.
+
+.Overview
+
+Some overview content.
+
+.Example
+
+An example section.

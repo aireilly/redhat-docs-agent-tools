@@ -1,0 +1,10 @@
+:_mod-docs-content-type: PROCEDURE
+[id="no-prerequisites"]
+= Quick setup
+
+[role="_abstract"]
+Quickly set up the environment.
+
+. Run the setup script.
+. Follow the prompts.
+. Verify the setup.

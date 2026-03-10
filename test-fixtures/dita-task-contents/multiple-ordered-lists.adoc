@@ -1,0 +1,21 @@
+:_mod-docs-content-type: PROCEDURE
+[id="multiple-lists"]
+= Multi-step configuration
+
+[role="_abstract"]
+Configure multiple components.
+
+.Prerequisites
+
+These are numbered prerequisites:
+
+. First prerequisite
+. Second prerequisite
+
+. First procedure step.
+. Second procedure step.
+
+.Verification
+
+. First verification step.
+. Second verification step.

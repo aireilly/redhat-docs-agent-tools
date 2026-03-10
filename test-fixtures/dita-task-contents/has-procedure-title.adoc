@@ -1,0 +1,21 @@
+:_mod-docs-content-type: PROCEDURE
+[id="has-procedure-title"]
+= Configuring the service
+
+[role="_abstract"]
+Configure the service settings.
+
+.Prerequisites
+
+* The service is installed.
+
+.Procedure
+
+. Open the configuration file.
+. Edit the settings.
+. Save the file.
+. Restart the service.
+
+.Verification
+
+* Verify the new settings are applied.

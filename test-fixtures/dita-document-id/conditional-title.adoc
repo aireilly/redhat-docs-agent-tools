@@ -1,0 +1,18 @@
+:_mod-docs-content-type: PROCEDURE
+
+ifdef::openshift[= Deploying on OpenShift]
+ifndef::openshift[= Deploying with Podman]
+
+[role="_abstract"]
+Deploy vLLM using your container platform.
+
+This file uses conditional titles based on the openshift attribute. The script should detect the first title line.
+
+.Procedure
+
+. Start the deployment:
++
+[source,bash]
+----
+# Platform-specific deployment command
+----

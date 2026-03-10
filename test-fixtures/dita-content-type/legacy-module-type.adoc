@@ -1,0 +1,15 @@
+:_module-type: PROCEDURE
+[id="configuring-authentication_{context}"]
+= Configuring authentication
+
+Configure LDAP authentication to enable single sign-on for your organization.
+
+.Prerequisites
+
+* You have administrator access.
+
+.Procedure
+
+. Open the configuration file.
+. Add the LDAP settings.
+. Save and restart the service.

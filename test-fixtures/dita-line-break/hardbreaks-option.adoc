@@ -1,0 +1,17 @@
+:_mod-docs-content-type: CONCEPT
+[id="hardbreaks-option"]
+= Document with hardbreaks option
+:hardbreaks-option:
+
+[role="_abstract"]
+This document has the hardbreaks option set.
+
+Line one
+Line two
+Line three
+
+== Section
+
+More content here
+that should be on
+separate lines.

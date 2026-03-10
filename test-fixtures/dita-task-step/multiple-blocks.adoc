@@ -1,0 +1,34 @@
+:_mod-docs-content-type: PROCEDURE
+[id="multiple-blocks"]
+= Procedure with multiple blocks per step
+
+[role="_abstract"]
+Steps with multiple content blocks.
+
+.Procedure
+
+. First, understand the concept.
+
+This is an important note about the first step.
+
+Here's another paragraph for the first step.
+
+. Next, run this command:
+
+[source,bash]
+----
+echo "Hello"
+----
+
+Expected output:
+
+[source,text]
+----
+Hello
+----
+
+. Finally, verify.
+
+.Verification
+
+* Success.

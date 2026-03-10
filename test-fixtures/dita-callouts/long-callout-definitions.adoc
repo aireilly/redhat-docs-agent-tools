@@ -1,0 +1,29 @@
+:_mod-docs-content-type: PROCEDURE
+[id="advanced-setup_{context}"]
+= Advanced setup
+
+[role="_abstract"]
+Set up vLLM with detailed configuration.
+
+.Procedure
+
+. Configure with extensive options:
++
+[source,bash]
+----
+vllm serve \
+  --model meta-llama/Llama-2-7b \  # <1>
+  --gpu-memory-utilization 0.95  # <2>
+----
+<1> This callout has more than 3 lines of explanation.
+Line 2 of the callout definition.
+Line 3 of the callout definition.
+Line 4 of the callout definition - this should cause the callout to be preserved.
+<2> Set GPU memory utilization
+
+. Verify the configuration:
++
+[source,bash]
+----
+curl http://localhost:8000/v1/models
+----

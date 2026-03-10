@@ -1,0 +1,25 @@
+:_mod-docs-content-type: REFERENCE
+[id="python-examples_{context}"]
+= Python examples
+
+[role="_abstract"]
+Python code examples should NOT be transformed by the callouts script.
+
+== Using the vLLM Python API
+
+[source,python]
+----
+from vllm import LLM, SamplingParams  # <1>
+
+llm = LLM(model="meta-llama/Llama-2-7b")  # <2>
+sampling_params = SamplingParams(temperature=0.8)  # <3>
+
+outputs = llm.generate(["Hello, world!"], sampling_params)  # <4>
+print(outputs[0].outputs[0].text)
+----
+<1> Import the LLM and SamplingParams classes
+<2> Initialize the LLM with the model name
+<3> Configure sampling parameters
+<4> Generate text completions
+
+Python source blocks should NOT be processed because they are not in the list of supported languages (yaml, yml, bash, sh, shell, console, terminal, cmd).

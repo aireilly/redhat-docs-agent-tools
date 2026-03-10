@@ -1,0 +1,15 @@
+[id="installing-application_{context}"]
+= Installing the application
+
+Install the application using the command line.
+
+.Prerequisites
+
+* You have downloaded the installer.
+* You have administrative privileges.
+
+.Procedure
+
+. Run the installer.
+. Follow the prompts.
+. Verify the installation.

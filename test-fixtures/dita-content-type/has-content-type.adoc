@@ -1,0 +1,5 @@
+:_mod-docs-content-type: CONCEPT
+[id="about-feature_{context}"]
+= About the feature
+
+This module already has the content type attribute set.

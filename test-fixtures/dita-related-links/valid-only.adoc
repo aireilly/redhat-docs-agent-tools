@@ -1,0 +1,20 @@
+:_mod-docs-content-type: REFERENCE
+[id="valid-only"]
+= Reference with valid Additional resources
+
+[role="_abstract"]
+This reference has only valid links in Additional resources.
+
+|===
+| Column 1 | Column 2
+
+| Value 1
+| Value 2
+|===
+
+.Additional resources
+
+* link:https://example.com[Example documentation]
+* xref:related-reference[Related reference]
+* <<another-topic>>
+* mailto:support@example.com[Contact support]

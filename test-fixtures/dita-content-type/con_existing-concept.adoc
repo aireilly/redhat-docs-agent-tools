@@ -1,0 +1,6 @@
+[id="about-optimization_{context}"]
+= About optimization
+
+As AI applications mature and new compression algorithms are published, model optimization becomes increasingly important for production deployments.
+
+Model optimization reduces neural network size and inference time through techniques like quantization and pruning.

@@ -1,0 +1,19 @@
+include::_attributes/attributes.adoc[]
+:_mod-docs-content-type: ASSEMBLY
+[id="getting-started-vllm"]
+= Getting started with vLLM
+
+:context: getting-started
+
+This assembly guides you through the initial setup and configuration of vLLM.
+
+include::modules/concept-vllm-overview.adoc[leveloffset=+1]
+
+include::modules/procedure-install-vllm.adoc[leveloffset=+1]
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.vllm.ai[vLLM Documentation]
+
+Assembly files should be skipped by the short_description script.

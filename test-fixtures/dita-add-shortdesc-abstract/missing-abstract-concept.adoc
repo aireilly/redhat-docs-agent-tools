@@ -1,0 +1,18 @@
+:_mod-docs-content-type: CONCEPT
+[id="about-quantization_{context}"]
+= About quantization
+
+This topic explains quantization.
+
+By representing model weights with fewer bits, quantization enables running larger models on limited hardware.
+
+== Quantization methods
+
+vLLM supports several quantization methods:
+
+* AWQ (Activation-aware Weight Quantization)
+* GPTQ (Generative Pre-trained Transformer Quantization)
+* SqueezeLLM
+* FP8 (8-bit floating point)
+
+This file is missing [role="_abstract"] and has a poor short description that repeats the title.

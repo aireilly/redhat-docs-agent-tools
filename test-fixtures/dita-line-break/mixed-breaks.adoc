@@ -1,0 +1,27 @@
+:_mod-docs-content-type: PROCEDURE
+[id="mixed-breaks"]
+= Procedure with mixed line breaks
+
+[role="_abstract"]
+This procedure has multiple types of line breaks.
+
+.Prerequisites
+
+* Prerequisite one +
+  with continuation
+* Prerequisite two
+
+.Procedure
+
+. First step with a line break +
+  that should be joined.
+
+. Second step is fine.
+
+. Third step also has +
+  a line break.
+
+.Verification
+
+* Check this +
+  and that.

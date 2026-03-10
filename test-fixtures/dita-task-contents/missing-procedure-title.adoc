@@ -1,0 +1,19 @@
+:_mod-docs-content-type: PROCEDURE
+[id="missing-procedure-title"]
+= Installing the software
+
+[role="_abstract"]
+Install the software using the package manager.
+
+.Prerequisites
+
+* You have admin access.
+* The repository is configured.
+
+. Download the package.
+. Run the installer.
+. Verify the installation.
+
+.Verification
+
+* Check that the service is running.

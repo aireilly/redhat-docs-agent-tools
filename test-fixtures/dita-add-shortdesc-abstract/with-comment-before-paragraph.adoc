@@ -1,0 +1,22 @@
+:_mod-docs-content-type: CONCEPT
+[id="model-loading_{context}"]
+= Model loading
+
+////
+This comment block appears between the title and the first paragraph.
+It should be skipped when looking for the first paragraph.
+////
+
+// This single-line comment should also be skipped.
+
+In this topic, we discuss model loading.
+
+The model is loaded into GPU memory during server initialization.
+
+== Supported sources
+
+* Hugging Face Hub
+* Local filesystem
+* S3-compatible storage
+
+This file is missing [role="_abstract"], has comments before the paragraph, and has a poor short description.

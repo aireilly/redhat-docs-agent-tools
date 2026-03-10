@@ -1,0 +1,18 @@
+:_mod-docs-content-type: CONCEPT
+[id="mixed-content"]
+= Topic with mixed Additional resources
+
+[role="_abstract"]
+This topic has mixed content in its Additional resources section.
+
+This is the main content of the topic.
+
+.Additional resources
+
+This paragraph should be removed.
+
+* link:https://example.com[Valid link]
+* This is just text and should be removed
+* xref:other-topic[Valid xref]
+* Another plain text item to remove
+* https://another-example.com[Another valid link]

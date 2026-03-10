@@ -1,0 +1,20 @@
+include::_attributes/attributes.adoc[]
+:_mod-docs-content-type: ASSEMBLY
+
+= Deploying vLLM
+
+:context: deploying-vllm
+
+[role="_abstract"]
+This assembly covers vLLM deployment options.
+
+include::modules/concept-deployment-overview.adoc[leveloffset=+1]
+
+include::modules/procedure-deploy-standalone.adoc[leveloffset=+1]
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.vllm.ai[vLLM Documentation]
+
+Assembly files should NOT have _{context} appended to their generated IDs because they define the context rather than consume it.

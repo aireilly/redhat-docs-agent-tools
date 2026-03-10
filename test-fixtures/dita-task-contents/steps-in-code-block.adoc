@@ -1,0 +1,19 @@
+:_mod-docs-content-type: PROCEDURE
+[id="steps-in-code"]
+= Running commands
+
+[role="_abstract"]
+Run the following commands.
+
+Here is an example of a procedure in documentation:
+
+[source,asciidoc]
+----
+.Procedure
+
+. First step.
+. Second step.
+----
+
+. Actual first step.
+. Actual second step.

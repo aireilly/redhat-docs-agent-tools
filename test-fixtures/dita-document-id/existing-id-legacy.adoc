@@ -1,0 +1,8 @@
+:_mod-docs-content-type: CONCEPT
+[[legacy-vllm-setup]]
+= Legacy vLLM setup
+
+[role="_abstract"]
+This file uses the legacy [[id]] syntax which should also be recognized.
+
+The document_id script should detect this as having an existing ID and skip modification.

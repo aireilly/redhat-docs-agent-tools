@@ -1,0 +1,16 @@
+:_mod-docs-content-type: CONCEPT
+[id="gpu-memory_{context}"]
+= GPU memory management
+
+:experimental:
+:toc:
+
+This topic is about GPU memory management.
+
+This approach is inspired by virtual memory systems in operating systems.
+
+== Memory allocation
+
+Memory is allocated in pages rather than contiguous blocks.
+
+This file is missing [role="_abstract"], has attributes after the title, and has a poor short description.

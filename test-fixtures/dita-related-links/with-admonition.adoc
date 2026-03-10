@@ -1,0 +1,21 @@
+:_mod-docs-content-type: PROCEDURE
+[id="with-admonition"]
+= Procedure with admonition in resources
+
+[role="_abstract"]
+This procedure has an admonition in Additional resources.
+
+.Procedure
+
+. Do something.
+. Do something else.
+
+.Additional resources
+
+[NOTE]
+====
+This note should be removed from Additional resources.
+====
+
+* link:https://docs.example.com[Documentation]
+* xref:related-procedure[Related procedure]

@@ -1,0 +1,27 @@
+:_mod-docs-content-type: CONCEPT
+[id="plain-content_{context}"]
+= Plain content without entities
+
+[role="_abstract"]
+This file contains no HTML entity references.
+
+== Overview
+
+This is a regular document without any special characters that need entity encoding.
+
+== Code example
+
+[source,bash]
+----
+echo "Hello, World!"
+----
+
+== Table
+
+[options="header"]
+|===
+|Column 1 |Column 2
+|Value 1 |Value 2
+|===
+
+The entity_reference script should report "No entity references to replace" for this file.

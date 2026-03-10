@@ -1,0 +1,14 @@
+:_mod-docs-content-type: REFERENCE
+[id="supported-gpus_{context}"]
+= Supported GPUs
+
+* NVIDIA A100
+* NVIDIA H100
+* NVIDIA A10G
+* NVIDIA L4
+* AMD MI250X
+* AMD MI300X
+
+vLLM requires GPUs with sufficient memory and compute capability.
+
+This file starts with a list after the title, not a paragraph. The script should skip the list items and find the paragraph below.

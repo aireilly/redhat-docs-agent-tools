@@ -1,0 +1,17 @@
+:_mod-docs-content-type: CONCEPT
+[id="role-style"]
+= Topic using role attribute style
+
+[role="_abstract"]
+This topic uses the role attribute style for Additional resources.
+
+Main content here.
+
+[role="_additional-resources"]
+.Additional resources
+
+Some intro text that should be removed.
+
+* link:https://example.com[Valid link]
+* Plain text item to remove
+* xref:other-topic[Valid xref]

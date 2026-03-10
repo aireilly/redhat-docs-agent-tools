@@ -1,0 +1,14 @@
+:_mod-docs-content-type: CONCEPT
+[id="continuous-batching_{context}"]
+= Continuous batching
+
+[role="_abstract"]
+This topic describes continuous batching.
+
+Unlike static batching, continuous batching adds new requests to the batch as soon as previous requests complete.
+
+== How it works
+
+The scheduler monitors the completion status of each sequence in the batch. When a sequence completes, its slot is immediately available for a new request.
+
+This file already has [role="_abstract"] but has a poor short description that should be rewritten.

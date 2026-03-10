@@ -1,0 +1,23 @@
+:_mod-docs-content-type: REFERENCE
+
+= Supported models reference
+
+[role="_abstract"]
+A list of models supported by vLLM.
+
+.Llama family
+[options="header"]
+|===
+|Model |Parameters |Context length
+|Llama 2 |7B, 13B, 70B |4096
+|Llama 3 |8B, 70B |8192
+|Code Llama |7B, 13B, 34B |16384
+|===
+
+.Mistral family
+[options="header"]
+|===
+|Model |Parameters |Context length
+|Mistral 7B |7B |32768
+|Mixtral 8x7B |46.7B (12.9B active) |32768
+|===

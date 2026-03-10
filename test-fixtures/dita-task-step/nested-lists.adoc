@@ -1,0 +1,24 @@
+:_mod-docs-content-type: PROCEDURE
+[id="nested-lists"]
+= Procedure with nested lists
+
+[role="_abstract"]
+This procedure has nested lists.
+
+.Procedure
+
+. First step with sub-items:
+
+* Sub-item one
+* Sub-item two
+
+. Second step with description list:
+
+Term one:: Description one
+Term two:: Description two
+
+. Third step.
+
+.Verification
+
+* It worked.

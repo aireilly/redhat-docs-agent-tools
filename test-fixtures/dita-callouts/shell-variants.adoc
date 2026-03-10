@@ -1,0 +1,46 @@
+:_mod-docs-content-type: PROCEDURE
+[id="shell-examples_{context}"]
+= Shell examples
+
+[role="_abstract"]
+Examples using different shell language types.
+
+== Bash example
+
+[source,bash]
+----
+export MODEL_PATH=/models/llama  # <1>
+vllm serve --model $MODEL_PATH  # <2>
+----
+<1> Set the model path environment variable
+<2> Start the server using the environment variable
+
+== Shell example
+
+[source,shell]
+----
+cd /opt/vllm  # <1>
+./start-server.sh  # <2>
+----
+<1> Change to the vLLM directory
+<2> Execute the startup script
+
+== Console example
+
+[source,console]
+----
+$ podman pull vllm/vllm-openai  # <1>
+$ podman run --rm -p 8000:8000 vllm/vllm-openai  # <2>
+----
+<1> Pull the container image
+<2> Run the container with port forwarding
+
+== Terminal example
+
+[source,terminal]
+----
+user@host:~$ nvidia-smi  # <1>
+user@host:~$ docker info  # <2>
+----
+<1> Check GPU status
+<2> Verify Docker installation

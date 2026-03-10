@@ -1,0 +1,37 @@
+:_mod-docs-content-type: PROCEDURE
+
+= Installing vLLM on RHEL
+
+[role="_abstract"]
+Install vLLM on Red Hat Enterprise Linux using pip.
+
+.Prerequisites
+
+* RHEL 8 or RHEL 9
+* Python 3.8 or later
+* CUDA 11.8 or later
+
+.Procedure
+
+. Install Python development packages:
++
+[source,bash]
+----
+sudo dnf install python3-devel
+----
+
+. Install vLLM:
++
+[source,bash]
+----
+pip install vllm
+----
+
+.Verification
+
+* Verify the installation:
++
+[source,bash]
+----
+python -c "import vllm; print(vllm.__version__)"
+----

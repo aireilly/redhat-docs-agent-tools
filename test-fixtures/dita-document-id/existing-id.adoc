@@ -1,0 +1,16 @@
+:_mod-docs-content-type: CONCEPT
+[id="vllm-features_{context}"]
+= vLLM features
+
+[role="_abstract"]
+An overview of vLLM features and capabilities.
+
+This file already has an ID assigned, so the document_id script should skip it and report "ID already assigned".
+
+== Key features
+
+* High throughput serving
+* Memory efficiency with PagedAttention
+* Continuous batching
+* CUDA/ROCm graph support
+* Quantization support

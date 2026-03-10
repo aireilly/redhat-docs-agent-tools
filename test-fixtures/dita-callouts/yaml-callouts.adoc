@@ -1,0 +1,49 @@
+:_mod-docs-content-type: PROCEDURE
+[id="deploying-kubernetes_{context}"]
+= Deploying on Kubernetes
+
+[role="_abstract"]
+Deploy vLLM on Kubernetes using a deployment manifest.
+
+.Procedure
+
+. Create a deployment manifest:
++
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment  # <1>
+metadata:
+  name: vllm-server
+  labels:
+    app: vllm  # <2>
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest  # <3>
+        ports:
+        - containerPort: 8000
+        resources:
+          limits:
+            nvidia.com/gpu: 1  # <4>
+----
+<1> Use Deployment for managing the vLLM pods
+<2> Labels used for service selector matching
+<3> Official vLLM container image
+<4> Request one NVIDIA GPU for the container
+
+. Apply the manifest:
++
+[source,bash]
+----
+kubectl apply -f vllm-deployment.yaml
+----

@@ -1,0 +1,15 @@
+:_mod-docs-content-type: CONCEPT
+[id="not-procedure-step"]
+= Concept with ordered list
+
+[role="_abstract"]
+This is a concept, not a procedure.
+
+The following ordered list is not procedure steps:
+
+. First item
+. Second item
+
+Some paragraph.
+
+. Third item

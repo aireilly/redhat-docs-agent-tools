@@ -1,0 +1,13 @@
+:_mod-docs-content-type: REFERENCE
+[id="server-options_{context}"]
+= Server command-line options
+
+.Options table
+[options="header"]
+|===
+|Option |Description
+|`--model` |Model to load
+|`--port` |Port to listen on
+|===
+
+This file has no paragraph after the title - it goes directly to a table. The short_description script should report "No paragraph found after title".

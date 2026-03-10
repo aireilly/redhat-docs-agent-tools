@@ -1,0 +1,42 @@
+:_mod-docs-content-type: PROCEDURE
+[id="in-list-context_{context}"]
+= Procedure with block titles in list context
+
+[role="_abstract"]
+This procedure tests block titles that appear within ordered list steps.
+
+.Prerequisites
+
+* You have access to the cluster.
+
+.Procedure
+
+. Create a manifest file for a `VirtualMachine` object:
++
+.Example manifest
+[source,yaml]
+----
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: example-vm
+----
+
+. Apply the manifest:
++
+[source,terminal]
+----
+$ oc apply -f vm.yaml
+----
+
+. Verify the VM was created:
++
+.Example output
+[source,terminal]
+----
+virtualmachine.kubevirt.io/example-vm created
+----
+
+.Verification
+
+* Check the VM status.

@@ -1,0 +1,17 @@
+[id="configuration-parameters_{context}"]
+= Configuration parameters
+
+The following table lists the available configuration parameters.
+
+[cols="2,3,1"]
+|===
+| Parameter | Description | Default
+
+| timeout
+| Connection timeout in seconds
+| 30
+
+| max_retries
+| Maximum number of retry attempts
+| 3
+|===

@@ -1,0 +1,22 @@
+:_mod-docs-content-type: CONCEPT
+[id="comments-skip"]
+= Comments should be skipped
+
+[role="_abstract"]
+Line breaks inside comments should not be modified.
+
+Regular text with line break +
+should be fixed.
+
+////
+Comment block with line break +
+should not be modified.
+:hardbreaks-option:
+Also skip attributes in comments.
+////
+
+// Single line comment +
+// should also be skipped
+
+Another line break +
+outside comments.

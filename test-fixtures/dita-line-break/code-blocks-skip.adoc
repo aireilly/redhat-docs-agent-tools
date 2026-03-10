@@ -1,0 +1,23 @@
+:_mod-docs-content-type: REFERENCE
+[id="code-blocks-skip"]
+= Code blocks should be skipped
+
+[role="_abstract"]
+Line breaks inside code blocks should not be modified.
+
+Regular text with line break +
+should be fixed.
+
+[source,bash]
+----
+echo "This has a line break +
+inside the code block"
+----
+
+....
+Literal block content +
+should also be skipped.
+....
+
+Another line break +
+outside code blocks.

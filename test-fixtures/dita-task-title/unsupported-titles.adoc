@@ -1,0 +1,38 @@
+:_mod-docs-content-type: PROCEDURE
+[id="unsupported-titles"]
+= Configuring the application
+
+[role="_abstract"]
+Configure the application.
+
+.Overview
+
+This procedure configures the application settings.
+
+.Prerequisites
+
+* You have access.
+
+.Configuration file
+
+The following shows the config file format:
+
+.Procedure
+
+. Edit the configuration file.
+. Save the changes.
+
+.Example output
+
+[source,text]
+----
+Configuration updated successfully.
+----
+
+.Note
+
+Remember to restart the service.
+
+.Verification
+
+* Check the service status.

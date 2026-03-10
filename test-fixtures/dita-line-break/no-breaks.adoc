@@ -1,0 +1,18 @@
+:_mod-docs-content-type: CONCEPT
+[id="no-breaks"]
+= Document without line breaks
+
+[role="_abstract"]
+This document has no hard line breaks to remove.
+
+== Section one
+
+Normal paragraph content.
+
+== Section two
+
+More normal content without any special line break markers.
+
+* List item one
+* List item two
+* List item three

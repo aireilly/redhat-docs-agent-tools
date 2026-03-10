@@ -1,0 +1,68 @@
+:_mod-docs-content-type: CONCEPT
+[id="entity-examples_{context}"]
+= Entity reference examples
+
+[role="_abstract"]
+This file contains various HTML entity references that should be replaced with Unicode characters.
+
+== Spacing and dashes
+
+Use a non-breaking&nbsp;space between numbers and units.
+
+The value range is 1&ndash;100 (en dash for ranges).
+
+This is an important point&mdash;pay attention to this.
+
+== Quotation marks
+
+&ldquo;Double quoted text&rdquo; using curly quotes.
+
+&lsquo;Single quoted text&rsquo; using curly quotes.
+
+French style: &laquo;Guillemets&raquo;
+
+== Common symbols
+
+Copyright &copy; 2024 Red Hat, Inc.
+
+vLLM&trade; is a trademark.
+
+Registered trademark example&reg;
+
+== Punctuation
+
+Wait for it&hellip; done!
+
+Item 1 &bull; Item 2 &bull; Item 3
+
+&sect; Section reference
+
+== Math symbols
+
+Temperature: 25&deg;C
+
+Tolerance: &plusmn;5%
+
+Area: 100&times;200 meters
+
+Fraction: &frac12; cup
+
+== Arrows
+
+Click Next &rarr; to continue.
+
+&larr; Previous page
+
+Up &uarr; and down &darr;
+
+== Currency
+
+Price: &pound;99.99 or &euro;115.00 or &yen;15000
+
+== Greek letters
+
+The &alpha; and &beta; versions are available.
+
+Use &lambda; functions for callbacks.
+
+The &pi; constant is approximately 3.14159.

@@ -1,0 +1,27 @@
+:_mod-docs-content-type: PROCEDURE
+[id="titles-in-code"]
+= Procedure with titles in code blocks
+
+[role="_abstract"]
+Titles inside code blocks should not be removed.
+
+.Procedure
+
+. Review the documentation format:
++
+[source,asciidoc]
+----
+.Overview
+
+This is a documentation example.
+
+.Example
+
+Some example content.
+----
+
+. Continue with the procedure.
+
+.Verification
+
+* Check the output.

@@ -1,0 +1,23 @@
+:_mod-docs-content-type: CONCEPT
+[id="block-hardbreaks"]
+= Block level hardbreaks
+
+[role="_abstract"]
+This document has hardbreaks at the block level only.
+
+[%hardbreaks]
+This block has hardbreaks
+enabled for just
+this paragraph.
+
+Normal paragraph without hardbreaks.
+
+[%hardbreaks,role="example"]
+Another block with
+hardbreaks and other
+attributes.
+
+[options="hardbreaks"]
+Yet another way
+to enable
+hardbreaks.

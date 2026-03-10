@@ -1,0 +1,28 @@
+:_mod-docs-content-type: PROCEDURE
+[id="running-vllm-server_{context}"]
+= Running the vLLM server
+
+[role="_abstract"]
+Start the vLLM server with basic configuration.
+
+.Procedure
+
+. Run the server with basic options:
++
+[source,bash]
+----
+vllm serve \
+  --model meta-llama/Llama-2-7b \  # <1>
+  --port 8000 \  # <2>
+  --host 0.0.0.0  # <3>
+----
+<1> Specify the model to load from Hugging Face
+<2> Set the port for the API server
+<3> Bind to all network interfaces
+
+. Verify the server is running:
++
+[source,bash]
+----
+curl http://localhost:8000/health
+----

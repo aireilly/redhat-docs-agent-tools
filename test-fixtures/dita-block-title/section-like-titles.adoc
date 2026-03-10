@@ -1,0 +1,19 @@
+[id="section-like-titles_{context}"]
+= Module with section-like block titles
+
+[role="_abstract"]
+This module tests block titles that look like section headings.
+
+.VM snapshot controller and custom resources
+
+The VM snapshot feature introduces three new API objects defined as custom resource definitions (CRDs) for managing snapshots. These objects provide a way to create, manage, and restore snapshots of virtual machines.
+
+.Configuration methods
+
+You can configure the feature using one of the following methods. Each method has different advantages depending on your deployment scenario and requirements.
+
+.Use cases
+
+* Creating backups before upgrades
+* Testing configuration changes
+* Disaster recovery scenarios

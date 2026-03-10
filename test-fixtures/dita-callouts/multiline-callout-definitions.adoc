@@ -1,0 +1,30 @@
+:_mod-docs-content-type: PROCEDURE
+[id="complex-configuration_{context}"]
+= Complex configuration
+
+[role="_abstract"]
+Configure vLLM with advanced options.
+
+.Procedure
+
+. Configure the server with multiple options:
++
+[source,bash]
+----
+vllm serve \
+  --model meta-llama/Llama-2-70b \  # <1>
+  --tensor-parallel-size 4 \  # <2>
+  --quantization awq  # <3>
+----
+<1> Load the 70B parameter Llama model which requires
+significant GPU memory and compute resources
+<2> Use 4 GPUs in tensor parallel mode for distributed
+inference across multiple devices
+<3> Enable AWQ quantization
+
+. Monitor the deployment:
++
+[source,bash]
+----
+watch -n 1 nvidia-smi
+----

@@ -1,0 +1,40 @@
+:_mod-docs-content-type: PROCEDURE
+[id="mixed-titles"]
+= Procedure with mixed titles
+
+[role="_abstract"]
+Some supported, some not.
+
+.Introduction
+
+Unsupported intro section.
+
+.Prerequisites
+
+* Supported prerequisites.
+
+.Setup steps
+
+Unsupported section.
+
+.Procedure
+
+. First step.
+
+.Important note
+
+This should be removed.
+
+. Second step.
+
+.Results
+
+Supported results section.
+
+.Summary
+
+Unsupported summary.
+
+.Additional resources
+
+* xref:topic[Link]

@@ -1,0 +1,14 @@
+:_mod-docs-content-type: CONCEPT
+[id="not-procedure"]
+= Understanding the software
+
+[role="_abstract"]
+Learn about the software architecture.
+
+The software consists of multiple components:
+
+. The web server
+. The database
+. The API gateway
+
+These work together to provide the service.

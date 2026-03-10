@@ -1,0 +1,8 @@
+:_mod-docs-content-type: CONCEPT
+[id="no-resources"]
+= Topic without Additional resources
+
+[role="_abstract"]
+This topic has no Additional resources section.
+
+Just some regular content here.
