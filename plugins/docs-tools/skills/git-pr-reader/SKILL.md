@@ -1,12 +1,8 @@
 ---
 name: git-pr-reader
-description: Extract code changes from GitHub Pull Requests and GitLab Merge Requests for release note generation. Automatically detects GitHub vs GitLab from URL, fetches PR/MR title, description, and file diffs, and filters out irrelevant files (tests, configs, lock files, generated code). Returns structured data optimized for LLM-based release note creation. Supports pagination for large PRs/MRs. Use this skill when you need to analyze code changes from Git repositories to understand what was modified, added, or fixed for documentation purposes.
+description: Extract code changes from GitHub Pull Requests and GitLab Merge Requests. Automatically detects GitHub vs GitLab from URL, fetches PR/MR title, description, and file diffs, and filters out irrelevant files (tests, configs, lock files, generated code). Supports pagination for large PRs/MRs. Use this skill when you need to analyze code changes from Git repositories to understand what was modified, added, or fixed for documentation purposes.
 author: Gabriel McGoldrick (gmcgoldr@redhat.com)
-allowed-tools:
-  - Read
-  - Bash
-  - Grep
-  - Glob
+allowed-tools: Read, Bash, Grep, Glob
 ---
 
 # Git PR Reader Skill
