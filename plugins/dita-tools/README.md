@@ -32,6 +32,8 @@
     brew install vale
     ```
 
+**Important:** Always validate your reworked content with the AsciiDocDITA Vale style (`vale --config=.vale.ini --glob='*.adoc'`) before submitting a PR/MR for merge. The dita-rework command runs Vale checks during the workflow, but you must confirm that no new issues have been introduced and all reported issues are resolved before merging.
+
 - Install review mode dependencies (required for `--review`)
 
     ```bash
