@@ -1,12 +1,17 @@
 ---
 description: Validate documentation technical accuracy against code repositories. Detects removed commands, changed API signatures, stale code examples, renamed config keys, and moved file paths. Auto-fixes high-confidence issues (>=65%) and interactively walks through lower-confidence fixes. Use this command when asked to check if docs match the code, verify CLI examples still work, validate API references, find outdated commands or stale documentation, compare docs against a PR or JIRA ticket, or run a technical review. Also use when the user says things like "are these docs accurate" or "check the code examples".
-argument-hint: --docs <source> [--docs <source>...] [--code URL] [--jira TICKET] [--pr URL] [--gdoc URL] [--fix] [--apply]
+argument-hint: --docs <source> [--docs <source>...] [--code URL] [--jira TICKET] [--pr URL] [--gdoc URL] [--fix]
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Skill, WebFetch, AskUserQuestion
 ---
 
 # Technical Review
 
-Validate documentation for technical accuracy by comparing against source code repositories. Auto-fixes high-confidence issues and generates detailed reports. Optionally walks through lower-confidence fixes interactively.
+Validate documentation for technical accuracy by comparing against source code repositories.
+
+**Two modes**:
+
+1. **Report only** (default) — validate and produce a human-readable report. No files are modified.
+2. **Fix mode** (`--fix`) — validate, auto-fix high-confidence issues (>=65%), then interactively walk through remaining issues one by one.
 
 ## Arguments
 
@@ -16,7 +21,7 @@ Validate documentation for technical accuracy by comparing against source code r
 
 If no `--docs` is provided, stop and ask the user.
 
-### Repository Discovery (at least one required, unless --report)
+### Repository Discovery (at least one required)
 
 | Argument | Description |
 |----------|-------------|
@@ -32,59 +37,30 @@ If no `--docs` is provided, stop and ask the user.
 
 | Flag | Description |
 |------|-------------|
-| `--fix` | Auto-fix high-confidence issues (>=65%) |
-| `--apply` | After validation, interactively walk through lower-confidence fixes (<65%) |
-| `--dry-run` | Preview changes without applying |
-
-### Resume from Previous Run
-
-| Argument | Description |
-|----------|-------------|
-| `--report <path>` | Skip validation, apply fixes from existing report JSON |
-| `--items <ID,ID,...>` | Only process these specific item IDs (with `--report` or `--apply`) |
-| `--confidence <MIN-MAX>` | Only process items in this confidence range (with `--report` or `--apply`) |
-
-### Flag Combinations
-
-| Flags | Behavior |
-|-------|----------|
-| *(none)* | Validate only, write report |
-| `--fix` | Validate + auto-fix >=65%, write report |
-| `--apply` | Validate + interactive apply <65% |
-| `--fix --apply` | Full flow: validate + auto-fix + interactive apply |
-| `--report <path>` | Skip validation, interactive apply from saved report |
+| *(none)* | Validate only, write report. No files modified. |
+| `--fix` | Validate, auto-fix high-confidence issues (>=65%), then interactively step through remaining issues. |
 
 ## Usage Examples
 
 ```bash
-# Validate and auto-fix
+# Report only — validate docs against a code repo
+/docs-tools:docs-technical-review --docs modules/ \
+  --code https://github.com/org/repo
+
+# Fix mode — auto-fix + interactive walkthrough
 /docs-tools:docs-technical-review --docs modules/ \
   --code https://github.com/org/repo --fix
 
-# Full flow: auto-fix + interactive apply
-/docs-tools:docs-technical-review --docs modules/ \
-  --jira RHAISTRAT-123 --fix --apply
-
-# Multiple doc sources and repos
+# Multiple doc sources and repos via JIRA + PR
 /docs-tools:docs-technical-review --docs modules/ --docs guides/admin/ \
-  --jira RHAISTRAT-123 --pr https://github.com/org/repo/pull/456 --fix
-
-# Resume from a previous report
-/docs-tools:docs-technical-review --report .claude_docs/technical-review-report.json \
-  --items MR-1,MR-3
-
-# Dry run
-/docs-tools:docs-technical-review --docs modules/ \
-  --code https://github.com/org/repo --dry-run
+  --jira PROJ-123 --pr https://github.com/org/repo/pull/456 --fix
 ```
 
 ## Implementation Workflow
 
 ### Step 1: Parse Arguments
 
-Extract arguments from the user's command. If `--report` is provided, skip to Step 10 (interactive apply from saved report).
-
-If `--docs` is empty and `--report` is not provided, stop and ask the user.
+Extract arguments from the user's command. If `--docs` is empty, stop and ask the user.
 
 ### Step 2: Resolve Docs Sources
 
@@ -107,7 +83,7 @@ Verify at least one repo was found. If not, stop with an error listing the avail
 
 ### Step 4: Clone Code Repositories
 
-Clone each repo to `/tmp/tech-review/<repo-name>/` using `git clone --depth 1`. Try the specified `--ref` first, fall back to default branch. Skip repos already cloned. Warn and continue if a clone fails.
+Clone each repo to `/tmp/tech-review/<repo-name>/` using `git clone`. Do NOT use `--depth 1` — the search script uses `git log` to find rename and deprecation evidence, which requires full history. Try the specified `--ref` first, fall back to default branch. Skip repos already cloned. Warn and continue if a clone fails.
 
 ### Parallelization
 
@@ -141,107 +117,91 @@ ruby "./scripts/search_tech_references.rb" \
 
 | Category | Result Fields | What It Finds |
 |----------|---------------|---------------|
-| **Commands** | `found`, `found_path`, `flags_missing`, `similar_commands`, `git_log_mentions` | Whether command binary/script exists, which flags are missing, git history for renames |
-| **Code Blocks** | `match_type` (exact/partial/none), `match_ratio`, `matched_file`, `actual_code` | Exact or fuzzy content matches in source files of the matching language |
-| **APIs/Functions** | `definition_found`, `actual_signature`, `type` (function/class/endpoint) | Function/class/endpoint definitions and whether signatures match |
-| **Configuration** | `key_found`, `found_in_file`, `git_log_mentions` | Whether config keys exist in schema/example files, git history for renames |
-| **File Paths** | `exists`, `moved_to`, `similar_files` | Whether referenced paths exist, fuzzy matches if file was moved |
+| **Commands** | `found`, `scope`, `flags_checked`, `cli_validation`, `git_evidence` | Whether command exists, scope classification (in-scope/external/unknown), flag validation against argparse/click/cobra definitions |
+| **Code Blocks** | `found`, `matches` (with `type`: first_line/identifier_ratio), `missing_identifiers` | Exact or fuzzy content matches in source files of the matching language |
+| **APIs/Functions** | `found`, `matches` (with `type`: definition/usage/endpoint), `git_evidence` | Function/class/endpoint definitions and whether signatures match |
+| **Configuration** | `found`, `keys_checked`, `schema_validation`, `git_evidence` | Whether config keys exist in schema/example files, validation against discovered schema files |
+| **File Paths** | `found`, `matches` (with `type`: exact/basename) | Whether referenced paths exist, fuzzy matches if file was moved |
 
-**Interpreting results and assigning confidence**:
+**Search result enrichments**:
 
-The search results are raw evidence — use your judgment to assign confidence scores. Confidence reflects how certain you are about both the problem and the fix, not just the problem.
+- **`scope`** field on commands: `external` (system tool — skip), `in-scope` (lives in code repo — validate), `unknown` (needs investigation)
+- **`cli_validation`** on commands: If argparse/click/cobra definitions were discovered, shows `unknown_flags`, `valid_flags`, `known_flags`, and `subcommand_check` (validates only the first positional arg as a subcommand — file paths and values are ignored)
+- **`schema_validation`** on configs: If schema files were discovered, shows `keys_only_in_doc` (potentially wrong), `keys_only_in_schema` (potentially missing from docs), and `overlap_ratio`
+- **`discovered_schemas`** and **`discovered_cli_definitions`** in the top-level output: Lists what was auto-discovered for transparency
 
-- **Exact matches** with only syntax/formatting differences → high confidence (>=85%), fix is obvious
-- **Git log evidence** of renames or deprecation → medium-high (70-90%), history confirms intentional change
-- **Partial matches** or similar-but-different results → medium (50-64%), right fix is ambiguous
-- **No matches at all** → low (<50%), could be removal, wrong repo, or reference lives elsewhere
-- **Context matters**: a missing flag in a command that otherwise exists is higher confidence than a completely missing command
+### Step 6a: Structured Triage (Deterministic Classification)
 
-Cross-reference multiple signals (search results + git history + related files) before finalizing confidence.
+Process ALL search results through a deterministic classification pipeline — not just not-found items. A command can be `found: true` (binary exists) but still have stale flags (`cli_validation.unknown_flags`). Do NOT skip this step or use ad-hoc exploration.
+
+**Pass 1: Scope filtering (commands only)** — For each command result, check the `scope` field. Non-command categories (code blocks, APIs, configs, file paths) do not have scope and always proceed to Pass 2.
+- `scope: external` → Tag as `out-of-scope`, skip further analysis. These are system commands (sudo, dnf, oc, kubectl, etc.) that cannot be validated against the code repo.
+- `scope: in-scope` or `scope: unknown` → Continue to Pass 2.
+
+**Pass 2: Deterministic validation** — For items that passed scope filtering:
+- **Commands with `cli_validation`**: If `cli_validation.unknown_flags` is non-empty, flag each unknown flag as an issue. The `cli_validation.known_flags` list shows what flags actually exist in the code. Confidence is high (>=80%) because this is source-code-derived ground truth.
+- **Configs with `schema_validation`**: If `schema_validation.matched_schemas` has entries with `keys_only_in_doc` items, flag each as a potential stale/renamed key. Use `keys_only_in_schema` as candidate replacements. Confidence is medium-high (70-85%) based on `overlap_ratio`.
+- **File paths with `found: false`**: If basename matches exist, likely a moved file. Confidence 70-80%. If no matches at all, confidence <50%.
+
+**Pass 3: Evidence-based analysis** — For remaining items not resolved by Pass 2:
+- Cross-reference `git_evidence` with search results. Git log mentions of renames or deprecation → medium-high confidence (70-90%).
+- Partial matches or similar-but-different results → medium confidence (50-64%).
+- No matches at all and no git evidence → low confidence (<50%). Could be wrong repo, or reference lives elsewhere.
+
+**Pass 4: Read source files** — For items flagged in passes 2-3 with confidence >=50%, read the actual source file referenced by the match to confirm the issue. Do not report issues based solely on search output without verifying against the source.
 
 **Assigning severity**: `High` = users will hit errors (broken commands, missing APIs). `Medium` = misleading but not blocking (wrong names, stale options). `Low` = cosmetic or informational (undocumented features, formatting).
 
-**Threshold**: >=65% = auto-fixable, <65% = needs manual review.
+**Threshold**: >=65% = auto-fixable, <65% = needs interactive review.
 
-### Step 7: Perform Whole-Repo Scanning
+### Step 7: Proactive Whole-Repo Scanning
 
-For each flagged issue, search all `.adoc` and `.md` files for additional occurrences of the same pattern. Record every file and line where the pattern appears so the report captures the full blast radius.
+This step is **mandatory** and runs regardless of whether issues were found in Step 6. It catches issues that extraction+search may miss.
 
-### Step 8: Apply Auto-Fixes (if --fix)
+**Scan scope**: The scan searches `.adoc` and `.md` files in the parent directories of the `--docs` sources. For example, if `--docs modules/proc-install.adoc` was provided, scan all `.adoc` and `.md` files under `modules/`. If `--docs` was a directory, use that directory. This captures sibling files that may have the same issues without scanning unrelated parts of the filesystem.
 
-For each issue with confidence >=65%, apply the fix using the Edit tool. Track each fix applied and its before/after text for the report.
+**7a: Anti-pattern scan** — Use the discovered CLI definitions and schemas to scan the doc tree for known anti-patterns:
 
-### Step 9: Generate Reports
+1. **Deprecated flags**: For each `cli_validation.unknown_flags` found in Step 6, search for additional occurrences. This catches the same stale flag in files that weren't part of the initial `--docs` set.
+2. **Stale config keys**: For each `schema_validation.keys_only_in_doc` found in Step 6, search for additional occurrences.
+3. **Old binary names**: If the code repo's entry point binary name differs from what docs reference, scan for the old name.
 
-#### Markdown Report
+**7b: Blast radius scan** — For each issue flagged in Step 6a, search the doc tree for additional occurrences of the same pattern. Record every file and line where the pattern appears so the report captures the full blast radius.
+
+### Step 8: Report or Fix
+
+#### Path 1: Report only (no `--fix`)
 
 Write `.claude_docs/technical-review-report.md` with these sections:
 
 1. **Header** — docs sources, timestamp, repo count
-2. **Summary table** — per-category counts (validated, issues, auto-fixed, manual review)
-3. **Code Repositories** — URL, ref, source, clone path
-4. **Issues Auto-Fixed** — each with ID (`AF-N`), location, issue, evidence, diff
-5. **Issues Requiring Manual Review** — each with ID (`MR-N`), location, severity, issue, evidence, suggested diff, reasoning
-6. **Whole-Repo Scan Results** — grouped by issue type, listing all files/lines affected
-7. **Next Steps** — review auto-fixes, run with `--apply`, run Vale, test examples
+2. **Discovery Summary** — discovered schemas, CLI definitions, and scope classification stats (how many commands were external/in-scope/unknown)
+3. **Triage Summary** — counts by pass (scope-filtered, deterministic, evidence-based, source-verified)
+4. **Summary table** — per-category counts (validated, issues found, by severity)
+5. **Code Repositories** — URL, ref, source, clone path
+6. **Issues Found** — each with ID, location, severity, confidence, issue description, evidence, suggested fix, reasoning, validation source (cli_validation/schema_validation/git_evidence/manual_analysis)
+7. **Whole-Repo Scan Results** — grouped by issue type, listing all files/lines affected
+8. **Out-of-Scope References** — summary count of external commands skipped, grouped by tool name (collapsed, not individual items)
 
-#### JSON Sidecar
+Display the summary to the user and the path to the report file.
 
-Write `.claude_docs/technical-review-report.json` — array of issue objects:
+#### Path 2: Fix mode (`--fix`)
 
-```json
-[
-  {
-    "id": "AF-1",
-    "file": "modules/proc-install.adoc",
-    "line": 42,
-    "category": "commands",
-    "confidence": 90,
-    "old_text": "--enable-feature",
-    "new_text": "--feature-enable",
-    "evidence": "Flag renamed in commit abc123",
-    "description": "Command flag renamed in v2.0",
-    "severity": "Medium",
-    "reasoning": "Git log shows flag renamed in v2.0 release"
-  }
-]
-```
+**Phase A — Auto-fix high-confidence issues**:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string | Issue ID (`AF-N` for auto-fixed, `MR-N` for manual review) |
-| `file` | string | Path to the documentation file |
-| `line` | number | Line number in the file |
-| `category` | string | One of: `commands`, `code_blocks`, `apis`, `configs`, `file_paths`, `conceptual` |
-| `confidence` | number | Confidence score (0-100) |
-| `old_text` | string | Original text in the documentation (used for content-based matching) |
-| `new_text` | string | Suggested or applied replacement text |
-| `evidence` | string | What was found in the code repository |
-| `description` | string | Human-readable description of the issue |
-| `severity` | string | `High`, `Medium`, or `Low` |
-| `reasoning` | string | Why the change is suggested and confidence rationale |
+For each issue with confidence >=65%, apply the fix using the Edit tool. Track each fix applied.
 
-The `old_text` field enables content-based matching so fixes apply correctly even if line numbers shift.
+**Phase B — Interactive walkthrough of remaining issues**:
 
-#### Display Summary
-
-Show total issues found, auto-fixed count, manual review count, and paths to both report files.
-
-### Step 10: Interactive Apply (if --apply or --report)
-
-If `--apply` was specified (or `--report` for resume mode), proceed to interactively walk through lower-confidence fixes. If there are no manual review items, stop with a success message.
-
-**Load items**: Read the JSON sidecar. Filter for items with confidence <65%, then apply any `--confidence` or `--items` filters.
-
-If `--report` was provided and the JSON sidecar is missing, fall back to parsing the markdown report (warn the user).
+For each issue with confidence <65%, present it to the user and ask how to proceed. If there are no remaining issues, skip to the report.
 
 **For each item**:
 
-1. **Read current file** to verify `old_text` exists
+1. **Read current file** to verify the issue text exists
 2. **Present** the item:
 
 ```
-MR-1 (1 of 5): Command flag renamed | Confidence: 60% | Severity: High
+Issue 1 of 5: Command flag renamed | Confidence: 60% | Severity: High
 File: modules/proc-install.adoc
 
 Current:   $ my-tool --enable-feature
@@ -259,7 +219,13 @@ Reasoning: Exact command exists, only the flag changed — likely a rename
 
 4. **Apply fix** using content-based matching: `Edit(file_path=FILE, old_string=old_text, new_string=new_text)`
 
-**After all items**: Display counts of applied, modified, skipped, and deleted items. Back up the report file and mark applied items.
+**After all items**: Write `.claude_docs/technical-review-report.md` with the same sections as Path 1, plus:
+
+- **Issues Auto-Fixed** — each with ID (`AF-N`), location, issue, evidence, before/after diff
+- **Issues Interactively Resolved** — each with ID, action taken (applied/modified/deleted)
+- **Issues Skipped** — each with ID, location, issue (for future reference)
+
+Display counts of auto-fixed, interactively applied, modified, skipped, and deleted items.
 
 ## Error Handling
 
@@ -267,7 +233,7 @@ Reasoning: Exact command exists, only the flag changed — likely a rename
 - **No repos discovered**: Exit with error, show discovery options
 - **Clone failures**: Warn and skip repo, continue with others
 - **No references found**: Exit gracefully with summary
-- **`old_text` not found in file**: Warn user, show current file content, ask how to proceed
+- **Issue text not found in file**: Warn user, show current file content, ask how to proceed
 - **Edit operation fails**: Report error, ask to retry or skip
 
 ## Prerequisites
