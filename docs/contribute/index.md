@@ -4,7 +4,54 @@ icon: lucide/git-pull-request
 
 # Contributing
 
-Use the `hello-world` plugin as a reference implementation.
+This repository is the canonical collection of Claude Code plugins for Red Hat documentation workflows. Contributions are welcome from anyone in the community.
+
+For the full contributor guide, see [CONTRIBUTING.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/CONTRIBUTING.md).
+
+## Key principles
+
+### Extend, don't duplicate
+
+Before creating a new plugin, skill, or command, check whether the capability already exists. If it does, improve the existing one rather than creating a parallel version. Duplicate capabilities fragment the user experience and increase maintenance burden.
+
+### One capability per PR
+
+Keep pull requests focused. Each PR should add or modify a single skill, command, or agent. Don't bundle unrelated changes.
+
+### Test your work
+
+Every skill and command must include evals that demonstrate it works. See [Evaluating skills](evaluating-skills.md) for how to write and run tests.
+
+### Open an issue first
+
+For anything beyond trivial fixes, open an issue to discuss your contribution before writing code. This prevents wasted effort.
+
+## What's accepted
+
+- Capabilities useful to the broader Red Hat documentation community
+- Non-duplicative additions or improvements to existing plugins
+- Well-tested skills and commands with evals
+- Clear, focused, well-documented contributions
+
+## What's not accepted
+
+- Duplicates of existing capabilities
+- Personal or single-team-specific tooling
+- Skills and commands without evals
+- Overly broad or vague capabilities
+- Dependencies that aren't accessible to the community
+
+## Contribution types
+
+| Type | When to use | Location |
+|------|-------------|----------|
+| **Skill** | Reusable knowledge, checklists, style rules, or domain expertise | `plugins/<plugin>/skills/<name>/SKILL.md` |
+| **Command** | User-invokable action (`/plugin:command`) | `plugins/<plugin>/commands/<name>.md` |
+| **Agent** | Specialized agent persona with a defined role | `plugins/<plugin>/agents/<name>.md` |
+| **Reference** | Static reference material for skills or agents | `plugins/<plugin>/reference/<name>.md` |
+| **New plugin** | A genuinely new capability domain | `plugins/<new-plugin>/` |
+
+Most contributions are additions to existing plugins. Create a new plugin only when your contribution represents a distinct capability domain.
 
 ## Versioning
 
@@ -15,7 +62,7 @@ Bump the version in `plugin.json` when making changes:
 - **Major** (x.0.0): Breaking changes to existing commands
 
 !!! tip
-    Plugins use [semantic versioning](https://semver.org/). 
+    Plugins use [semantic versioning](https://semver.org/).
 
 ## Auto-generated docs
 
@@ -29,4 +76,4 @@ These are regenerated on every merge to main via CI.
 
 ## Code review
 
-All changes require a pull request with at least one approval.
+All changes require a pull request with at least one approval. Keep PRs small, focused, and self-reviewed before requesting review.

@@ -1,56 +1,213 @@
 # Contributing to Red Hat Docs Agent Tools
 
-## Getting started
+This repository is the canonical collection of Claude Code plugins, skills, agents, and commands for Red Hat documentation workflows. Contributions are welcome from anyone in the Red Hat documentation community.
 
-1. Fork and clone the repository
-2. Create a new branch for your changes
-3. Follow the plugin structure in `plugins/hello-world/` as a reference
+This guide helps you contribute effectively and helps maintainers review efficiently.
+
+## Before you contribute
+
+### Check for existing capabilities
+
+Before creating something new, search the existing plugins to see if your use case is already covered:
+
+1. Browse the [plugin catalog](https://redhat-documentation.github.io/redhat-docs-agent-tools/) or run `make update` locally.
+2. Read the README, commands, skills, and agents in each plugin under `plugins/`.
+3. Search for keywords related to your capability using `grep -r "your-keyword" plugins/`.
+
+**If similar functionality already exists, contribute to the existing plugin rather than creating a new one.** For example:
+
+- A new AsciiDoc linting rule belongs in `vale-tools`, not in a new plugin.
+- A new documentation review checklist belongs in `docs-tools`, not in a new plugin.
+- A Google Docs conversion improvement belongs in the existing `docs-convert-gdoc-md` skill, not in a parallel skill.
+
+Duplicate capabilities fragment the user experience and increase the maintenance burden. Pull requests that duplicate existing functionality will be asked to merge into the existing capability instead.
+
+### Decide what type of contribution to make
+
+| Type | When to use | Location |
+|------|-------------|----------|
+| **Skill** | Reusable knowledge, checklists, style rules, or domain expertise that the agent applies automatically | `plugins/<plugin>/skills/<skill-name>/SKILL.md` |
+| **Command** | A user-invokable action triggered with `/plugin-name:command` | `plugins/<plugin>/commands/<command>.md` |
+| **Agent** | A specialized agent persona with a defined role and workflow | `plugins/<plugin>/agents/<agent>.md` |
+| **Reference** | Static reference material that skills or agents can consult | `plugins/<plugin>/reference/<ref>.md` |
+| **New plugin** | A genuinely new capability domain that doesn't fit any existing plugin | `plugins/<new-plugin>/` |
+
+Create a new plugin only when your contribution represents a distinct capability domain. Most contributions should be additions to an existing plugin.
+
+## What will be accepted
+
+Contributions are accepted when they meet **all** of the following criteria:
+
+- **Useful to the Red Hat documentation community.** The capability addresses a real workflow need shared by multiple documentation teams or contributors.
+- **Non-duplicative.** No existing skill, command, or agent already covers the same use case.
+- **Tested.** Skills and commands include evals that demonstrate the capability works as described (see [Evaluating skills](docs/contribute/evaluating-skills.md)).
+- **Well-scoped.** Each skill, command, or agent does one thing well. Avoid monolithic capabilities that try to do everything.
+- **Documented.** The plugin README explains what it does, any prerequisites, and how to use it. Commands and skills have clear descriptions.
+- **Follows conventions.** Uses the repo structure, naming conventions, and patterns described below.
+
+## What will not be accepted
+
+- **Duplicates of existing capabilities.** If a skill for AsciiDoc review already exists, don't create another one. Improve the existing one.
+- **Personal or team-specific tooling.** If a capability is only useful to one person or one team's private workflow, maintain it in your own fork or a separate marketplace.
+- **Capabilities without evals.** Skills and commands must include test cases that demonstrate they work. Untested contributions will not be merged.
+- **Overly broad or vague capabilities.** A skill called "improve docs" with no specific guidance is not useful. Be specific about what the skill does and when it applies.
+- **Capabilities that require proprietary or inaccessible dependencies.** All prerequisites must be available to the broader Red Hat documentation community.
+- **Changes that break existing functionality.** If your change modifies an existing skill or command, ensure backward compatibility or clearly document the breaking change with a major version bump.
+
+## Contribution workflow
+
+### 1. Open an issue first
+
+For anything beyond trivial fixes, open an issue to discuss your contribution before writing code. Describe:
+
+- What capability you want to add or change
+- Why it's needed
+- Whether it overlaps with anything existing
+
+This prevents wasted effort on contributions that won't be accepted.
+
+### 2. Fork and branch
+
+```bash
+# Fork the repo on GitHub, then:
+git clone https://github.com/<your-username>/redhat-docs-agent-tools.git
+cd redhat-docs-agent-tools
+git checkout -b my-contribution
+```
+
+### 3. Make your changes
+
+Follow the structure and conventions below. Use `plugins/hello-world/` as a reference implementation.
+
+### 4. Test locally
+
+```bash
+# Regenerate docs to verify your plugin is picked up
+make update
+
+# Preview the site
+make serve
+
+# Run evals for your skill/command
+/skill-creator test the <plugin-name> skill at plugins/<plugin-name>/commands/<command>.md
+```
+
+### 5. Submit a pull request
+
+- Write a clear PR title and description.
+- Reference the issue you opened.
+- Include eval results (benchmark output or a summary of test outcomes).
+- Keep the PR focused: one capability per PR. Don't bundle unrelated changes.
 
 ## Plugin structure
 
-Each plugin lives under `plugins/<plugin-name>/` and must contain:
+```
+plugins/<plugin-name>/
+├── .claude-plugin/
+│   └── plugin.json          # Required: name, version, description, author
+├── commands/
+│   └── <command>.md         # User-invokable commands
+├── skills/
+│   └── <skill-name>/
+│       └── SKILL.md         # Skill definitions
+├── agents/
+│   └── <agent>.md           # Agent definitions
+├── reference/
+│   └── <ref>.md             # Reference material
+├── evals/
+│   └── evals.json           # Test cases
+└── README.md                # Required: what the plugin does, prerequisites, usage
+```
 
-- `.claude-plugin/plugin.json` - Plugin metadata
-- `README.md` - Plugin documentation
+### plugin.json
 
-Plugins may also include:
+```json
+{
+  "name": "my-plugin",
+  "version": "1.0.0",
+  "description": "Brief description of what this plugin does",
+  "author": {
+    "name": "Your Name or Team",
+    "email": "you@redhat.com"
+  }
+}
+```
 
-- `commands/` - Command definitions as Markdown files
-- `skills/` - Skill definitions (flat `*.md` or subdirectory `<name>/SKILL.md`)
-- `agents/` - Agent definitions as Markdown files
-- `templates/` - Shared templates used by agents or skills
+### Naming conventions
 
-## Versioning
+- **Plugin names:** kebab-case (`my-plugin`, not `myPlugin` or `my_plugin`)
+- **Command names:** kebab-case (`my-command.md`)
+- **Skill directories:** kebab-case (`my-skill-name/SKILL.md`)
+- **Agent names:** kebab-case (`my-agent.md`)
 
-Plugins follow [semver](https://semver.org/). Bump the version in `plugin.json` with every change:
+### Versioning
 
-- **Patch**: Bug fixes, docs updates
-- **Minor**: New commands, non-breaking changes
-- **Major**: Breaking changes
+Plugins follow [semantic versioning](https://semver.org/). Bump the version in `plugin.json` with every change:
+
+- **Patch** (0.0.x): Bug fixes, typo corrections, documentation updates
+- **Minor** (0.x.0): New commands, skills, or agents; non-breaking changes
+- **Major** (x.0.0): Breaking changes to existing commands, skills, or agents
+
+## Writing good skills
+
+Skills are the most common contribution type. A good skill:
+
+- **Has a clear trigger description.** The description tells the agent exactly when to activate the skill. Be specific about input types, file formats, or contexts.
+- **Provides actionable guidance.** Don't just describe what to do; provide the rules, checklists, or templates the agent should follow.
+- **Focuses on one concern.** A skill for "AsciiDoc structure validation" is better than a skill for "everything about AsciiDoc."
+- **Is grounded in authoritative sources.** Reference official style guides, standards, or documented team practices — not personal preferences.
+
+## Writing good commands
+
+Commands are user-invokable actions. A good command:
+
+- **Has a clear description in frontmatter.** The `description` field tells users what the command does before they run it.
+- **Uses `argument-hint` to document expected input.** Show users what arguments the command accepts.
+- **Produces consistent output.** The same input should produce the same output. Write evals to verify this.
+
+## Writing good agents
+
+Agents are specialized personas. A good agent:
+
+- **Has a defined role and scope.** "You are a technical reviewer who checks for..." is better than "You help with docs."
+- **Delegates to existing skills.** Agents should reference and use skills from the same plugin or other installed plugins, rather than inlining duplicate logic.
+- **Has a clear workflow.** Describe the steps the agent follows, in order.
+
+## Writing evals
+
+Every skill and command must include evals. See [Evaluating skills](docs/contribute/evaluating-skills.md) for the full guide.
+
+At minimum, your `evals/evals.json` should include:
+
+- At least 2 test cases covering normal usage
+- Assertions that are **discriminating** — they pass with the skill and fail without it
+- Descriptive assertion names that explain what's being tested
 
 ## Auto-generated files
 
-These files are built by CI on every merge to main and are gitignored (not tracked in source):
+These files are built by CI on merge to `main` and are gitignored:
 
 - `docs/plugins.md`
 - `docs/plugins/*.md`
 - `docs/install/index.md`
 
-Run `make update` locally to generate and preview them.
+Run `make update` locally to preview them. Do not commit them.
 
-## Local development
+## Code review expectations
 
-```bash
-# Regenerate docs
-make update
+To keep reviews manageable:
 
-# Start local site
-make serve
+- **One capability per PR.** Don't add three skills and two commands in a single PR.
+- **Small, focused diffs.** Reviewers should be able to understand the full change in a single sitting.
+- **Self-review first.** Before requesting review, re-read your own diff. Check for typos, formatting issues, and adherence to conventions.
+- **Respond to feedback promptly.** Stale PRs that go unresponsive for more than 2 weeks may be closed.
 
-# Build site
-make build
-```
+## Getting help
 
-## Pull requests
+- Open an issue with questions about contribution scope or approach.
+- Use the `hello-world` plugin as a reference for structure and conventions.
+- Review existing plugins to understand the patterns in use.
 
-All changes require a pull request with review before merging.
+## License
+
+By contributing, you agree that your contributions will be licensed under the [Apache-2.0 license](LICENSE).
