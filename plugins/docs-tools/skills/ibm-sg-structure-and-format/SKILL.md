@@ -8,7 +8,7 @@ description: Review documentation for IBM Style Guide structure and format — h
 
 Review documentation for structure and format issues: headings, lists, procedures, paragraphs, tables, notes, emphasis, figures, and examples.
 
-**Precedence**: For Red Hat documentation, the Red Hat Supplementary Style Guide (SSG) takes precedence over IBM Style Guide rules. Where guidance conflicts, follow the RH SSG skill for that topic (e.g., `rh-ssg-formatting`, `rh-ssg-structure`).
+**Precedence**: For Red Hat documentation, the Red Hat Supplementary Style Guide (SSG) takes precedence over IBM Style Guide rules. Where guidance conflicts, follow the RH SSG skill for that topic (e.g., `docs-tools:rh-ssg-formatting`, `docs-tools:rh-ssg-structure`).
 
 ## Checklist
 

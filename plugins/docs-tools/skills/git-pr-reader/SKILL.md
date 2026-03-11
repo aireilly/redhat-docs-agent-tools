@@ -135,8 +135,8 @@ python3 -m pip install PyGithub python-gitlab pyyaml
 ## Integration with Other Skills
 
 This skill works well with:
-- **jira-reader**: Combine JIRA issue context with Git code changes
-- **jira-writer**: Generate release notes from JIRA + Git data, then push back to JIRA
+- **docs-tools:jira-reader**: Combine JIRA issue context with Git code changes
+- **docs-tools:jira-writer**: Generate release notes from JIRA + Git data, then push back to JIRA
 
 ## Example Workflow
 

@@ -647,7 +647,7 @@ Before completing an AsciiDoc module, verify:
 - [ ] Code blocks specify source language
 - [ ] No callouts in code blocks
 - [ ] Product names use attributes
-- [ ] `vale` run and all ERROR-level issues fixed
+- [ ] `vale-tools:lint-with-vale` run and all ERROR-level issues fixed
 
 ---
 

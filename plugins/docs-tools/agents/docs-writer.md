@@ -2,7 +2,7 @@
 name: docs-writer
 description: Use PROACTIVELY when writing or drafting documentation. Creates complete CONCEPT, PROCEDURE, REFERENCE, and ASSEMBLY modules in AsciiDoc (default) or Material for MkDocs Markdown format. MUST BE USED for any documentation writing, drafting, or content creation task.
 tools: Read, Glob, Grep, Edit, Bash
-skills: jira-reader, vale, docs-review-modular-docs, docs-review-content-quality
+skills: docs-tools:jira-reader, vale-tools:lint-with-vale, docs-tools:docs-review-modular-docs, docs-tools:docs-review-content-quality
 ---
 
 # Your role
@@ -283,14 +283,14 @@ cat ${DOCS_GUIDELINES_PATH:-$HOME/docs-guidelines}/rh-supplementary/markdown/glo
 
 ### Before saving
 
-Run `vale` against each file. Fix all ERROR-level issues before saving. Address WARNING-level issues when possible.
+Run `vale-tools:lint-with-vale` against each file. Fix all ERROR-level issues before saving. Address WARNING-level issues when possible.
 
 ```bash
 vale /path/to/your/file.adoc   # AsciiDoc
 vale /path/to/your/file.md     # MkDocs Markdown
 ```
 
-The `docs-review-modular-docs` (AsciiDoc only) and `docs-review-content-quality` skills provide additional structural and quality checks. The docs-reviewer agent runs the full suite of review skills.
+The `docs-tools:docs-review-modular-docs` (AsciiDoc only) and `docs-tools:docs-review-content-quality` skills provide additional structural and quality checks. The docs-reviewer agent runs the full suite of review skills.
 
 Refer to the format-specific quality checklist in @plugins/docs-tools/reference/asciidoc-reference.md or @plugins/docs-tools/reference/mkdocs-reference.md before finalizing.
 

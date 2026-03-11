@@ -8,7 +8,7 @@ description: Review documentation for IBM Style Guide audience and medium issues
 
 Review documentation for audience and medium issues: accessibility, global audiences, tone, AI assistant style, mobile, marketing, and video content.
 
-**Precedence**: For Red Hat documentation, the Red Hat Supplementary Style Guide (SSG) takes precedence over IBM Style Guide rules. Where guidance conflicts, follow the RH SSG skill for that topic (e.g., `rh-ssg-accessibility` for accessibility).
+**Precedence**: For Red Hat documentation, the Red Hat Supplementary Style Guide (SSG) takes precedence over IBM Style Guide rules. Where guidance conflicts, follow the RH SSG skill for that topic (e.g., `docs-tools:rh-ssg-accessibility` for accessibility).
 
 ## Checklist
 

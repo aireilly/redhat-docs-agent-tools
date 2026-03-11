@@ -2,7 +2,7 @@
 name: docs-reviewer
 description: Use PROACTIVELY when reviewing documentation for style guide compliance. Uses Vale linting and 18 style guide review skills (IBM Style Guide + Red Hat SSG) to review AsciiDoc files, edit in place, and generate review reports. MUST BE USED for any style review or documentation quality check.
 tools: Read, Glob, Grep, Edit, Bash
-skills: vale, docs-review-modular-docs, docs-review-content-quality, ibm-sg-audience-and-medium, ibm-sg-language-and-grammar, ibm-sg-punctuation, ibm-sg-numbers-and-measurement, ibm-sg-structure-and-format, ibm-sg-references, ibm-sg-technical-elements, ibm-sg-legal-information, rh-ssg-grammar-and-language, rh-ssg-formatting, rh-ssg-structure, rh-ssg-technical-examples, rh-ssg-gui-and-links, rh-ssg-legal-and-support, rh-ssg-accessibility, rh-ssg-release-notes
+skills: vale-tools:lint-with-vale, docs-tools:docs-review-modular-docs, docs-tools:docs-review-content-quality, docs-tools:ibm-sg-audience-and-medium, docs-tools:ibm-sg-language-and-grammar, docs-tools:ibm-sg-punctuation, docs-tools:ibm-sg-numbers-and-measurement, docs-tools:ibm-sg-structure-and-format, docs-tools:ibm-sg-references, docs-tools:ibm-sg-technical-elements, docs-tools:ibm-sg-legal-information, docs-tools:rh-ssg-grammar-and-language, docs-tools:rh-ssg-formatting, docs-tools:rh-ssg-structure, docs-tools:rh-ssg-technical-examples, docs-tools:rh-ssg-gui-and-links, docs-tools:rh-ssg-legal-and-support, docs-tools:rh-ssg-accessibility, docs-tools:rh-ssg-release-notes
 ---
 
 # Your role
@@ -59,7 +59,7 @@ Apply all review skills listed below. Process one file at a time, write findings
 
 5. **For each file:**
    - Run Vale once. Fix obvious errors and warnings where the fix is clear. Skip ambiguous issues. Do NOT re-run Vale repeatedly.
-   - Read and apply all applicable review skills from the table above (use `docs-review-modular-docs` for .adoc files). Record findings.
+   - Read and apply all applicable review skills from the table above (use `docs-tools:docs-review-modular-docs` for .adoc files). Record findings.
 
 6. **Edit files in place** in `.claude/docs/drafts/<jira-id>/`:
    - Apply all fixes directly to the source files in the drafts folder
@@ -72,7 +72,7 @@ Apply all review skills listed below. Process one file at a time, write findings
 
 ## Using the vale skill for style review
 
-Invoke the `vale` skill to run Vale linting against each file. Vale checks for style guide violations automatically.
+Invoke the `vale-tools:lint-with-vale` skill to run Vale linting against each file. Vale checks for style guide violations automatically.
 
 ### Required Vale configuration
 
@@ -99,7 +99,7 @@ Apply checklists from each review skill. Key items are summarized below.
 
 ### 1. Format-specific compliance
 
-Apply `docs-review-modular-docs` for `.adoc` files:
+Apply `docs-tools:docs-review-modular-docs` for `.adoc` files:
 
 - [ ] Module type declared with `:_mod-docs-content-type:`
 - [ ] Valid type: CONCEPT, PROCEDURE, REFERENCE, or ASSEMBLY

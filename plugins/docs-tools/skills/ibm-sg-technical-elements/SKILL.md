@@ -8,7 +8,7 @@ description: Review documentation for IBM Style Guide technical elements — cod
 
 Review documentation for technical element issues: code examples, command line, command syntax, files, keyboard keys, menus, UI elements, and web addresses.
 
-**Precedence**: For Red Hat documentation, the Red Hat Supplementary Style Guide (SSG) takes precedence over IBM Style Guide rules. Where guidance conflicts, follow the RH SSG skill for that topic (e.g., `rh-ssg-technical-examples` for code blocks and IP addresses, `rh-ssg-gui-and-links` for UI elements).
+**Precedence**: For Red Hat documentation, the Red Hat Supplementary Style Guide (SSG) takes precedence over IBM Style Guide rules. Where guidance conflicts, follow the RH SSG skill for that topic (e.g., `docs-tools:rh-ssg-technical-examples` for code blocks and IP addresses, `docs-tools:rh-ssg-gui-and-links` for UI elements).
 
 ## Checklist
 

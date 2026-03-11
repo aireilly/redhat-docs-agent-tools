@@ -8,7 +8,7 @@ description: Review documentation for IBM Style Guide language and grammar — a
 
 Review documentation for language and grammar issues: abbreviations, capitalization, active voice, inclusive language, pronouns, contractions, and preferred terminology.
 
-**Precedence**: For Red Hat documentation, the Red Hat Supplementary Style Guide (SSG) takes precedence over IBM Style Guide rules. Where guidance conflicts, follow the RH SSG skill for that topic (e.g., `rh-ssg-grammar-and-language` for conscious language and contractions).
+**Precedence**: For Red Hat documentation, the Red Hat Supplementary Style Guide (SSG) takes precedence over IBM Style Guide rules. Where guidance conflicts, follow the RH SSG skill for that topic (e.g., `docs-tools:rh-ssg-grammar-and-language` for conscious language and contractions).
 
 ## Checklist
 

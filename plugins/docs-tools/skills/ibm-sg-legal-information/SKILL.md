@@ -8,7 +8,7 @@ description: Review documentation for IBM Style Guide legal issues — unsubstan
 
 Review documentation for legal issues: claims and recommendations, company names, trademarks, copyright notices, personal information, and republishing.
 
-**Precedence**: For Red Hat documentation, the Red Hat Supplementary Style Guide (SSG) takes precedence over IBM Style Guide rules. Where guidance conflicts, follow the RH SSG skill for that topic (e.g., `rh-ssg-legal-and-support` for Technology Preview and Developer Preview).
+**Precedence**: For Red Hat documentation, the Red Hat Supplementary Style Guide (SSG) takes precedence over IBM Style Guide rules. Where guidance conflicts, follow the RH SSG skill for that topic (e.g., `docs-tools:rh-ssg-legal-and-support` for Technology Preview and Developer Preview).
 
 ## Checklist
 

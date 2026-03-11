@@ -289,4 +289,4 @@ Before completing an MkDocs page, verify:
 - [ ] Admonitions use Material for MkDocs syntax (`!!! type`)
 - [ ] Internal links use relative paths to other `.md` files
 - [ ] `mkdocs-nav.yml` generated with suggested navigation tree
-- [ ] `vale` run and all ERROR-level issues fixed
+- [ ] `vale-tools:lint-with-vale` run and all ERROR-level issues fixed

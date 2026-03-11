@@ -2,7 +2,7 @@
 name: requirements-analyst
 description: Use PROACTIVELY when analyzing JIRA tickets, PRs, or engineering specs for documentation requirements. Parses JIRA issues, PRs, Google Docs, and engineering specs to extract documentation requirements and map them to modular documentation modules. Uses web search to expand research with external sources. MUST BE USED for any requirements analysis or documentation scoping task.
 tools: Read, Glob, Grep, Edit, Bash, Skill, WebSearch
-skills: jira-reader, article-extractor, redhat-docs-toc, docs-convert-gdoc-md
+skills: docs-tools:jira-reader, docs-tools:article-extractor, docs-tools:redhat-docs-toc, docs-tools:docs-convert-gdoc-md
 ---
 
 # Your role
@@ -127,11 +127,11 @@ Gather information from multiple sources. **Record all URLs and file paths as yo
 
 **From JIRA:**
 
-Use the `jira-reader` skill to fetch issue details. Invoke using the Skill tool:
+Use the `docs-tools:jira-reader` skill to fetch issue details. Invoke using the Skill tool:
 ```
-Skill: jira-reader, args: "PROJECT-123"
-Skill: jira-reader, args: "--jql 'project = PROJECT AND fixVersion = X.Y.Z'"
-Skill: jira-reader, args: "--jql 'project = PROJECT AND labels = docs-needed'"
+Skill: docs-tools:jira-reader, args: "PROJECT-123"
+Skill: docs-tools:jira-reader, args: "--jql 'project = PROJECT AND fixVersion = X.Y.Z'"
+Skill: docs-tools:jira-reader, args: "--jql 'project = PROJECT AND labels = docs-needed'"
 ```
 - Record JIRA URLs for each relevant ticket (e.g., `https://issues.redhat.com/browse/PROJECT-123`)
 - Note specific sections referenced (e.g., "AC-1", "Documentation Considerations")
@@ -156,7 +156,7 @@ The script deterministically discovers custom field IDs, fetches the parent, chi
 | `issue_links` | Include in "Related tickets > Linked tickets" section |
 | `web_links` | Include in "Related tickets > Web links" section |
 | `auto_discovered_urls.pull_requests` | Merge with any manually-provided `--pr` URLs (dedup by URL) for code analysis |
-| `auto_discovered_urls.google_docs` | Fetch each URL with the `docs-convert-gdoc-md` skill |
+| `auto_discovered_urls.google_docs` | Fetch each URL with the `docs-tools:docs-convert-gdoc-md` skill |
 | `errors` | Note any traversal errors in the output — these are non-fatal |
 
 **Empty results:** If all relationship sections are empty, state "JIRA traversal completed — no parent, children, siblings, or linked tickets found." and omit empty subsections from the output.
@@ -424,28 +424,28 @@ If a traversal step failed due to a permission error (e.g., 403 on parent), note
 
 ### Querying JIRA with jira-reader
 
-Use the Skill tool to invoke the `jira-reader` skill. Do not call `jira_reader.py` directly.
+Use the Skill tool to invoke the `docs-tools:jira-reader` skill. Do not call `jira_reader.py` directly.
 
 **Fetch a single issue:**
 ```
-Skill: jira-reader, args: "PROJ-123"
+Skill: docs-tools:jira-reader, args: "PROJ-123"
 ```
 
 **Fetch issue with comments:**
 ```
-Skill: jira-reader, args: "PROJ-123 --include-comments"
+Skill: docs-tools:jira-reader, args: "PROJ-123 --include-comments"
 ```
 
 **Search issues by JQL (fast summary mode):**
 ```
-Skill: jira-reader, args: "--jql 'project=PROJ AND fixVersion=1.0.0'"
-Skill: jira-reader, args: "--jql 'project=PROJ AND labels=docs-needed AND status=Done'"
-Skill: jira-reader, args: "--jql 'project=PROJ AND updated >= -2w'"
+Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND fixVersion=1.0.0'"
+Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND labels=docs-needed AND status=Done'"
+Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND updated >= -2w'"
 ```
 
 **Search with full details (slower):**
 ```
-Skill: jira-reader, args: "--jql 'project=PROJ AND fixVersion=1.0.0' --fetch-details"
+Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND fixVersion=1.0.0' --fetch-details"
 ```
 
 ### Querying GitHub/GitLab with git_review_api.py
@@ -472,18 +472,18 @@ Requires tokens in `~/.env`:
 
 ### Reading Red Hat documentation with redhat-docs-toc
 
-Extract article URLs from Red Hat documentation TOC pages for research. Use the `redhat-docs-toc` skill:
+Extract article URLs from Red Hat documentation TOC pages for research. Use the `docs-tools:redhat-docs-toc` skill:
 
 ```
-/redhat-docs-toc https://docs.redhat.com/en/documentation/product/version/html/guide/index
+Skill: docs-tools:redhat-docs-toc, args: "https://docs.redhat.com/en/documentation/product/version/html/guide/index"
 ```
 
 ### Extracting article content with article-extractor
 
-Download and extract content from Red Hat documentation pages. Use the `article-extractor` skill:
+Download and extract content from Red Hat documentation pages. Use the `docs-tools:article-extractor` skill:
 
 ```
-/article-extractor https://docs.redhat.com/...
+Skill: docs-tools:article-extractor, args: "https://docs.redhat.com/..."
 ```
 
 ## Key principles

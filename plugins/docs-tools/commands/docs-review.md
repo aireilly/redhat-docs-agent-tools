@@ -192,30 +192,30 @@ The 4 agents are defined below. Each agent should read and follow the referenced
 
 **Agent 1: Style guide compliance (sonnet)**
 Read and follow @plugins/docs-tools/agents/docs-reviewer.md for review checklists and severity levels. Focus on these skills only:
-- `ibm-sg-language-and-grammar` — abbreviations, capitalization, active voice, inclusive language
-- `ibm-sg-punctuation` — colons, commas, dashes, hyphens, quotes
-- `ibm-sg-structure-and-format` — headings, lists, procedures, tables, emphasis
-- `ibm-sg-technical-elements` — code, commands, syntax, files, UI elements
-- `rh-ssg-grammar-and-language` — conscious language, contractions, minimalism
-- `rh-ssg-formatting` — code blocks, user values, titles, product names
-- `rh-ssg-structure` — admonitions, lead-ins, prerequisites, short descriptions
-- `rh-ssg-technical-examples` — root privileges, YAML, IPs/MACs, syntax highlighting
+- `docs-tools:ibm-sg-language-and-grammar` — abbreviations, capitalization, active voice, inclusive language
+- `docs-tools:ibm-sg-punctuation` — colons, commas, dashes, hyphens, quotes
+- `docs-tools:ibm-sg-structure-and-format` — headings, lists, procedures, tables, emphasis
+- `docs-tools:ibm-sg-technical-elements` — code, commands, syntax, files, UI elements
+- `docs-tools:rh-ssg-grammar-and-language` — conscious language, contractions, minimalism
+- `docs-tools:rh-ssg-formatting` — code blocks, user values, titles, product names
+- `docs-tools:rh-ssg-structure` — admonitions, lead-ins, prerequisites, short descriptions
+- `docs-tools:rh-ssg-technical-examples` — root privileges, YAML, IPs/MACs, syntax highlighting
 
 **Agent 2: Style guide compliance (sonnet)**
 Read and follow @plugins/docs-tools/agents/docs-reviewer.md for review checklists and severity levels. Focus on these skills only:
-- `ibm-sg-audience-and-medium` — accessibility, global audiences, tone
-- `ibm-sg-numbers-and-measurement` — numerals, formatting, currency, dates, units
-- `ibm-sg-references` — citations, product names, versions
-- `ibm-sg-legal-information` — claims, trademarks, copyright, personal info
-- `rh-ssg-gui-and-links` — screenshots, UI elements, links, cross-references
-- `rh-ssg-legal-and-support` — cost refs, future releases, Developer/Technology Preview
-- `rh-ssg-accessibility` — colors, images, links, tables, WCAG
-- `rh-ssg-release-notes` — release note style, tenses, Jira refs (apply only to .adoc files that appear to be release notes)
+- `docs-tools:ibm-sg-audience-and-medium` — accessibility, global audiences, tone
+- `docs-tools:ibm-sg-numbers-and-measurement` — numerals, formatting, currency, dates, units
+- `docs-tools:ibm-sg-references` — citations, product names, versions
+- `docs-tools:ibm-sg-legal-information` — claims, trademarks, copyright, personal info
+- `docs-tools:rh-ssg-gui-and-links` — screenshots, UI elements, links, cross-references
+- `docs-tools:rh-ssg-legal-and-support` — cost refs, future releases, Developer/Technology Preview
+- `docs-tools:rh-ssg-accessibility` — colors, images, links, tables, WCAG
+- `docs-tools:rh-ssg-release-notes` — release note style, tenses, Jira refs (apply only to .adoc files that appear to be release notes)
 
 **Agent 3: Modular docs structure and content quality (opus)**
 Read and follow @plugins/docs-tools/agents/docs-reviewer.md for the full modular docs checklist and content quality review process, including Vale integration. Focus on these skills only:
-- `docs-review-modular-docs` — module types, anchor IDs, assemblies, title conventions
-- `docs-review-content-quality` — logical flow, user journey, scannability, conciseness
+- `docs-tools:docs-review-modular-docs` — module types, anchor IDs, assemblies, title conventions
+- `docs-tools:docs-review-content-quality` — logical flow, user journey, scannability, conciseness
 - Run Vale once per file if Vale is available. Fix clear errors, skip ambiguous issues.
 
 **Agent 4: Technical accuracy and consistency (opus)**
@@ -638,35 +638,35 @@ Suggested fix:
 
 | Skill | Applies To | Focus |
 |-------|------------|-------|
-| `vale` | .adoc, .md | Style guide linting (RedHat, IBM rules) |
-| `docs-review-modular-docs` | .adoc | Module types, anchor IDs, assemblies |
-| `docs-review-content-quality` | .adoc, .md | Logical flow, user journey, scannability, conciseness |
+| `vale-tools:lint-with-vale` | .adoc, .md | Style guide linting (RedHat, IBM rules) |
+| `docs-tools:docs-review-modular-docs` | .adoc | Module types, anchor IDs, assemblies |
+| `docs-tools:docs-review-content-quality` | .adoc, .md | Logical flow, user journey, scannability, conciseness |
 
 ### IBM Style Guide Skills
 
 | Skill | Focus |
 |-------|-------|
-| `ibm-sg-audience-and-medium` | Accessibility, global audiences, tone, conversational style |
-| `ibm-sg-language-and-grammar` | Abbreviations, capitalization, active voice, inclusive language, terminology |
-| `ibm-sg-punctuation` | Colons, commas, dashes, hyphens, quotes, semicolons, slashes |
-| `ibm-sg-numbers-and-measurement` | Numerals, formatting, currency, dates, times, units |
-| `ibm-sg-structure-and-format` | Headings, lists, procedures, tables, emphasis, figures |
-| `ibm-sg-references` | Citations, product names, versions |
-| `ibm-sg-technical-elements` | Code, commands, syntax, files, UI elements, web addresses |
-| `ibm-sg-legal-information` | Claims, trademarks, copyright, personal info |
+| `docs-tools:ibm-sg-audience-and-medium` | Accessibility, global audiences, tone, conversational style |
+| `docs-tools:ibm-sg-language-and-grammar` | Abbreviations, capitalization, active voice, inclusive language, terminology |
+| `docs-tools:ibm-sg-punctuation` | Colons, commas, dashes, hyphens, quotes, semicolons, slashes |
+| `docs-tools:ibm-sg-numbers-and-measurement` | Numerals, formatting, currency, dates, times, units |
+| `docs-tools:ibm-sg-structure-and-format` | Headings, lists, procedures, tables, emphasis, figures |
+| `docs-tools:ibm-sg-references` | Citations, product names, versions |
+| `docs-tools:ibm-sg-technical-elements` | Code, commands, syntax, files, UI elements, web addresses |
+| `docs-tools:ibm-sg-legal-information` | Claims, trademarks, copyright, personal info |
 
 ### Red Hat Supplementary Style Guide Skills
 
 | Skill | Focus |
 |-------|-------|
-| `rh-ssg-grammar-and-language` | Conscious language, contractions, conversational style, minimalism |
-| `rh-ssg-formatting` | Code blocks, user values, titles, product names, dates |
-| `rh-ssg-structure` | Admonitions, lead-ins, prerequisites, short descriptions |
-| `rh-ssg-technical-examples` | Root privileges, YAML, IPs/MACs, code, syntax highlighting |
-| `rh-ssg-gui-and-links` | Screenshots, UI elements, links, cross-references |
-| `rh-ssg-legal-and-support` | Cost refs, future releases, Developer/Technology Preview |
-| `rh-ssg-accessibility` | Colors, images, links, tables, HTML structure, WCAG |
-| `rh-ssg-release-notes` | Release note style, tenses, Jira refs, note types (.adoc only) |
+| `docs-tools:rh-ssg-grammar-and-language` | Conscious language, contractions, conversational style, minimalism |
+| `docs-tools:rh-ssg-formatting` | Code blocks, user values, titles, product names, dates |
+| `docs-tools:rh-ssg-structure` | Admonitions, lead-ins, prerequisites, short descriptions |
+| `docs-tools:rh-ssg-technical-examples` | Root privileges, YAML, IPs/MACs, code, syntax highlighting |
+| `docs-tools:rh-ssg-gui-and-links` | Screenshots, UI elements, links, cross-references |
+| `docs-tools:rh-ssg-legal-and-support` | Cost refs, future releases, Developer/Technology Preview |
+| `docs-tools:rh-ssg-accessibility` | Colors, images, links, tables, HTML structure, WCAG |
+| `docs-tools:rh-ssg-release-notes` | Release note style, tenses, Jira refs, note types (.adoc only) |
 
 ---
 
@@ -781,7 +781,7 @@ Action comments on a specific GitLab MR:
 
 # Notes
 
-- For .adoc files, modular docs compliance is checked using `docs-review-modular-docs`
+- For .adoc files, modular docs compliance is checked using `docs-tools:docs-review-modular-docs`
 - All files are reviewed with IBM Style Guide and Red Hat Supplementary Style Guide skills
 - Release notes skills are only applied to .adoc files that appear to be release notes
 - Vale linting requires Vale to be installed and configured

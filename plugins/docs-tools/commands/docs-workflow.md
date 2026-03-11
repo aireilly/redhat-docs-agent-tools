@@ -687,7 +687,7 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 > **Edit files in place** in the drafts folder. Do NOT create copies in a separate folder.
 >
 > For each .adoc file:
-> 1. Run Vale linting once (use the `vale` skill)
+> 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)
 > 2. Fix obvious errors where the fix is clear and unambiguous
 > 3. Run documentation review skills:
 >    - Red Hat docs: modular-docs, content-quality
@@ -716,7 +716,7 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 > **Edit files in place** in the drafts folder. Do NOT create copies in a separate folder.
 >
 > For each .md file:
-> 1. Run Vale linting once (use the `vale` skill)
+> 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)
 > 2. Fix obvious errors where the fix is clear and unambiguous
 > 3. Run documentation review skills:
 >    - Content quality: content-quality

@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-- Configure the [Red Hat Docs Agent Tools marketplace](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/)
+- Install the [Red Hat Docs Agent Tools plugin](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/)
 
 - [Install GitHub CLI (`gh`)](https://cli.github.com/)
 

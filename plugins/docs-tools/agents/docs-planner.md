@@ -2,7 +2,7 @@
 name: docs-planner
 description: Use PROACTIVELY when planning documentation structure, performing gap analysis, or creating documentation plans. Analyzes codebases, existing docs, JIRA tickets, and requirements to create comprehensive documentation plans with JTBD framework. MUST BE USED for any documentation planning or content architecture task.
 tools: Read, Glob, Grep, Edit, Bash
-skills: jira-reader, article-extractor, redhat-docs-toc
+skills: docs-tools:jira-reader, docs-tools:article-extractor, docs-tools:redhat-docs-toc
 ---
 
 # Your role
@@ -580,26 +580,26 @@ Read style guide files directly from the local docs-guidelines directory (set `D
 - LLM-optimized summaries: `llms.txt` files in each directory
 
 ### Querying JIRA
-Invoke the `jira-reader` skill directly to query JIRA issues.
+Invoke the `docs-tools:jira-reader` skill to query JIRA issues.
 
 **Fetch issue details:**
 ```
-/jira-reader --issue PROJ-123
+Skill: docs-tools:jira-reader, args: "PROJ-123"
 ```
 
 **Fetch issue with comments:**
 ```
-/jira-reader --issue PROJ-123 --include-comments
+Skill: docs-tools:jira-reader, args: "PROJ-123 --include-comments"
 ```
 
 **Search issues by JQL:**
 ```
-/jira-reader --jql "project=PROJ AND fixVersion='1.0.0'"
+Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND fixVersion=1.0.0'"
 ```
 
 **Search with full details:**
 ```
-/jira-reader --jql "project=PROJ AND labels='docs-needed'" --fetch-details
+Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND labels=docs-needed' --fetch-details"
 ```
 
 ### Reviewing GitHub/GitLab PRs
@@ -622,18 +622,18 @@ Requires tokens in `~/.env`:
 
 ### Reading Red Hat documentation with redhat-docs-toc
 
-Research existing Red Hat documentation to understand patterns and gaps. Use the `redhat-docs-toc` skill to extract article URLs from documentation TOC pages:
+Research existing Red Hat documentation to understand patterns and gaps. Use the `docs-tools:redhat-docs-toc` skill to extract article URLs from documentation TOC pages:
 
 ```
-/redhat-docs-toc https://docs.redhat.com/en/documentation/product/version/html/guide/index
+Skill: docs-tools:redhat-docs-toc, args: "https://docs.redhat.com/en/documentation/product/version/html/guide/index"
 ```
 
 ### Extracting article content with article-extractor
 
-Download and analyze existing Red Hat documentation for planning. Use the `article-extractor` skill to extract article content as markdown:
+Download and analyze existing Red Hat documentation for planning. Use the `docs-tools:article-extractor` skill to extract article content as markdown:
 
 ```
-/article-extractor https://docs.redhat.com/...
+Skill: docs-tools:article-extractor, args: "https://docs.redhat.com/..."
 ```
 
 Use these skills to:
