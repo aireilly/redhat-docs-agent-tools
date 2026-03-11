@@ -5,6 +5,7 @@ A collection of plugins, skills, and agent tools for Red Hat documentation workf
 ## Repository structure
 
 ```bash
+.claude-plugin/marketplace.json  # Registry of all plugins (must stay in sync with plugin.json files)
 plugins/<name>/
   .claude-plugin/plugin.json   # Plugin metadata (name, version, description)
   commands/<command>.md        # Command definitions with frontmatter
@@ -38,6 +39,7 @@ Do NOT use old slash-command syntax (e.g., `/jira-reader --issue PROJ-123`).
 - Use kebab-case for plugin and command names
 - Each plugin must have a `.claude-plugin/plugin.json` with name, version, description
 - Bump version in plugin.json when making changes
+- When adding a new plugin or updating an existing plugin's name, description, or version, also update `.claude-plugin/marketplace.json` at the repo root to keep it in sync
 - Auto-generated files (plugins.md, docs/plugins.md, docs/plugins/, docs/install/) are gitignored and built by CI only. Run `make update` locally to preview them
 - Use the hello-world plugin as a reference implementation
 - Use `.work/` directory for temporary files (gitignored)
