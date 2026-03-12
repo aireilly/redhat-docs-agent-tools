@@ -1,0 +1,5 @@
+{
+  "name": "jtbd-analyze-topicmap",
+  "description": "Extract Jobs-To-Be-Done records from OpenShift docs repos that use _topic_map.yml for structure instead of master.adoc.",
+  "version": "1.0.0"
+}

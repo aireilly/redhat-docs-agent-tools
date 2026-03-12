@@ -1,0 +1,5 @@
+{
+  "name": "jtbd-harvest",
+  "description": "Harvest technical documentation from a URL for JTBD analysis. Handles async crawling, content extraction, and markdown conversion.",
+  "version": "1.0.0"
+}

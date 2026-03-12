@@ -1,0 +1,5 @@
+{
+  "name": "jtbd-analyze-adoc",
+  "description": "Extract Jobs-To-Be-Done records from AsciiDoc documentation repos. Handles modular docs with assemblies, includes, and conditionals.",
+  "version": "1.0.0"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "jtbd-workflow-topicmap",
+  "description": "End-to-end JTBD workflow for topic map-based repos (e.g., openshift-docs). Runs analysis, TOC, comparison, and consolidation in one command. Supports batch processing.",
+  "version": "1.0.0"
+}

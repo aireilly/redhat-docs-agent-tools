@@ -1,0 +1,5 @@
+{
+  "name": "jtbd-compare",
+  "description": "Compare current feature-based documentation structure with proposed JTBD structure. Quantifies navigation improvements.",
+  "version": "1.0.0"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "jtbd-toc",
+  "description": "Generate a JTBD-oriented Table of Contents from JTBD records. Organizes content by user goals and workflow stages.",
+  "version": "1.0.0"
+}
