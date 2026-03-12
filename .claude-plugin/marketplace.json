@@ -14,7 +14,7 @@
       "name": "docs-tools",
       "source": "./plugins/docs-tools",
       "description": "Documentation review, writing, and workflow tools for Red Hat AsciiDoc and Markdown documentation.",
-      "version": "0.0.4"
+      "version": "0.0.5"
     },
     {
       "name": "vale-tools",

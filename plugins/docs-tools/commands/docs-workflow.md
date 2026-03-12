@@ -1,12 +1,12 @@
 ---
 description: Run the multi-stage documentation workflow for a JIRA ticket. Orchestrates agents sequentially — requirements analysis, planning, writing, technical review, and style review
-argument-hint: [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs]
+argument-hint: [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--integrate]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Task, WebSearch, WebFetch
 ---
 
 # Documentation Workflow
 
-Run the multi-stage documentation workflow for a JIRA ticket. This command orchestrates five specialized agents sequentially — requirements analysis, planning, writing, technical review, and style review — to produce complete documentation in AsciiDoc (default) or Material for MkDocs Markdown format.
+Run the multi-stage documentation workflow for a JIRA ticket. This command orchestrates specialized agents sequentially — requirements analysis, planning, writing, technical review, style review, and optionally integration into the repo's build framework — to produce complete documentation in AsciiDoc (default) or Material for MkDocs Markdown format.
 
 ## Agents
 
@@ -17,7 +17,8 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 | 3. Writing | docs-writer | Writes complete documentation — AsciiDoc modules or MkDocs Markdown pages |
 | 4. Technical review | technical-reviewer | Reviews for technical accuracy — code examples, prerequisites, commands, failure paths |
 | 5. Style review | docs-reviewer | Reviews with Vale linting and style guide checks, edits files in place |
-| 6. Create JIRA | *(direct bash/curl)* | Optional: creates a docs JIRA ticket linked to the parent ticket |
+| 6. Integrate | docs-integrator | Optional: integrates drafts into the repo's documentation build framework |
+| 7. Create JIRA | *(direct bash/curl)* | Optional: creates a docs JIRA ticket linked to the parent ticket |
 
 ## Output Structure
 
@@ -28,10 +29,12 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 ├── workflow/           # Workflow state files (JSON)
 ├── requirements/       # Stage 1 outputs
 ├── plans/              # Stage 2 outputs
-└── drafts/             # Stage 3–5 outputs (per-ticket folders)
+└── drafts/             # Stage 3–6 outputs (per-ticket folders)
     └── <ticket>/
         ├── _index.md
-        ├── _review_report.md   # Stage 5 review report
+        ├── _review_report.md       # Stage 5 review report
+        ├── _integration_plan.md    # Stage 6 integration plan (--integrate)
+        ├── _integration_report.md  # Stage 6 integration report (--integrate)
         ├── assembly_*.adoc
         └── modules/
             ├── <concept>.adoc
@@ -46,11 +49,13 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 ├── workflow/           # Workflow state files (JSON)
 ├── requirements/       # Stage 1 outputs
 ├── plans/              # Stage 2 outputs
-└── drafts/             # Stage 3–5 outputs (per-ticket folders)
+└── drafts/             # Stage 3–6 outputs (per-ticket folders)
     └── <ticket>/
         ├── _index.md
-        ├── _review_report.md   # Stage 5 review report
-        ├── mkdocs-nav.yml      # Suggested nav tree fragment
+        ├── _review_report.md       # Stage 5 review report
+        ├── _integration_plan.md    # Stage 6 integration plan (--integrate)
+        ├── _integration_report.md  # Stage 6 integration report (--integrate)
+        ├── mkdocs-nav.yml          # Suggested nav tree fragment
         └── docs/
             ├── <concept>.md
             ├── <procedure>.md
@@ -68,6 +73,7 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 
 - **--pr \<url\>**: GitHub PR or GitLab MR URL to include in requirements analysis. Can be specified multiple times across start/resume invocations.
 - **--mkdocs**: Output Material for MkDocs Markdown instead of AsciiDoc. Produces `.md` files with YAML frontmatter in a `docs/` subfolder, plus a `mkdocs-nav.yml` navigation fragment.
+- **--integrate**: Integrate generated documentation into the repository's build framework after the style review completes. Detects the repository's documentation build system and moves files to the correct locations. Runs in two phases: PLAN (propose changes, ask for confirmation) then EXECUTE (apply changes). Can be passed on `start` or `resume`.
 - **--create-jira \<PROJECT\>**: Create a documentation JIRA ticket in the specified project (e.g., `INFERENG`) after the review stage completes. The project key is mandatory — there is no default. The created ticket is linked to the parent ticket with a "Document" relationship. Can be passed on `start` or `resume`.
 
 ## Step-by-Step Instructions
@@ -84,12 +90,14 @@ TICKET="${2:-}"
 PR_URLS=()
 CREATE_JIRA_PROJECT=""
 OUTPUT_FORMAT="adoc"
+INTEGRATE=false
 shift 2 2>/dev/null
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --pr) PR_URLS+=("$2"); shift 2 ;;
         --mkdocs) OUTPUT_FORMAT="mkdocs"; shift ;;
         --create-jira) CREATE_JIRA_PROJECT="$2"; shift 2 ;;
+        --integrate) INTEGRATE=true; shift ;;
         *) shift ;;
     esac
 done
@@ -97,7 +105,7 @@ done
 # Validate ticket is provided
 if [[ -z "$TICKET" ]]; then
     echo "ERROR: Ticket identifier is required."
-    echo "Usage: /docs-tools:docs-workflow [start|resume|status] <TICKET> [--pr <url>] [--mkdocs] [--create-jira <PROJECT>]"
+    echo "Usage: /docs-tools:docs-workflow [start|resume|status] <TICKET> [--pr <url>] [--mkdocs] [--integrate] [--create-jira <PROJECT>]"
     exit 1
 fi
 
@@ -106,6 +114,9 @@ echo "Ticket: ${TICKET}"
 echo "Format: ${OUTPUT_FORMAT}"
 if [[ ${#PR_URLS[@]} -gt 0 ]]; then
     echo "PR URLs: ${PR_URLS[*]}"
+fi
+if [[ "$INTEGRATE" == "true" ]]; then
+    echo "Integrate: enabled"
 fi
 if [[ -n "$CREATE_JIRA_PROJECT" ]]; then
     echo "Create JIRA in project: ${CREATE_JIRA_PROJECT}"
@@ -222,6 +233,7 @@ cat > "$STATE_FILE" << EOF
   "options": {
     "pr_urls": ${PR_URLS_JSON},
     "format": "${OUTPUT_FORMAT}",
+    "integrate": ${INTEGRATE},
     "create_jira_project": ${CREATE_JIRA_PROJECT:+\"$CREATE_JIRA_PROJECT\"}${CREATE_JIRA_PROJECT:-null}
   },
   "data": {
@@ -234,6 +246,7 @@ cat > "$STATE_FILE" << EOF
     "writing": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
     "technical_review": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null, "iterations": 0},
     "review": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
+    "integrate": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
     "create_jira": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null}
   }
 }
@@ -260,6 +273,14 @@ for url in "${PR_URLS[@]}"; do
     mv "$TMP" "$STATE_FILE"
     echo "Added PR/MR URL: ${url}"
 done
+
+# Set integrate if provided on resume
+if [[ "$INTEGRATE" == "true" ]]; then
+    TMP=$(mktemp)
+    jq '.options.integrate = true' "$STATE_FILE" > "$TMP"
+    mv "$TMP" "$STATE_FILE"
+    echo "Set integrate: enabled"
+fi
 
 # Set create_jira_project if provided on resume
 if [[ -n "$CREATE_JIRA_PROJECT" ]]; then
@@ -298,8 +319,12 @@ fi
 echo ""
 echo "Stages:"
 
+INTEGRATE_OPT=$(jq -r '.options.integrate // false' "$STATE_FILE")
 CREATE_JIRA_PROJ=$(jq -r '.options.create_jira_project // ""' "$STATE_FILE")
 STAGES="requirements planning writing technical_review review"
+case "$INTEGRATE_OPT" in
+    "true") STAGES="$STAGES integrate" ;;
+esac
 case "$CREATE_JIRA_PROJ" in
     ""|"null") ;;
     *) STAGES="$STAGES create_jira" ;;
@@ -334,8 +359,12 @@ echo ""
 Find the first stage that is not completed. If all stages are completed, report that the workflow is done.
 
 ```bash
+INTEGRATE_OPT=$(jq -r '.options.integrate // false' "$STATE_FILE")
 CREATE_JIRA_PROJ=$(jq -r '.options.create_jira_project // ""' "$STATE_FILE")
 STAGES="requirements planning writing technical_review review"
+case "$INTEGRATE_OPT" in
+    "true") STAGES="$STAGES integrate" ;;
+esac
 case "$CREATE_JIRA_PROJ" in
     ""|"null") ;;
     *) STAGES="$STAGES create_jira" ;;
@@ -360,7 +389,7 @@ If all stages are completed, show the status summary and STOP.
 
 ### Step 5: Run Stages Sequentially
 
-Run each remaining stage in order: `requirements` → `planning` → `writing` → `technical_review` → `review` → `create_jira` (if `--create-jira` was specified).
+Run each remaining stage in order: `requirements` → `planning` → `writing` → `technical_review` → `review` → `integrate` (if `--integrate` was specified) → `create_jira` (if `--create-jira` was specified).
 
 For each stage:
 
@@ -735,7 +764,90 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 
 After the agent completes, verify the review report exists.
 
-### Stage 6: Create JIRA (optional — direct bash/curl)
+### Stage 6: Integrate (docs-integrator — optional)
+
+This stage only runs when `--integrate` was provided. It uses the docs-integrator agent in two phases: PLAN (propose changes) then EXECUTE (apply changes after user confirmation).
+
+**Check if stage should run:**
+
+```bash
+INTEGRATE_OPT=$(jq -r '.options.integrate // false' "$STATE_FILE")
+if [[ "$INTEGRATE_OPT" != "true" ]]; then
+    echo "Skipping integrate stage (--integrate not specified)"
+    # Skip this stage entirely — do NOT mark it in state
+fi
+```
+
+If `options.integrate` is not `true` in the state, skip this stage entirely.
+
+**Output paths:**
+
+```bash
+TICKET_LOWERCASE=$(echo "$TICKET" | tr '[:upper:]' '[:lower:]')
+DRAFTS_DIR="${CLAUDE_DOCS_DIR}/drafts/${TICKET_LOWERCASE}"
+INTEGRATION_PLAN_FILE="${DRAFTS_DIR}/_integration_plan.md"
+INTEGRATION_REPORT_FILE="${DRAFTS_DIR}/_integration_report.md"
+```
+
+**Phase 1: PLAN**
+
+Launch the docs-integrator agent with `Phase: PLAN` to analyze the repo and produce an integration plan.
+
+**Agent tool parameters:**
+- `description`: `Plan integration of documentation for <TICKET>`
+
+**Prompt:**
+
+> Use the docs-integrator agent. Read and follow the agent instructions at `${CLAUDE_PLUGIN_ROOT}/agents/docs-integrator.md`.
+>
+> **Phase: PLAN**
+>
+> Plan the integration of documentation drafts for ticket `<TICKET>`.
+>
+> Drafts location: `<DRAFTS_DIR>/`
+>
+> Save the integration plan to: `<INTEGRATION_PLAN_FILE>`
+
+After the PLAN agent completes, verify that `_integration_plan.md` exists.
+
+**Phase 2: User confirmation**
+
+Read `_integration_plan.md` and present a summary to the user. The summary should include:
+
+1. Detected build framework
+2. Number of files to move/update
+3. The File Operations table from the plan
+4. Any conflicts flagged
+
+Then ask the user to confirm:
+
+> The integration plan proposes the changes listed above. Shall I proceed with the integration? (yes/no)
+
+If the user responds **no**, mark the `integrate` stage as completed with the plan file as output and proceed to the next stage without executing. The user can apply changes manually using the plan as a guide.
+
+**Phase 3: EXECUTE**
+
+If the user confirms, launch the docs-integrator agent with `Phase: EXECUTE` to apply the integration plan.
+
+**Agent tool parameters:**
+- `description`: `Execute integration of documentation for <TICKET>`
+
+**Prompt:**
+
+> Use the docs-integrator agent. Read and follow the agent instructions at `${CLAUDE_PLUGIN_ROOT}/agents/docs-integrator.md`.
+>
+> **Phase: EXECUTE**
+>
+> Execute the integration plan for ticket `<TICKET>`.
+>
+> Drafts location: `<DRAFTS_DIR>/`
+> Integration plan: `<INTEGRATION_PLAN_FILE>`
+>
+> Save the integration report to: `<INTEGRATION_REPORT_FILE>`
+
+After the EXECUTE agent completes, verify that `_integration_report.md` exists. Mark the `integrate` stage as completed with the report file as output.
+
+### Stage 7: Create JIRA (optional — direct bash/curl)
 
 This stage only runs when `--create-jira <PROJECT>` was provided. It does NOT use a Task agent — it uses direct Bash commands with the JIRA REST API.
 
@@ -1039,7 +1151,7 @@ mv "$TMP" "$STATE_FILE"
 
 ## Workflow Completion
 
-After all stages complete successfully (five core stages, plus the optional create_jira stage if `--create-jira` was specified), update the overall workflow status:
+After all stages complete successfully (five core stages, plus the optional integrate stage if `--integrate` was specified and the optional create_jira stage if `--create-jira` was specified), update the overall workflow status:
 
 ```bash
 TMP=$(mktemp)
@@ -1123,6 +1235,21 @@ Start with JIRA creation in INFERENG project:
 /docs-tools:docs-workflow start RHAISTRAT-123 --create-jira INFERENG
 ```
 
+Start with integration into the repo's build framework:
+```bash
+/docs-tools:docs-workflow start RHAISTRAT-123 --integrate
+```
+
+Start with integration and JIRA creation:
+```bash
+/docs-tools:docs-workflow start RHAISTRAT-123 --integrate --create-jira INFERENG
+```
+
+Add integration on resume:
+```bash
+/docs-tools:docs-workflow resume RHAISTRAT-123 --integrate
+```
+
 Add JIRA creation on resume (after review completes):
 ```bash
 /docs-tools:docs-workflow resume RHAISTRAT-123 --create-jira INFERENG
@@ -1149,4 +1276,5 @@ Add JIRA creation on resume (after review completes):
 - The created JIRA description contains three sections from the documentation plan (JTBD, workflow context, contacts), with the full docs plan attached for private projects only
 - For **public projects**, the detailed docs plan is NOT attached to the JIRA ticket. Project visibility is determined by making an unauthenticated curl request to the JIRA project endpoint — HTTP 200 means public, any other status means private
 - The JIRA description is converted from markdown to JIRA wiki markup before submission, and the JSON payload is built using Python and passed via `--data @file` to avoid shell interpolation issues with large descriptions
+- The `--integrate` stage is optional — it only runs when the flag is provided. It detects the repository's documentation build framework and integrates drafts into the correct locations. The stage is interactive: it produces an integration plan, asks the user to confirm, and only executes after confirmation. If the user declines, the plan is saved for manual reference and the workflow continues to the next stage
 - The `--mkdocs` flag switches output from AsciiDoc to Material for MkDocs Markdown. The same agents are used — the writing and review prompts adapt to produce `.md` files with MkDocs conventions. The review stage omits `docs-tools:docs-review-modular-docs` checks (AsciiDoc-specific) and uses `docs-tools:docs-review-content-quality` plus IBM/Red Hat style guide skills
