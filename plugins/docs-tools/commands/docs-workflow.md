@@ -17,7 +17,7 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 | 3. Writing | docs-writer | Writes complete documentation — AsciiDoc modules or MkDocs Markdown pages |
 | 4. Technical review | technical-reviewer | Reviews for technical accuracy — code examples, prerequisites, commands, failure paths |
 | 5. Style review | docs-reviewer | Reviews with Vale linting and style guide checks, edits files in place |
-| 6. Integrate | docs-integrator | Optional: integrates drafts into the repo's build framework (Antora, ccutil, MkDocs) |
+| 6. Integrate | docs-integrator | Optional: integrates drafts into the repo's documentation build framework |
 | 7. Create JIRA | *(direct bash/curl)* | Optional: creates a docs JIRA ticket linked to the parent ticket |
 
 ## Output Structure
@@ -73,7 +73,7 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 
 - **--pr \<url\>**: GitHub PR or GitLab MR URL to include in requirements analysis. Can be specified multiple times across start/resume invocations.
 - **--mkdocs**: Output Material for MkDocs Markdown instead of AsciiDoc. Produces `.md` files with YAML frontmatter in a `docs/` subfolder, plus a `mkdocs-nav.yml` navigation fragment.
-- **--integrate**: Integrate generated documentation into the repository's build framework after the style review completes. Detects Antora, ccutil, MkDocs, or plain AsciiDoc structure and moves files to the correct locations. Runs in two phases: PLAN (propose changes, ask for confirmation) then EXECUTE (apply changes). Can be passed on `start` or `resume`.
+- **--integrate**: Integrate generated documentation into the repository's build framework after the style review completes. Detects the repository's documentation build system and moves files to the correct locations. Runs in two phases: PLAN (propose changes, ask for confirmation) then EXECUTE (apply changes). Can be passed on `start` or `resume`.
 - **--create-jira \<PROJECT\>**: Create a documentation JIRA ticket in the specified project (e.g., `INFERENG`) after the review stage completes. The project key is mandatory — there is no default. The created ticket is linked to the parent ticket with a "Document" relationship. Can be passed on `start` or `resume`.
 
 ## Step-by-Step Instructions
@@ -1276,5 +1276,5 @@ Add JIRA creation on resume (after review completes):
 - The created JIRA description contains three sections from the documentation plan (JTBD, workflow context, contacts), with the full docs plan attached for private projects only
 - For **public projects**, the detailed docs plan is NOT attached to the JIRA ticket. Project visibility is determined by making an unauthenticated curl request to the JIRA project endpoint — HTTP 200 means public, any other status means private
 - The JIRA description is converted from markdown to JIRA wiki markup before submission, and the JSON payload is built using Python and passed via `--data @file` to avoid shell interpolation issues with large descriptions
-- The `--integrate` stage is optional — it only runs when the flag is provided. It detects the repository's build framework (Antora, ccutil, MkDocs, or plain AsciiDoc) and integrates drafts into the correct locations. The stage is interactive: it produces an integration plan, asks the user to confirm, and only executes after confirmation. If the user declines, the plan is saved for manual reference and the workflow continues to the next stage
+- The `--integrate` stage is optional — it only runs when the flag is provided. It detects the repository's documentation build framework and integrates drafts into the correct locations. The stage is interactive: it produces an integration plan, asks the user to confirm, and only executes after confirmation. If the user declines, the plan is saved for manual reference and the workflow continues to the next stage
 - The `--mkdocs` flag switches output from AsciiDoc to Material for MkDocs Markdown. The same agents are used — the writing and review prompts adapt to produce `.md` files with MkDocs conventions. The review stage omits `docs-tools:docs-review-modular-docs` checks (AsciiDoc-specific) and uses `docs-tools:docs-review-content-quality` plus IBM/Red Hat style guide skills

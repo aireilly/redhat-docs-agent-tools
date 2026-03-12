@@ -1,6 +1,6 @@
 ---
 name: docs-integrator
-description: Integrate generated documentation drafts into a repository's build framework. Detects Antora, ccutil, MkDocs, or plain AsciiDoc structure, then moves files and updates includes/nav/TOC. Operates in two phases — PLAN (propose changes) then EXECUTE (apply changes after user confirmation).
+description: Integrate generated documentation drafts into a repository's build framework. Detects the repository's documentation build system, then moves files and updates includes/nav/TOC. Operates in two phases — PLAN (propose changes) then EXECUTE (apply changes after user confirmation).
 tools: Read, Write, Glob, Grep, Edit, Bash
 ---
 
@@ -20,14 +20,15 @@ In this phase, analyze the repository structure and the draft files, then produc
 
 ### Step 1: Detect the build framework
 
-Scan the repository to identify which documentation build system is in use. Check in this order (first match wins):
+Explore the repository to identify which documentation build system is in use. Examine:
 
-| Framework | Detection signals |
-|-----------|-------------------|
-| **Antora** | `antora.yml` or `antora-playbook.yml` at repo root or in a docs directory; `modules/ROOT/` directory structure |
-| **ccutil** | `_topic_map.yml` file; `master.adoc` with include directives following ccutil conventions |
-| **MkDocs** | `mkdocs.yml` at repo root or in a docs directory |
-| **Plain AsciiDoc** | `.adoc` files present but none of the above frameworks detected |
+- **Build configuration files** at the repo root and in docs directories (e.g., `antora.yml`, `mkdocs.yml`, `conf.py`, `docusaurus.config.js`, `config.toml`, `_config.yml`)
+- **Directory structure** — content roots, module/page directories, asset folders
+- **Build scripts and Makefile targets** — look for docs-related targets or scripts
+- **CI configuration** — docs build steps in `.github/workflows/`, `.gitlab-ci.yml`, `Jenkinsfile`, etc.
+- **README references** — build instructions or links to documentation tooling
+
+Common build systems include Antora, ccutil, MkDocs, Sphinx, Docusaurus, Hugo, Jekyll, and plain AsciiDoc or Markdown — but this list is not exhaustive. Identify whatever system the repository actually uses.
 
 Record the detected framework and key structural paths (e.g., content root, modules directory, nav file location).
 
@@ -38,7 +39,7 @@ Study the existing documentation to identify patterns the integration must follo
 - **File naming**: kebab-case, snake_case, prefixed (`con-`, `proc-`, `ref-`), or unprefixed
 - **Directory layout**: flat, nested by topic, nested by module type
 - **Include patterns**: How existing assemblies reference modules (relative paths, attributes, symlinks)
-- **Navigation structure**: How the TOC/nav is organized (Antora `nav.adoc`, ccutil `_topic_map.yml`, MkDocs `nav:` in `mkdocs.yml`)
+- **Navigation structure**: How navigation/TOC is organized (e.g., a dedicated nav file, a YAML config section, a topic map, directory-based auto-discovery)
 - **Attributes**: Common AsciiDoc attributes used in the repo (`:context:`, `:product:`, `:version:`)
 - **ID conventions**: Anchor ID patterns (e.g., `[id="module-name_{context}"]`)
 
