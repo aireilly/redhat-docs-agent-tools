@@ -4,7 +4,15 @@ argument-hint: --docs <source> [--docs <source>...] [--code URL] [--jira TICKET]
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Skill, WebFetch, AskUserQuestion
 ---
 
-# Technical Review
+## Name
+
+docs-tools:docs-technical-review
+
+## Synopsis
+
+`/docs-tools:docs-technical-review --docs <source> [--docs <source>...] [--code URL] [--jira TICKET] [--pr URL] [--gdoc URL] [--fix]`
+
+## Description
 
 Validate documentation for technical accuracy by comparing against source code repositories.
 
@@ -13,7 +21,9 @@ Validate documentation for technical accuracy by comparing against source code r
 1. **Report only** (default) — validate and produce a human-readable report. No files are modified.
 2. **Fix mode** (`--fix`) — validate, auto-fix high-confidence issues (>=65%), then interactively walk through remaining issues one by one.
 
-## Arguments
+## Implementation
+
+### Arguments
 
 ### Required
 

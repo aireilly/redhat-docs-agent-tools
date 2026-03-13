@@ -4,7 +4,15 @@ argument-hint: <file.adoc|assembly.adoc> [--rewrite [--no-commit] [--dry-run] [-
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, TodoWrite
 ---
 
-# DITA Rework Command
+## Name
+
+dita-tools:dita-rework
+
+## Synopsis
+
+`/dita-tools:dita-rework <file.adoc|assembly.adoc> [--rewrite [--no-commit] [--dry-run] [--branch <name>]] [--review]`
+
+## Description
 
 Prepare AsciiDoc files for DITA conversion. This unified command supports three modes:
 
@@ -14,7 +22,9 @@ Prepare AsciiDoc files for DITA conversion. This unified command supports three 
 | **Rewrite** | `--rewrite` | LLM-guided rewrite pipeline — uses AI to fix AsciiDocDITA issues |
 | **Review** | `--review` | Post-rework review — compares changes against upstream/main |
 
-## Required Argument
+## Implementation
+
+### Required Argument
 
 - **file**: (required) Path to an AsciiDoc module, assembly, or folder (e.g., `modules/con-overview.adoc` or `working-on-projects/master.adoc`)
 

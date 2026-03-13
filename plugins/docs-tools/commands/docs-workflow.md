@@ -4,11 +4,21 @@ argument-hint: [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdoc
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Task, WebSearch, WebFetch
 ---
 
-# Documentation Workflow
+## Name
+
+docs-tools:docs-workflow
+
+## Synopsis
+
+`/docs-tools:docs-workflow [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--integrate]`
+
+## Description
 
 Run the multi-stage documentation workflow for a JIRA ticket. This command orchestrates specialized agents sequentially — requirements analysis, planning, writing, technical review, style review, and optionally integration into the repo's build framework — to produce complete documentation in AsciiDoc (default) or Material for MkDocs Markdown format.
 
-## Agents
+## Implementation
+
+### Agents
 
 | Stage | Agent | Description |
 |-------|-------|-------------|

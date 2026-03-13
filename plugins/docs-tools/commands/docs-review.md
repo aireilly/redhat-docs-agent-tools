@@ -4,7 +4,15 @@ argument-hint: "[--local | --pr <url> [--post-comments] | --action-comments [url
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, WebFetch, Agent, AskUserQuestion
 ---
 
-# Documentation Review Command
+## Name
+
+docs-tools:docs-review
+
+## Synopsis
+
+`/docs-tools:docs-review [--local | --pr <url> [--post-comments] | --action-comments [url]] [--threshold <0-100>]`
+
+## Description
 
 A unified multi-agent documentation review command with confidence-based scoring. Supports four modes:
 
@@ -50,6 +58,8 @@ Supported URL formats:
 ```
 
 ---
+
+## Implementation
 
 # Agent Assumptions
 

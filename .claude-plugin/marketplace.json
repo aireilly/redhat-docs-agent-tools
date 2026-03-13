@@ -8,13 +8,13 @@
       "name": "hello-world",
       "source": "./plugins/hello-world",
       "description": "A hello world reference plugin for Claude Code agent tools.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "docs-tools",
       "source": "./plugins/docs-tools",
       "description": "Documentation review, writing, and workflow tools for Red Hat AsciiDoc and Markdown documentation.",
-      "version": "0.0.5"
+      "version": "0.0.6"
     },
     {
       "name": "vale-tools",
@@ -26,7 +26,7 @@
       "name": "dita-tools",
       "source": "./plugins/dita-tools",
       "description": "AsciiDoc cleanup, validation, and rewriting tools for DITA conversion preparation.",
-      "version": "0.0.1"
+      "version": "0.0.2"
     }
   ]
 }
