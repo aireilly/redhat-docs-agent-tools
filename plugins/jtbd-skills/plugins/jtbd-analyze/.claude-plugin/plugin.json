@@ -1,5 +1,0 @@
-{
-  "name": "jtbd-analyze",
-  "description": "Extract Jobs-To-Be-Done records from markdown documentation. Handles large documents via chunked subagent processing.",
-  "version": "1.0.0"
-}

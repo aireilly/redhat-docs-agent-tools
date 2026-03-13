@@ -1,0 +1,5 @@
+{
+  "name": "jtbd-tools",
+  "version": "1.1.0",
+  "description": "Jobs-To-Be-Done analysis toolkit for documentation restructuring. Extract JTBD records from Markdown, AsciiDoc, and topic map repos. Generate goal-oriented TOCs, compare structures, and produce consolidation reports."
+}

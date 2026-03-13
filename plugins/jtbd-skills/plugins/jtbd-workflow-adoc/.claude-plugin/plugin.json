@@ -1,5 +1,0 @@
-{
-  "name": "jtbd-workflow-adoc",
-  "description": "End-to-end JTBD workflow for AsciiDoc repos using master.adoc (e.g., RHOAI, RHEL AI). Runs analysis, TOC, comparison, and consolidation in one command. Supports batch processing.",
-  "version": "1.0.0"
-}

@@ -1,0 +1,1 @@
+../../shared/consolidation-guide.md
