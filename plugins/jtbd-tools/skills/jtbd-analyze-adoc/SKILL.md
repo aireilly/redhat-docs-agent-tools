@@ -69,7 +69,7 @@ Extract Jobs-To-Be-Done records from AsciiDoc documentation repositories, specif
 
 8. **Parses sections**: Parses reduced AsciiDoc into Section objects using AsciiDoc heading syntax (`=`, `==`, `===`, etc.)
 9. **Assesses document size**: Determines single-pass vs chunked processing strategy
-10. **Extracts JTBD records**: Applies the methodology from `methodology.md`
+10. **Extracts JTBD records**: Applies the methodology from `@plugins/jtbd-tools/reference/methodology.md`
 11. **Enriches with module info**: Annotates evidence and notes with source module paths and types
 12. **Validates against source**: Re-reads cited source lines and runs grounding checks on each record (unless `--skip-validation`)
 13. **Writes output**: Saves JSONL + CSV + include graph
@@ -87,7 +87,7 @@ Extract Jobs-To-Be-Done records from AsciiDoc documentation repositories, specif
 
 For small reduced files:
 1. Read the entire reduced AsciiDoc
-2. Apply JTBD extraction methodology (from `methodology.md`)
+2. Apply JTBD extraction methodology (from `@plugins/jtbd-tools/reference/methodology.md`)
 3. Generate all records in one pass
 4. Write to JSONL file
 
@@ -106,7 +106,7 @@ For large reduced files:
 
 ### Phase 4: Grounding Validation
 
-Unless `--skip-validation` is passed, run the grounding validation described in methodology.md Step 9:
+Unless `--skip-validation` is passed, run the grounding validation described in `@plugins/jtbd-tools/reference/methodology.md` Step 9:
 
 1. For each JTBD record, parse the `evidence` field to extract the source file, section heading, and line range
 2. Re-read the cited lines from the reduced file (±20 lines context window)
@@ -217,5 +217,5 @@ Same as `/jtbd-analyze`, plus:
 ## Methodology Reference
 
 The complete JTBD extraction methodology is shared with `/jtbd-analyze`:
-- See `methodology.md` for extraction rules
-- See `schema.md` for record schema
+- See `@plugins/jtbd-tools/reference/methodology.md` for extraction rules
+- See `@plugins/jtbd-tools/reference/schema.md` for record schema

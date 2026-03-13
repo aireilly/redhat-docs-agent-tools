@@ -40,7 +40,7 @@ analysis/<project>/<doc>/<doc>-comparison.md
 
 ## Comparison Structure
 
-The generated comparison follows this structure (see `comparison-guide.md` for details):
+The generated comparison follows this structure (see `@plugins/jtbd-tools/reference/comparison-guide.md` for details):
 
 ```markdown
 # [Document Name] - TOC Comparison
@@ -282,4 +282,4 @@ cat analysis/rhoai/creating-a-workbench/creating-a-workbench-comparison.md
 
 ## Reference Guidelines
 
-For complete comparison guidelines, see `comparison-guide.md` in this skill directory.
+For complete comparison guidelines, see `@plugins/jtbd-tools/reference/comparison-guide.md` in this skill directory.

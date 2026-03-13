@@ -28,7 +28,7 @@ Generate a standalone, high-quality Jobs-To-Be-Done Table of Contents from JTBD 
 1. **Reads JTBD records** from the specified JSONL file or finds them in the directory
 2. **Groups records by main jobs** and their user stories
 3. **Organizes by workflow stages** (Get Started -> Reference order)
-4. **Generates formatted markdown TOC** following `toc-guidelines.md`
+4. **Generates formatted markdown TOC** following `@plugins/jtbd-tools/reference/toc-guidelines.md`
 5. **Writes output** to `<doc>-toc-new_taxonomy.md`
 
 ## Output Location
@@ -40,7 +40,7 @@ analysis/<project>/<doc>/<doc>-toc-new_taxonomy.md
 
 ## TOC Structure
 
-The generated TOC follows this structure (see `toc-guidelines.md` for details):
+The generated TOC follows this structure (see `@plugins/jtbd-tools/reference/toc-guidelines.md` for details):
 
 ```markdown
 # [Guide Name]
@@ -351,4 +351,4 @@ cat analysis/rhoai/creating-a-workbench/creating-a-workbench-toc-new_taxonomy.md
 
 ## Reference Guidelines
 
-For complete TOC generation guidelines, see `toc-guidelines.md` in this skill directory.
+For complete TOC generation guidelines, see `@plugins/jtbd-tools/reference/toc-guidelines.md` in this skill directory.

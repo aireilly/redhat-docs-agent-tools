@@ -34,7 +34,7 @@ Generate a stakeholder-facing consolidation report that explains what's changing
 3. **Determines source document path** from the `doc` field in JSONL records
 4. **Reads source markdown** to extract current chapter/section structure
 5. **Reads comparison and TOC** for proposed structure context
-6. **Generates consolidation report** following `consolidation-guide.md`
+6. **Generates consolidation report** following `@plugins/jtbd-tools/reference/consolidation-guide.md`
 7. **Writes output** to `<doc>-consolidation-report.md`
 
 ## Output Location
@@ -46,7 +46,7 @@ analysis/<project>/<doc>/<doc>-consolidation-report.md
 
 ## Consolidation Report Structure
 
-The generated report follows this structure (see `consolidation-guide.md` for details):
+The generated report follows this structure (see `@plugins/jtbd-tools/reference/consolidation-guide.md` for details):
 
 ```markdown
 # [Document Name] — Consolidation Report
@@ -207,7 +207,7 @@ Find:  deploying-models-jtbd.jsonl
 
 ### Step 5: Generate Report
 
-Follow `consolidation-guide.md` section by section. Key generation logic:
+Follow `@plugins/jtbd-tools/reference/consolidation-guide.md` section by section. Key generation logic:
 
 **Executive Summary:**
 - Describe current organizing principle (from source doc headings)
@@ -301,4 +301,4 @@ cat analysis/rhoai/deploying-models-v3/deploying-models-consolidation-report.md
 
 ## Reference Guidelines
 
-For complete consolidation report guidelines, see `consolidation-guide.md` in this skill directory.
+For complete consolidation report guidelines, see `@plugins/jtbd-tools/reference/consolidation-guide.md` in this skill directory.

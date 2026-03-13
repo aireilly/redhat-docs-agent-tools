@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Write, Task, Bash
 
 # JTBD Analysis Skill
 
-Extract Jobs-To-Be-Done records from technical documentation using the methodology defined in `methodology.md`.
+Extract Jobs-To-Be-Done records from technical documentation using the methodology defined in `@plugins/jtbd-tools/reference/methodology.md`.
 
 ## Usage
 
@@ -34,7 +34,7 @@ Extract Jobs-To-Be-Done records from technical documentation using the methodolo
 1. **Reads the markdown document** from the specified path
 2. **Parses into sections** by markdown headers
 3. **Assesses document size** to determine processing strategy
-4. **Extracts JTBD records** following the methodology in `methodology.md`
+4. **Extracts JTBD records** following the methodology in `@plugins/jtbd-tools/reference/methodology.md`
 5. **Writes JSONL output** to `--output` path or default `analysis/<project>/<doc>/<doc>-jtbd.jsonl`
 6. **Converts to CSV** by calling `jtbd csv --input <jsonl-path>` for spreadsheet viewing
 
@@ -75,7 +75,7 @@ For documents 500+ lines:
 
 ## Methodology Reference
 
-The complete JTBD extraction methodology is in `methodology.md`. Key points:
+The complete JTBD extraction methodology is in `@plugins/jtbd-tools/reference/methodology.md`. Key points:
 
 ### Job Statement Format
 ```
@@ -123,7 +123,7 @@ Before classifying as `main_job`, apply the "Why vs How" ladder:
 
 ## Output Schema
 
-Each record follows the `JTBDRecord` schema (see `schema.md`):
+Each record follows the `JTBDRecord` schema (see `@plugins/jtbd-tools/reference/schema.md`):
 
 ```json
 {
@@ -188,7 +188,7 @@ When spawning subagents for chunked processing, each chunk prompt includes:
 
 1. **Chunk content**: The markdown sections in this chunk
 2. **Document context**: Document name, section names
-3. **Methodology**: Extraction guidelines from `methodology.md`
+3. **Methodology**: Extraction guidelines from `@plugins/jtbd-tools/reference/methodology.md`
 4. **Output format**: JSON array of JTBDRecord objects
 
 ### Chunk Size Guidelines

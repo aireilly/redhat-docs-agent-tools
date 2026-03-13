@@ -400,51 +400,30 @@ All sections except `name` and `version` are optional. A minimal config with jus
 jtbd-tools/
 ├── .claude-plugin/
 │   └── plugin.json                    # plugin manifest (v1.1.0)
-├── shared/                            # canonical shared files (symlinked by skills)
-│   ├── methodology.md
-│   ├── schema.md
-│   ├── comparison-guide.md
-│   ├── consolidation-guide.md
-│   ├── toc-guidelines.md
-│   └── example-toc.md
+├── reference/                         # shared reference files (read via @-references)
+│   ├── methodology.md                 # JTBD extraction methodology
+│   ├── schema.md                      # JTBD record schema
+│   ├── comparison-guide.md            # structure comparison guidelines
+│   ├── consolidation-guide.md         # consolidation report guidelines
+│   ├── toc-guidelines.md              # TOC generation guidelines
+│   └── example-toc.md                 # example TOC output
 ├── skills/
-│   ├── jtbd-analyze/
-│   │   ├── SKILL.md
-│   │   ├── methodology.md  -> ../../shared/methodology.md
-│   │   └── schema.md       -> ../../shared/schema.md
+│   ├── jtbd-analyze/                  # each skill has only SKILL.md
 │   ├── jtbd-analyze-adoc/
-│   │   ├── SKILL.md
-│   │   ├── methodology.md  -> ../../shared/methodology.md
-│   │   └── schema.md       -> ../../shared/schema.md
 │   ├── jtbd-analyze-topicmap/
-│   │   ├── SKILL.md
-│   │   ├── methodology.md  -> ../../shared/methodology.md
-│   │   └── schema.md       -> ../../shared/schema.md
 │   ├── jtbd-toc/
-│   │   ├── SKILL.md
-│   │   ├── toc-guidelines.md -> ../../shared/toc-guidelines.md
-│   │   └── example-toc.md    -> ../../shared/example-toc.md
 │   ├── jtbd-compare/
-│   │   ├── SKILL.md
-│   │   └── comparison-guide.md -> ../../shared/comparison-guide.md
 │   ├── jtbd-consolidate/
-│   │   ├── SKILL.md
-│   │   └── consolidation-guide.md -> ../../shared/consolidation-guide.md
 │   ├── jtbd-harvest/
-│   │   └── SKILL.md
 │   ├── jtbd-workflow-adoc/
-│   │   ├── SKILL.md
-│   │   └── (symlinks to all shared files)
 │   └── jtbd-workflow-topicmap/
-│       ├── SKILL.md
-│       └── (symlinks to all shared files)
 ├── scripts/
 │   ├── batch-runner-adoc.py           # large batch helper for AsciiDoc workflows
 │   └── batch-runner-topicmap.py       # large batch helper for topic map workflows
 └── README.md
 ```
 
-Shared files are maintained once in `shared/` and symlinked into each skill directory that needs them.
+Shared files are maintained once in `reference/` and referenced from SKILL.md files using `Read @plugins/jtbd-tools/reference/<file>.md`.
 
 ## JTBD Framework
 

@@ -126,11 +126,11 @@ If `--research-file` is provided:
 4. Append this overlay to the methodology when constructing analysis prompts
 5. When writing CSV output, include additional columns for any schema extension fields defined in the research config
 
-If `--research-file` is NOT provided, use generic persona detection from `methodology.md`.
+If `--research-file` is NOT provided, use generic persona detection from `@plugins/jtbd-tools/reference/methodology.md`.
 
 #### Single Pass Processing
 
-Read entire reduced file, apply methodology from `methodology.md` (plus research overlay if provided), generate all records, write JSONL.
+Read entire reduced file, apply methodology from `@plugins/jtbd-tools/reference/methodology.md` (plus research overlay if provided), generate all records, write JSONL.
 
 #### Chunked Processing
 
@@ -142,8 +142,8 @@ Read entire reduced file, apply methodology from `methodology.md` (plus research
    ```
 4. The chunk prompt must include:
    - The chunk content
-   - The full methodology from `methodology.md` (read the file in this skill directory)
-   - The schema from `schema.md` (read the file in this skill directory)
+   - The full methodology from `@plugins/jtbd-tools/reference/methodology.md` (read the reference file)
+   - The schema from `@plugins/jtbd-tools/reference/schema.md` (read the reference file)
    - The research overlay (if `--research-file` was provided)
    - The document name and identifier
    - Instructions to output ONLY valid JSONL records
@@ -179,14 +179,14 @@ If `--output` is not specified:
 
 ## Step 2: TOC Generation
 
-Read `toc-guidelines.md` and `example-toc.md` from this skill directory for the complete formatting rules.
+Read `@plugins/jtbd-tools/reference/toc-guidelines.md` and `@plugins/jtbd-tools/reference/example-toc.md` for the complete formatting rules.
 
 ### Process
 
 1. Read `<doc>-jtbd.jsonl` from the output directory
 2. Group records by main jobs and their user stories
 3. Organize by workflow stages (Get Started -> Reference order)
-4. Generate formatted markdown TOC following `toc-guidelines.md`
+4. Generate formatted markdown TOC following `@plugins/jtbd-tools/reference/toc-guidelines.md`
 5. Write to `<output-dir>/<doc>-toc-new_taxonomy.md`
 
 ### Key Rules
@@ -203,14 +203,14 @@ Read `toc-guidelines.md` and `example-toc.md` from this skill directory for the 
 
 ## Step 3: Comparison
 
-Read `comparison-guide.md` from this skill directory for the complete formatting rules.
+Read `@plugins/jtbd-tools/reference/comparison-guide.md` for the complete formatting rules.
 
 ### Process
 
 1. Read the reduced `.adoc` file as the "source document"
 2. Extract current structure from AsciiDoc headings (`=`, `==`, `===`)
 3. Read `<doc>-jtbd.jsonl` for proposed structure
-4. Generate side-by-side comparison per `comparison-guide.md`
+4. Generate side-by-side comparison per `@plugins/jtbd-tools/reference/comparison-guide.md`
 5. Write to `<output-dir>/<doc>-comparison.md`
 
 ### AsciiDoc Adaptation
@@ -236,7 +236,7 @@ Read `comparison-guide.md` from this skill directory for the complete formatting
 
 ## Step 4: Consolidation Report
 
-Read `consolidation-guide.md` from this skill directory for the complete formatting rules.
+Read `@plugins/jtbd-tools/reference/consolidation-guide.md` for the complete formatting rules.
 
 ### Process
 
@@ -245,7 +245,7 @@ Read `consolidation-guide.md` from this skill directory for the complete formatt
    - `<doc>-toc-new_taxonomy.md` — TOC (for proposed structure)
    - `<doc>-comparison.md` — Comparison (for current structure context)
    - `<doc>-*-reduced.adoc` — Source document (reduced)
-2. Generate consolidation report per `consolidation-guide.md`
+2. Generate consolidation report per `@plugins/jtbd-tools/reference/consolidation-guide.md`
 3. Write to `<output-dir>/<doc>-consolidation-report.md`
 
 ### Required Sections (10 total, in order)
@@ -482,10 +482,10 @@ All sections except `name` and `version` are optional. You can provide just pers
 
 ## Methodology Reference
 
-This skill embeds all methodology and guidelines as supporting files:
-- `methodology.md` — JTBD extraction rules (from `/jtbd-analyze-adoc`)
-- `schema.md` — Record schema (from `/jtbd-analyze-adoc`)
-- `toc-guidelines.md` — TOC formatting rules (from `/jtbd-toc`)
-- `example-toc.md` — Example TOC output (from `/jtbd-toc`)
-- `comparison-guide.md` — Comparison rules (from `/jtbd-compare`)
-- `consolidation-guide.md` — Consolidation rules (from `/jtbd-consolidate`)
+This skill references shared methodology and guideline files in the reference/ directory:
+- `@plugins/jtbd-tools/reference/methodology.md` — JTBD extraction rules (from `/jtbd-analyze-adoc`)
+- `@plugins/jtbd-tools/reference/schema.md` — Record schema (from `/jtbd-analyze-adoc`)
+- `@plugins/jtbd-tools/reference/toc-guidelines.md` — TOC formatting rules (from `/jtbd-toc`)
+- `@plugins/jtbd-tools/reference/example-toc.md` — Example TOC output (from `/jtbd-toc`)
+- `@plugins/jtbd-tools/reference/comparison-guide.md` — Comparison rules (from `/jtbd-compare`)
+- `@plugins/jtbd-tools/reference/consolidation-guide.md` — Consolidation rules (from `/jtbd-consolidate`)
