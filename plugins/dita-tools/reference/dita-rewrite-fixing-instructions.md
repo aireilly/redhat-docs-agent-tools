@@ -179,6 +179,8 @@ include:modules/subsection_module.adoc[leveloffset=+2]
 
 **Do NOT** add `include` statements or references (`xref:`, `link:`, `<<...>>`) to modules themselves.
 
+**IMPORTANT**: When extracting subsections to new modules, preserve all conditional directives (`ifdef`, `ifndef`, `endif`). If a subsection heading or content uses product-conditional variants, the new module must include all conditional branches. See the `AssemblyContents` section for detailed examples.
+
 ---
 
 ### TaskSection
@@ -522,6 +524,68 @@ Handle assembly content based on its location:
    - Otherwise: integrate into the end of the last included module or create a new module
 
 **CRITICAL**: Never remove assembly content without relocating it. Assembly introductions, section explanations, and transitional text provide valuable context for readers.
+
+**CRITICAL**: Preserve all conditional directives when extracting content to modules. If a section heading has product-conditional variants (e.g., `{sno}` vs `{sno-okd}` inside `ifdef`/`ifndef` blocks), reproduce all variants in the new module using the same conditional structure. If an Additional resources section has product-specific links inside conditional blocks, preserve both branches. Never drop content from a conditional branch — both branches must appear in the output.
+
+**Example - Conditional section heading preserved in extracted module:**
+
+Before (assembly):
+```asciidoc
+include::modules/previous-module.adoc[leveloffset=+2]
+
+ifndef::openshift-origin[]
+[id="installing-manually"]
+== Installing {sno} manually
+endif::openshift-origin[]
+ifdef::openshift-origin[]
+[id="installing-manually"]
+== Installing {sno-okd} manually
+endif::openshift-origin[]
+
+To install {product-title} on a single node, generate the installation ISO.
+
+include::modules/next-module.adoc[leveloffset=+2]
+```
+
+After (assembly):
+```asciidoc
+include::modules/previous-module.adoc[leveloffset=+2]
+
+include::modules/con_installing-manually.adoc[leveloffset=+1]
+
+include::modules/next-module.adoc[leveloffset=+2]
+```
+
+New module (con_installing-manually.adoc):
+```asciidoc
+:_mod-docs-content-type: CONCEPT
+
+[id="installing-manually_{context}"]
+ifndef::openshift-origin[]
+= Installing {sno} manually
+endif::openshift-origin[]
+ifdef::openshift-origin[]
+= Installing {sno-okd} manually
+endif::openshift-origin[]
+
+[role="_abstract"]
+To install {product-title} on a single node, generate the installation ISO.
+```
+
+**Example - Conditional Additional resources preserved:**
+
+Before (assembly):
+```asciidoc
+* xref:../../path/to/usb-media.adoc#id[Creating a bootable ISO image on a USB drive]
+ifndef::openshift-origin[]
+* xref:../../path/to/workers.adoc#id[Adding worker nodes to {sno} clusters]
+endif::openshift-origin[]
+ifdef::openshift-origin[]
+* xref:../../path/to/workers.adoc#id[Adding worker nodes to {sno-okd} clusters]
+endif::openshift-origin[]
+```
+
+This structure must be preserved exactly — do NOT collapse it to only the `ifndef` branch or only the `ifdef` branch.
 
 **Example - Section heading with explanation becomes new module:**
 
