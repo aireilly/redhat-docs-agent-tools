@@ -27,6 +27,15 @@
       "source": "./plugins/dita-tools",
       "description": "AsciiDoc cleanup, validation, and rewriting tools for DITA conversion preparation.",
       "version": "0.0.5"
+    },
+    {
+      "name": "jtbd-tools",
+      "source": "./plugins/jtbd-tools",
+      "description": "Jobs-To-Be-Done analysis toolkit for documentation restructuring. Extract JTBD records from Markdown, AsciiDoc, and topic map repos. Generate goal-oriented TOCs, compare structures, and produce consolidation reports.",
+      "version": "1.1.0",
+      "category": "documentation",
+      "tags": ["jtbd", "documentation", "analysis", "asciidoc", "restructuring"]
     }
+
   ]
 }
