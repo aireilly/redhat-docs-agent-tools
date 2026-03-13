@@ -399,10 +399,12 @@ def process_file_deflists(path)
       callout_end += 1
     end
 
-    # Build definition list wrapped in an open block attached to code block
-    # Uses + continuation and -- open block delimiters per AsciiDoc spec
+    # Build definition list with "where:" lead-in attached to code block
+    # Structure: + / where: / + / -- / entries / --
     # Preserves ifdef/ifndef/endif structure around conditional callouts
     deflist_lines = []
+    deflist_lines << "+"
+    deflist_lines << "where:"
     deflist_lines << "+"
     deflist_lines << "--"
 
