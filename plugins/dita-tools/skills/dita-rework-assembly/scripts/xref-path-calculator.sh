@@ -106,6 +106,8 @@ if [[ -f "$SOURCE_PATH" ]]; then
         while IFS= read -r match; do
             LINE_NUM=$(echo "$match" | cut -d: -f1)
             XREF_FULL=$(echo "$match" | cut -d: -f2-)
+            # Strip the 'xref:' prefix so we work with just the path
+            XREF_FULL="${XREF_FULL#xref:}"
 
             # Count current ../ segments
             CURRENT_CLIMBS=$(echo "$XREF_FULL" | grep -oP '\.\.\/' | wc -l | tr -d ' ')
