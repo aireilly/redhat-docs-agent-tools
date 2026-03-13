@@ -127,9 +127,9 @@ Converts callouts to definition lists after the code block. This follows the Red
 
 The script:
 - Removes all callout markers from the code block
-- Attaches an open block to the code block using `+` continuation
+- Attaches a "where:" lead-in to the code block using `+` continuation
 - Creates a definition list with the code line content as the term
-- Wraps the definition list in `--` open block delimiters
+- Wraps the definition list in `--` open block delimiters attached to "where:" with `+`
 
 **Before:**
 ```asciidoc
@@ -155,12 +155,12 @@ vllm serve \
   --host 0.0.0.0
 ----
 +
+where:
++
 --
-Where:
-
---model meta-llama/Llama-2-7b:: Specify the model to load from Hugging Face
---port 8000:: Set the port for the API server
---host 0.0.0.0:: Bind to all network interfaces
+`--model meta-llama/Llama-2-7b`:: Specify the model to load from Hugging Face
+`--port 8000`:: Set the port for the API server
+`--host 0.0.0.0`:: Bind to all network interfaces
 --
 ```
 
@@ -174,9 +174,9 @@ vllm serve \
   --host 0.0.0.0
 ----
 +
+where:
++
 --
-Where:
-
 `--model`:: Specifies the model to load from Hugging Face.
 `--port`:: Specifies the port for the API server.
 `--host`:: Specifies the network interface to bind to. Use `0.0.0.0` to bind to all interfaces.
@@ -190,10 +190,12 @@ Where:
 ----
 $ oc delete -f <file_name> -n <cluster_namespace>
 ----
-
++
 where:
-
++
+--
 `<cluster_namespace>`:: Specifies the namespace of the cluster.
+--
 ```
 
 Do NOT echo the full command as the term (e.g., `` `$ oc delete -f <file_name> -n <cluster_namespace>` ``).
