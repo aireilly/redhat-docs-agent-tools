@@ -202,8 +202,6 @@ The 4 agents are defined below. Each uses a dedicated `subagent_type` that loads
 
 **Agent 1: Style guide compliance**
 - `subagent_type`: `docs-tools:docs-reviewer`
-- `model`: `sonnet`
-
 Focus on these skills only:
 - `docs-tools:ibm-sg-language-and-grammar` — abbreviations, capitalization, active voice, inclusive language
 - `docs-tools:ibm-sg-punctuation` — colons, commas, dashes, hyphens, quotes
@@ -216,8 +214,6 @@ Focus on these skills only:
 
 **Agent 2: Style guide compliance**
 - `subagent_type`: `docs-tools:docs-reviewer`
-- `model`: `sonnet`
-
 Focus on these skills only:
 - `docs-tools:ibm-sg-audience-and-medium` — accessibility, global audiences, tone
 - `docs-tools:ibm-sg-numbers-and-measurement` — numerals, formatting, currency, dates, units
