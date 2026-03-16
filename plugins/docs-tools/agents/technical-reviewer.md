@@ -33,9 +33,9 @@ If the attribute is absent, infer from content: a doc consisting primarily of nu
 
 ## Code-validated review (when code repos are available)
 
-If your prompt includes code repository paths (local paths to cloned repos), invoke the `docs-tools:docs-technical-review` skill to validate documentation against source code. Use the skill's structured output to augment your review with code-validated evidence.
+If your prompt includes code repository references (HTTP URLs or local paths), invoke the `docs-tools:docs-technical-review` skill to validate documentation against source code. Clone any HTTP URLs to `/tmp/tech-review/<repo-name>/` first. Use the skill's structured output to augment your review with code-validated evidence.
 
-If no code repos are provided, perform the standard heuristic review. Do not attempt to clone repos yourself.
+If no code repos are provided, perform the standard heuristic review.
 
 ## Review dimensions
 
