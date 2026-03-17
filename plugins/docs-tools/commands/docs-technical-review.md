@@ -81,7 +81,7 @@ Each `--docs` source is auto-detected and resolved:
 | Local file | Path exists as file | Use directly |
 | Local directory | Path exists as directory | Glob for `*.adoc` and `*.md` files |
 | Glob pattern | Contains `*` or `?` | Expand pattern to matching files |
-| PR/MR URL | Matches GitHub/GitLab PR URL pattern | Fetch changed doc files via `./scripts/git_review_api.py` |
+| PR/MR URL | Matches GitHub/GitLab PR URL pattern | Fetch changed doc files via `git_pr_reader.py (via git-pr-reader skill)` |
 | Google Doc URL | Matches `docs.google.com` | Read via `docs-tools:docs-convert-gdoc-md` skill, save to temp file |
 | Remote repo URL | Matches `https://github.com` or `https://gitlab.com` (non-PR) | Clone and glob for doc files |
 

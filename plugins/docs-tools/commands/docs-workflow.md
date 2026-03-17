@@ -1295,7 +1295,7 @@ Add JIRA creation on resume (after review completes):
 ## Prerequisites
 
 - `jq` — JSON processor (install with: `sudo dnf install jq`)
-- `python3` — Python 3 for git_review_api.py
+- `python3` — Python 3 for git_pr_reader.py
 - `JIRA_AUTH_TOKEN` in `~/.env` (required)
 - `GITHUB_TOKEN` and/or `GITLAB_TOKEN` in `~/.env` (for PR/MR access)
 

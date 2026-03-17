@@ -603,17 +603,17 @@ Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND labels=docs-needed
 ```
 
 ### Reviewing GitHub/GitLab PRs
-Use the `git_review_api.py` script to extract code changes from PRs/MRs.
+Use the `docs-tools:git-pr-reader` skill to extract code changes from PRs/MRs.
 
-```bash
+```
 # View PR/MR details as JSON
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py info <pr-url> --json
+Skill: docs-tools:git-pr-reader, args: "info <pr-url> --json"
 
 # List changed files with stats
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py files <pr-url> --json
+Skill: docs-tools:git-pr-reader, args: "files <pr-url> --json"
 
 # View PR/MR diff
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py diff <pr-url>
+Skill: docs-tools:git-pr-reader, args: "diff <pr-url>"
 ```
 
 Requires tokens in `~/.env`:

@@ -149,7 +149,7 @@ Launch a haiku agent to return:
 
 ```bash
 # Or use the Git Review API
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py files "${PR_URL}" --json | \
+python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py files "${PR_URL}" --json | \
     python3 -c "import json,sys; files=[f['path'] for f in json.load(sys.stdin) if f['path'].endswith(('.adoc','.md'))]; print('\n'.join(files))" > /tmp/docs-review-doc-files.txt
 
 DOC_FILES=$(wc -l < /tmp/docs-review-doc-files.txt)
@@ -176,7 +176,7 @@ Launch a sonnet agent to view the changes and return a summary noting:
 
 For `--pr` mode, use:
 ```bash
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py diff "${PR_URL}" > /tmp/pr-diff.txt
+python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py diff "${PR_URL}" > /tmp/pr-diff.txt
 ```
 
 For `--local` mode, use:
@@ -194,7 +194,7 @@ Launch 4 agents in parallel to independently review the documentation changes. E
 - `confidence`: 0-100 score of how certain the agent is this is a real issue
 - `severity`: error, warning, or suggestion
 
-For `--pr` mode, use `python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py extract` for deterministic line numbers from the diff.
+For `--pr` mode, use `python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py extract` for deterministic line numbers from the diff.
 
 The 4 agents are defined below. Each uses a dedicated `subagent_type` that loads the agent's instructions and enforces its declared tool restrictions automatically.
 
@@ -339,7 +339,7 @@ First, get deterministic line numbers for each issue:
 
 ```bash
 # Get the exact line number from the PR diff
-LINE=$(python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py extract "${PR_URL}" "path/to/file.adoc" "pattern from the issue")
+LINE=$(python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py extract "${PR_URL}" "path/to/file.adoc" "pattern from the issue")
 ```
 
 Build the comments JSON file:
@@ -356,7 +356,7 @@ EOF
 Post the comments:
 
 ```bash
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py post "${PR_URL}" /tmp/docs-review-comments.json
+python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py post "${PR_URL}" /tmp/docs-review-comments.json
 ```
 
 For each comment:
@@ -384,7 +384,7 @@ Fetch unresolved review comments from GitHub Pull Requests or GitLab Merge Reque
 
 ## Authentication
 
-Authentication is handled automatically by `git_review_api.py`. Tokens are **required**:
+Authentication is handled automatically by `git_pr_reader.py`. Tokens are **required**:
 
 | Platform | Token |
 |----------|-------|
@@ -405,18 +405,18 @@ If a URL is provided, use it directly. If omitted, auto-detect the PR/MR for the
 PR_URL="${1}"
 
 if [ -z "$PR_URL" ]; then
-    # Auto-detect PR for current branch using gh CLI
-    echo "No URL provided. Detecting PR for current branch..."
-    PR_URL=$(gh pr view --json url --jq '.url' 2>/dev/null)
+    # Auto-detect PR/MR for current branch (supports both GitHub and GitLab)
+    echo "No URL provided. Detecting PR/MR for current branch..."
+    PR_URL=$(python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py detect 2>/dev/null)
 
     if [ -z "$PR_URL" ]; then
-        echo "ERROR: No open PR found for the current branch."
-        echo "Either push your branch and open a PR, or provide a URL:"
+        echo "ERROR: No open PR/MR found for the current branch."
+        echo "Either push your branch and open a PR/MR, or provide a URL:"
         echo "  /docs-tools:docs-review --action-comments <pr-url>"
         exit 1
     fi
 
-    echo "Auto-detected PR: $PR_URL"
+    echo "Auto-detected PR/MR: $PR_URL"
 else
     echo "PR/MR URL: $PR_URL"
 fi
@@ -426,18 +426,18 @@ fi
 
 ```bash
 # Get review comments (bot comments and resolved threads are filtered automatically)
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py comments "${PR_URL}" --json
+python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py comments "${PR_URL}" --json
 
 # Or get human-readable output
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py comments "${PR_URL}"
+python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py comments "${PR_URL}"
 
 # Include resolved comments if needed
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py comments "${PR_URL}" --include-resolved --json
+python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py comments "${PR_URL}" --include-resolved --json
 ```
 
 ### Step 3: Comment Filtering
 
-The `git_review_api.py comments` command automatically:
+The `git_pr_reader.py comments` command automatically:
 
 1. **Filters bot comments**: Ignores comments from bots (gemini, mergify, github-actions, dependabot)
 2. **Filters resolved threads**: Only returns unresolved/open comments (unless `--include-resolved`)
@@ -492,7 +492,7 @@ When the user approves a change:
 Before posting response comments, validate line numbers against the actual diff:
 
 ```bash
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py extract --validate \
+python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py extract --validate \
     "$PR_URL" /tmp/response-comments.json
 ```
 
@@ -502,11 +502,11 @@ If needed, post response comments using the Python API:
 
 ```bash
 # Post response comments
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py post \
+python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py post \
     "$PR_URL" /tmp/response-comments.json
 
 # Or dry-run first
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py post \
+python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py post \
     "$PR_URL" /tmp/response-comments.json --dry-run
 ```
 
@@ -688,12 +688,12 @@ Suggested fix:
 
 # Git Review API Reference
 
-The `git_review_api.py` Python script provides a unified API for interacting with GitHub PRs and GitLab MRs.
+The `git_pr_reader.py` Python script provides a unified API for interacting with GitHub PRs and GitLab MRs.
 
 ## Script Location
 
 ```
-${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py
+${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py
 ```
 
 ## Available Commands
@@ -709,6 +709,8 @@ ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py
 | `extract --validate <url> <json>` | Validate comments against PR diff |
 | `post <url> <json>` | Post review comments to PR/MR |
 | `post <url> <json> --dry-run` | Preview without posting |
+| `detect` | Auto-detect PR/MR URL for current branch |
+| `detect --json` | Auto-detect with platform and branch info |
 
 ## Comments JSON Format
 
@@ -803,7 +805,7 @@ Action comments on a specific GitLab MR:
 - Vale linting requires Vale to be installed and configured
 - **Comments are posted under YOUR username** using tokens from `~/.env`
 - Duplicate comments are automatically skipped
-- **CRITICAL: Always use `git_review_api.py extract` for deterministic line numbers** — never estimate or guess line numbers
+- **CRITICAL: Always use `git_pr_reader.py extract` for deterministic line numbers** — never estimate or guess line numbers
 - Always use Bash with heredoc/cat for writing /tmp files (not the Write tool)
-- Use `python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py` for all Git platform interactions. Use `gh` CLI only for simple operations like `gh pr view`.
+- Use `python ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py` for all Git platform interactions, including `detect` for auto-detecting the PR/MR URL from the current branch.
 - Cite the specific style guide rule or review skill for each issue (e.g., "RedHat.TermsErrors", "IBM Style Guide: Capitalization", "modular-docs: missing content type").

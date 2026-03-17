@@ -448,22 +448,22 @@ Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND updated >= -2w'"
 Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND fixVersion=1.0.0' --fetch-details"
 ```
 
-### Querying GitHub/GitLab with git_review_api.py
+### Querying GitHub/GitLab with docs-tools:git-pr-reader
 
-Use the unified Python script for both GitHub PRs and GitLab MRs:
+Use the `docs-tools:git-pr-reader` skill for both GitHub PRs and GitLab MRs:
 
-```bash
+```
 # View PR/MR details as JSON
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py info <pr-url> --json
+Skill: docs-tools:git-pr-reader, args: "info <pr-url> --json"
 
 # List changed files with stats
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py files <pr-url> --json
+Skill: docs-tools:git-pr-reader, args: "files <pr-url> --json"
 
 # View PR/MR diff
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py diff <pr-url>
+Skill: docs-tools:git-pr-reader, args: "diff <pr-url>"
 
 # Get review comments
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py comments <pr-url> --json
+Skill: docs-tools:git-pr-reader, args: "comments <pr-url> --json"
 ```
 
 Requires tokens in `~/.env`:
