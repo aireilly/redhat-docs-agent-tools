@@ -151,7 +151,7 @@ File filtering patterns are defined in `config/git_filters.yaml`. You can custom
 Install required Python packages:
 
 ```bash
-python3 -m pip install PyGithub python-gitlab pyyaml
+python3 -m pip install PyGithub python-gitlab pyyaml pip-system-certs
 ```
 
 ## Integration with Other Skills

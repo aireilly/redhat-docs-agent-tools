@@ -81,6 +81,7 @@ except ImportError:
 # Utilities
 # =============================================================================
 
+
 def load_env_file() -> None:
     """Load environment variables from ~/.env file."""
     env_file = os.path.expanduser("~/.env")
