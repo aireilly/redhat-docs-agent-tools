@@ -1,0 +1,7 @@
+{
+  "name": "My Workflow",
+  "description": "A workflow for agentic docs development",
+  "systemPrompt": "You are an orchestrator for agentic technical documentation capabilities.",
+  "startupPrompt": "Welcome! Let's build some docs."
+}
+
