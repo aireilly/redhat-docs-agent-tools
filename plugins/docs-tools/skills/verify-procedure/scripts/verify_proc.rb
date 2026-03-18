@@ -396,6 +396,8 @@ class ProcedureVerifier
 
       # If it looks like a Kubernetes resource, try dry-run validation.
       # This works with both oc and kubectl — it's a K8s API feature, not OCP-specific.
+      # Dry-run is a bonus check — it does NOT replace the syntax result.
+      # If there's no cluster connection, the syntax pass still stands.
       if content.include?("apiVersion:")
         if @cli_tool
           Tempfile.open(['resource', '.yaml']) do |f|
@@ -404,10 +406,13 @@ class ProcedureVerifier
             stdout, stderr, status = Open3.capture3("#{@cli_tool} apply -f #{f.path} --dry-run=client")
             if status.success?
               puts "[VALID] Resource dry-run (#{@cli_tool}) passed for Step #{label}."
+            elsif stderr.include?("Unable to connect") || stderr.include?("no such host") || stderr.include?("connection refused")
+              # No cluster connectivity — don't fail the YAML validation for this
+              puts "[SKIP] No cluster connection — dry-run skipped for Step #{label}."
             else
-              puts "[FAILURE] Resource validation failed: #{stderr}"
-              @results.pop
-              @results << { step: label, status: :failed, error: stderr.strip }
+              # Genuine resource validation error (e.g., invalid field, unknown kind)
+              puts "[FAILURE] Resource validation failed: #{stderr.strip.lines.first}"
+              @results << { step: "#{label}-dryrun", status: :failed, error: stderr.strip }
             end
           end
         else
