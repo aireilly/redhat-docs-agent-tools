@@ -63,22 +63,51 @@ class ProcedureVerifier
     end
   end
 
+  # Extract AsciiDoc attribute definitions (:attr-name: value) from the document.
+  # Each docs repo uses different attribute names, so we read them from the source
+  # rather than hardcoding product-specific values.
+  def extract_doc_attributes
+    return @doc_attributes if defined?(@doc_attributes)
+
+    @doc_attributes = {}
+
+    # Parse :attr: value lines from the document
+    @content.scan(/^:([A-Za-z0-9_-]+):\s*(.+)$/) do |name, value|
+      @doc_attributes[name] = value.strip
+    end
+
+    # Also load from an optional attributes file (same dir as the .adoc, or parent)
+    [File.dirname(@file_path), File.join(File.dirname(@file_path), '..')].each do |dir|
+      attrs_file = File.join(dir, '_attributes.adoc')
+      next unless File.exist?(attrs_file)
+
+      File.read(attrs_file).scan(/^:([A-Za-z0-9_-]+):\s*(.+)$/) do |name, value|
+        @doc_attributes[name] ||= value.strip # doc-level attrs take precedence
+      end
+    end
+
+    @doc_attributes
+  end
+
   # Resolve AsciiDoc attribute substitutions like {product-version}
   def resolve_attributes(content, has_subs)
     return content unless has_subs
 
     resolved = content.dup
+    attrs = extract_doc_attributes
 
-    # Detect cluster version if available
-    if @cli_tool && resolved.include?('{product-version}')
-      version = detect_cluster_version
-      resolved.gsub!('{product-version}', version) if version
+    # Replace all {attr-name} references with values found in the document
+    resolved.gsub!(/\{([A-Za-z0-9_-]+)\}/) do |match|
+      attr_name = $1
+      if attrs.key?(attr_name)
+        attrs[attr_name]
+      elsif attr_name == 'product-version' && @cli_tool
+        # Special case: try to detect version from a connected cluster
+        detect_cluster_version || match
+      else
+        match # Leave unresolved attributes as-is
+      end
     end
-
-    # Common attributes
-    resolved.gsub!('{product-title}', 'OpenShift Container Platform')
-    resolved.gsub!('{op-system-base}', 'RHEL')
-    resolved.gsub!('{op-system}', 'RHCOS')
 
     resolved
   end
@@ -112,8 +141,23 @@ class ProcedureVerifier
     current_step_label = nil
     current_step_depth = 0
 
+    ifdef_depth = 0
+
     while i < lines.length
       line = lines[i]
+
+      # Track ifdef/ifndef/endif conditionals — the regex parser cannot
+      # evaluate these, so warn the user that step associations may be wrong.
+      if line =~ /^ifn?def::(\S+)\[/
+        ifdef_depth += 1
+        if ifdef_depth == 1
+          puts "[WARNING] Conditional directive at line #{i + 1}: #{line.strip}"
+          puts "  The parser cannot evaluate AsciiDoc conditionals. Steps inside"
+          puts "  this block may be mis-numbered or associated with the wrong context."
+        end
+      elsif line =~ /^endif::/
+        ifdef_depth -= 1 if ifdef_depth > 0
+      end
 
       # Match numbered steps (., .., ..., etc.) to track context
       if line =~ /^(\.{1,3})\s+(.+)$/
@@ -213,45 +257,58 @@ class ProcedureVerifier
     parts.join('.')
   end
 
-  # Link "Save YAML to file" blocks with their filenames so subsequent
-  # oc create/apply commands can find the files
+  # Link source blocks to filenames mentioned in the step instruction.
+  #
+  # Real-world phrasing varies widely across Red Hat docs. Examples from
+  # openshift-docs (via NotebookLM analysis):
+  #
+  #   With filename:
+  #     "Create a file named load-sctp-module.yaml that contains..."
+  #     "Save the following YAML manifest as integration-source-aws-ddb.yaml :"
+  #     "Create a route definition called hello-openshift-route.yaml :"
+  #     "Create an osc-operatorgroup.yaml manifest file:"
+  #     "Create a my-pod.yaml pod manifest..."
+  #     "Create a ra.yaml file that includes the following content:"
+  #
+  #   Without filename (should NOT match):
+  #     "Apply the following YAML for a specific backing store:"
+  #     "Create a config map in the Velero namespace..."
+  #     "Use the following example YAML file to create the deployment:"
+  #     "See the following example:"
+  #
+  # The instruction doesn't need to mention "YAML" — any backtick-quoted or
+  # bare filename with a recognized extension is matched.
+  SAVE_FILE_EXTENSIONS = /\.(?:ya?ml|json|conf|cfg|sh|txt|toml|ini|properties)/i
+
   def link_yaml_to_files(blocks)
     blocks.each do |block|
-      next unless block[:type] == 'yaml'
+      next unless %w[yaml json].include?(block[:type])
 
-      # Check if the instruction mentions saving to a file
-      # Patterns: "Save the following YAML in the `foo.yaml` file"
-      #           "Create a file named `foo.yaml`"
-      #           "Save the following YAML as `foo.yaml`"
-      if block[:instruction] =~ /`([^`]+\.ya?ml)`/
+      instruction = block[:instruction]
+
+      # 1. Backtick-quoted filenames: `foo.yaml`
+      if instruction =~ /`([^`]+#{SAVE_FILE_EXTENSIONS.source})`/i
         block[:save_as] = $1
-      elsif block[:instruction] =~ /(\S+\.ya?ml)/
+      # 2. Bare filenames — must contain a path-like character pattern
+      #    (word chars, hyphens, dots) ending with a recognized extension.
+      #    The \b prevents matching partial words.
+      elsif instruction =~ /\b([\w][\w.-]*#{SAVE_FILE_EXTENSIONS.source})\b/i
         block[:save_as] = $1
       end
     end
   end
 
   def check_best_practices
-    # Ensure no "Magic Steps" - Identify assumed knowledge
-    # Detect common CLI login/auth patterns across products
-    login_patterns = [
-      'oc login',           # OpenShift
-      'ssh ',               # Remote access
-      'sudo ',              # Privilege escalation
-      'ansible-navigator',  # Ansible
-      'ansible-playbook',   # Ansible
-      'subscription-manager', # RHEL
-      'dnf install',        # RHEL/Fedora
-      'yum install',        # RHEL/CentOS
-      'kubectl',            # Kubernetes
-      'export ',            # Environment setup
-      'source ',            # Environment setup
-    ]
+    # Check for a .Prerequisites section — its absence is a stronger signal
+    # of "magic steps" than scanning for specific commands in the procedure body.
+    # Commands like `oc login`, `sudo`, `ssh` appear in procedure steps themselves,
+    # so scanning the whole file for them produces false positives.
+    has_prereqs = @content.match?(/^\.Prerequisites\b/i) ||
+                  @content.match?(/^\[id=.*prereq/i) ||
+                  @content.match?(/^== Prerequisites/i)
 
-    has_setup = login_patterns.any? { |p| @content.include?(p) }
-
-    if @content.length > 500 && !has_setup
-      puts "[ADVICE] Warning: No login, environment setup, or tool invocation found. Check for 'magic steps'."
+    unless has_prereqs
+      puts "[ADVICE] No .Prerequisites section found. Verify that prerequisites are documented or linked."
     end
   end
 
@@ -315,23 +372,25 @@ class ProcedureVerifier
         puts "[INFO] Saved YAML to #{dest}"
       end
 
-      # If it looks like a Kubernetes/OpenShift resource, try dry-run validation
-      if content.include?("apiVersion:") && @cli_tool
-        Tempfile.open(['resource', '.yaml']) do |f|
-          f.write(content)
-          f.close
-          stdout, stderr, status = Open3.capture3("#{@cli_tool} apply -f #{f.path} --dry-run=client")
-          if status.success?
-            puts "[VALID] Resource logic (dry-run via #{@cli_tool}) passed for Step #{label}."
-          else
-            puts "[FAILURE] Resource validation failed: #{stderr}"
-            # Replace the passed result with a failure
-            @results.pop
-            @results << { step: label, status: :failed, error: stderr.strip }
+      # If it looks like a Kubernetes resource, try dry-run validation.
+      # This works with both oc and kubectl — it's a K8s API feature, not OCP-specific.
+      if content.include?("apiVersion:")
+        if @cli_tool
+          Tempfile.open(['resource', '.yaml']) do |f|
+            f.write(content)
+            f.close
+            stdout, stderr, status = Open3.capture3("#{@cli_tool} apply -f #{f.path} --dry-run=client")
+            if status.success?
+              puts "[VALID] Resource dry-run (#{@cli_tool}) passed for Step #{label}."
+            else
+              puts "[FAILURE] Resource validation failed: #{stderr}"
+              @results.pop
+              @results << { step: label, status: :failed, error: stderr.strip }
+            end
           end
+        else
+          puts "[SKIP] No oc or kubectl found — skipping resource dry-run for Step #{label}."
         end
-      elsif content.include?("apiVersion:") && !@cli_tool
-        puts "[SKIP] No oc or kubectl CLI found — skipping resource dry-run for Step #{label}."
       end
     rescue Psych::SyntaxError => e
       puts "[FAILURE] YAML Syntax error in Step #{label}: #{e.message}"

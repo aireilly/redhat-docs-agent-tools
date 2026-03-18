@@ -51,18 +51,35 @@ Creates a temporary working directory (`/tmp/verify-proc-*`) for each run. All Y
 
 ### Save-YAML-to-file linking
 
-Detects the common documentation pattern where a YAML block is preceded by a step like:
+Detects steps that instruct the user to save content to a file. The step text doesn't need to contain the word "YAML" — any backtick-quoted or bare filename with a recognized extension is matched. Real-world phrasing varies widely across Red Hat docs:
 
 ```
 .. Save the following YAML in the `foo.yaml` file:
+.. Create a file named load-sctp-module.yaml that contains...
+.. Save the following YAML manifest as integration-source-aws-ddb.yaml :
+.. Create a route definition called hello-openshift-route.yaml :
+.. Create an osc-operatorgroup.yaml manifest file:
+.. Create a ra.yaml file that includes the following content:
 ```
 
-When this pattern is detected:
-1. The YAML is validated for syntax
-2. The YAML is written to `<workdir>/foo.yaml`
+Steps without a filename are not matched (no false positives):
+
+```
+.. Apply the following YAML for a specific backing store:
+.. Create a config map in the Velero namespace...
+.. Use the following example YAML file to create the deployment:
+```
+
+Supported extensions: `.yaml`, `.yml`, `.json`, `.conf`, `.cfg`, `.sh`, `.txt`, `.toml`, `.ini`, `.properties`
+
+When a filename is detected:
+1. The content is validated for syntax (YAML or JSON)
+2. The content is written to `<workdir>/<filename>`
 3. Subsequent commands like `oc create -f foo.yaml` find the file and execute successfully
 
-Filename extraction matches backtick-quoted filenames (`` `foo.yaml` ``) or bare `.yaml`/`.yml` filenames in the step text.
+### Conditional directive warnings
+
+The parser cannot evaluate `ifdef::`/`ifndef::` conditionals. When these directives are encountered, the script emits a warning with the line number so the user knows that step numbering inside the conditional block may be inaccurate. This is a deliberate choice — silently producing wrong step associations is worse than a visible warning.
 
 ### Smart skipping
 
@@ -71,14 +88,14 @@ Filename extraction matches backtick-quoted filenames (`` `foo.yaml` ``) or bare
 
 ### AsciiDoc attribute resolution
 
-When a source block has `subs="attributes+"`, the script resolves common AsciiDoc attributes before validation or execution:
+When a source block has `subs="attributes+"`, the script resolves `{attr-name}` references before validation or execution. Attributes are loaded from two sources, in priority order:
 
-- `{product-version}` → detected from the live cluster via `oc version`
-- `{product-title}` → `OpenShift Container Platform`
-- `{op-system-base}` → `RHEL`
-- `{op-system}` → `RHCOS`
+1. **The document itself** — `:attr-name: value` lines in the `.adoc` file
+2. **An `_attributes.adoc` file** — looked up in the same directory as the file, then one level up
 
-This prevents false YAML validation failures on blocks that contain attribute placeholders.
+This approach works across Red Hat docs repos regardless of which attribute names they use. No attribute names are hardcoded.
+
+As a special case, `{product-version}` falls back to live cluster detection via `oc version` if no document-level definition is found.
 
 ### YAML validation
 
@@ -101,8 +118,8 @@ This prevents false YAML validation failures on blocks that contain attribute pl
 
 ### Best practices check
 
-- Scans the full file for login/setup patterns (`oc login`, `ssh`, `sudo`, `subscription-manager`, `dnf install`, `ansible-playbook`, etc.)
-- Warns if no setup pattern is found in a procedure over 500 characters, suggesting potential "magic steps"
+- Checks for a `.Prerequisites` section (or equivalent heading/anchor) in the document
+- Warns if no prerequisites section is found, since its absence is a stronger signal of undocumented assumptions than scanning for specific commands
 
 ### Resource tracking and cleanup
 
