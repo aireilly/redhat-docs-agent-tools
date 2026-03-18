@@ -337,7 +337,7 @@ monitoring_gitops
 For processing more than 10 books, use the Python batch-runner script:
 
 ```bash
-python plugins/jtbd-workflow-topicmap/scripts/batch-runner.py \
+python3 plugins/jtbd-workflow-topicmap/scripts/batch-runner.py \
   --repo ~/Documents/openshift-docs \
   --books-file books.txt \
   --distro openshift-enterprise \

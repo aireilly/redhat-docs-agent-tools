@@ -127,11 +127,11 @@ Gather information from multiple sources. **Record all URLs and file paths as yo
 
 **From JIRA:**
 
-Use the `docs-tools:jira-reader` skill to fetch issue details. Invoke using the Skill tool:
-```
-Skill: docs-tools:jira-reader, args: "PROJECT-123"
-Skill: docs-tools:jira-reader, args: "--jql 'project = PROJECT AND fixVersion = X.Y.Z'"
-Skill: docs-tools:jira-reader, args: "--jql 'project = PROJECT AND labels = docs-needed'"
+Use the jira-reader script to fetch issue details:
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --issue PROJECT-123
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --jql 'project = PROJECT AND fixVersion = X.Y.Z'
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --jql 'project = PROJECT AND labels = docs-needed'
 ```
 - Record JIRA URLs for each relevant ticket (e.g., `https://redhat.atlassian.net/browse/PROJECT-123`)
 - Note specific sections referenced (e.g., "AC-1", "Documentation Considerations")
@@ -141,7 +141,7 @@ Skill: docs-tools:jira-reader, args: "--jql 'project = PROJECT AND labels = docs
 After fetching the primary ticket with jira-reader, run the ticket graph traversal to gather bounded context (1 level deep) from the ticket's relationships:
 
 ```bash
-python ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --graph ${TICKET}
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --graph ${TICKET}
 ```
 
 The `--graph` flag discovers custom field IDs, fetches the parent, children, siblings, issue links, and web/remote links, then classifies URLs by type. It uses `JIRA_AUTH_TOKEN` and `JIRA_EMAIL` from the environment (with `~/.env` fallback) and `JIRA_URL` (default: `https://redhat.atlassian.net`).
@@ -424,46 +424,46 @@ If a traversal step failed due to a permission error (e.g., 403 on parent), note
 
 ### Querying JIRA with jira-reader
 
-Use the Skill tool to invoke the `docs-tools:jira-reader` skill. Do not call `jira_reader.py` directly.
+Use the jira-reader script directly:
 
 **Fetch a single issue:**
-```
-Skill: docs-tools:jira-reader, args: "PROJ-123"
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --issue PROJ-123
 ```
 
 **Fetch issue with comments:**
-```
-Skill: docs-tools:jira-reader, args: "PROJ-123 --include-comments"
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --issue PROJ-123 --include-comments
 ```
 
 **Search issues by JQL (fast summary mode):**
-```
-Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND fixVersion=1.0.0'"
-Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND labels=docs-needed AND status=Done'"
-Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND updated >= -2w'"
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --jql 'project=PROJ AND fixVersion=1.0.0'
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --jql 'project=PROJ AND labels=docs-needed AND status=Done'
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --jql 'project=PROJ AND updated >= -2w'
 ```
 
 **Search with full details (slower):**
-```
-Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND fixVersion=1.0.0' --fetch-details"
-```
-
-### Querying GitHub/GitLab with git_review_api.py
-
-Use the unified Python script for both GitHub PRs and GitLab MRs:
-
 ```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --jql 'project=PROJ AND fixVersion=1.0.0' --fetch-details
+```
+
+### Querying GitHub/GitLab PRs
+
+Use the git PR reader script for both GitHub PRs and GitLab MRs:
+
+```
 # View PR/MR details as JSON
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py info <pr-url> --json
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py info <pr-url> --json
 
 # List changed files with stats
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py files <pr-url> --json
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py files <pr-url> --json
 
 # View PR/MR diff
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py diff <pr-url>
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py diff <pr-url>
 
 # Get review comments
-python ${CLAUDE_PLUGIN_ROOT}/commands/scripts/git_review_api.py comments <pr-url> --json
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py comments <pr-url> --json
 ```
 
 Requires tokens in `~/.env`:
@@ -472,18 +472,18 @@ Requires tokens in `~/.env`:
 
 ### Reading Red Hat documentation with redhat-docs-toc
 
-Extract article URLs from Red Hat documentation TOC pages for research. Use the `docs-tools:redhat-docs-toc` skill:
+Extract article URLs from Red Hat documentation TOC pages for research:
 
-```
-Skill: docs-tools:redhat-docs-toc, args: "https://docs.redhat.com/en/documentation/product/version/html/guide/index"
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/redhat-docs-toc/scripts/toc_extractor.py --url "https://docs.redhat.com/en/documentation/product/version/html/guide/index"
 ```
 
 ### Extracting article content with article-extractor
 
-Download and extract content from Red Hat documentation pages. Use the `docs-tools:article-extractor` skill:
+Download and extract content from Red Hat documentation pages:
 
-```
-Skill: docs-tools:article-extractor, args: "https://docs.redhat.com/..."
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "https://docs.redhat.com/..."
 ```
 
 ## Key principles

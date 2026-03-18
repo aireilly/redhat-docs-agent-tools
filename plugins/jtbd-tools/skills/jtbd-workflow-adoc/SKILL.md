@@ -307,7 +307,7 @@ You can also include `--variant` and `--research` flags which apply to all docum
 For processing more than 10 documents, use the Python batch-runner script:
 
 ```bash
-python plugins/jtbd-workflow-adoc/scripts/batch-runner.py \
+python3 plugins/jtbd-workflow-adoc/scripts/batch-runner.py \
   --docs-file docs.txt \
   --variant self-managed \
   --research redhat-ai \

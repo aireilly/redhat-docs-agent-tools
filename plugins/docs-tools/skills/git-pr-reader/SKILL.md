@@ -1,19 +1,25 @@
 ---
 name: git-pr-reader
-description: Extract code changes from GitHub Pull Requests and GitLab Merge Requests. Automatically detects GitHub vs GitLab from URL, fetches PR/MR title, description, and file diffs, and filters out irrelevant files (tests, configs, lock files, generated code). Supports pagination for large PRs/MRs. Use this skill when you need to analyze code changes from Git repositories to understand what was modified, added, or fixed for documentation purposes.
+description: "Unified interface for GitHub PRs and GitLab MRs: read PR/MR data with file filtering, list changed files, get review comments, post inline review comments, extract line numbers from diffs, validate comments, auto-detect PR/MR for current branch, and get unified diffs. Automatically detects GitHub vs GitLab from URL. Use this skill for analyzing code changes, posting review feedback, and documentation workflows."
 author: Gabriel McGoldrick (gmcgoldr@redhat.com)
 allowed-tools: Read, Bash, Grep, Glob
 ---
 
 # Git PR Reader Skill
 
-Extract and analyze code changes from GitHub Pull Requests and GitLab Merge Requests for release note generation.
+Unified interface for GitHub Pull Requests and GitLab Merge Requests — read, review, and post comments.
 
 ## Capabilities
 
 - **Auto-detect Git platform**: Automatically identifies GitHub vs GitLab from URL
-- **Extract PR/MR metadata**: Fetch title, description, and file-level diffs
-- **Smart filtering**: Exclude irrelevant files using configurable patterns:
+- **Read PR/MR data**: Fetch title, description, and file-level diffs with smart filtering
+- **List changed files**: Get file paths, statuses, and line counts with optional glob filtering
+- **Review comments**: Fetch existing review comments/discussions, filter bots, include/exclude resolved
+- **Post review comments**: Post inline comments on specific diff lines with duplicate detection and fallback to PR-level comments
+- **Extract line numbers**: Parse diffs to get added/modified line numbers for accurate comment placement
+- **Validate comments**: Check comment line numbers against actual diff content
+- **Auto-detect PR/MR**: Find the open PR/MR for the current git branch (GitHub via `gh` CLI, GitLab via API)
+- **Smart file filtering**: Exclude irrelevant files using configurable YAML patterns:
   - Test files (test/, *_test.go, *.spec.ts, etc.)
   - Lock files (package-lock.json, *.lock, Pipfile.lock, etc.)
   - CI/CD configs (.gitlab-ci.yml, .github/workflows/, Dockerfile, etc.)
@@ -21,21 +27,70 @@ Extract and analyze code changes from GitHub Pull Requests and GitLab Merge Requ
   - Generated code (*.pb.go, *.gen.go, etc.)
   - Vendor directories (node_modules/, vendor/, etc.)
   - Images and binaries (*.png, *.jpg, *.svg, etc.)
-- **Pagination support**: Handle PRs/MRs with hundreds of changed files
-- **Structured output**: JSON format optimized for LLM consumption
 
 ## Usage
 
-### Basic Usage
+### Subcommands
 
-**GitHub Pull Request:**
+#### read — Read PR/MR data with diffs and file filtering
+
 ```bash
-python3 scripts/git_pr_reader.py --url "https://github.com/owner/repo/pull/123"
+python3 scripts/git_pr_reader.py read --url "https://github.com/owner/repo/pull/123"
+python3 scripts/git_pr_reader.py read --url "https://gitlab.com/group/project/-/merge_requests/456" --format markdown
+python3 scripts/git_pr_reader.py read --url "https://github.com/owner/repo/pull/123" --no-filter
 ```
 
-**GitLab Merge Request:**
+#### info — Get PR/MR information
+
 ```bash
-python3 scripts/git_pr_reader.py --url "https://gitlab.com/group/project/-/merge_requests/456"
+python3 scripts/git_pr_reader.py info https://github.com/owner/repo/pull/123 --json
+```
+
+#### files — List changed files
+
+```bash
+python3 scripts/git_pr_reader.py files https://github.com/owner/repo/pull/123
+python3 scripts/git_pr_reader.py files https://github.com/owner/repo/pull/123 --filter "*.adoc" --json
+```
+
+#### comments — List review comments
+
+```bash
+python3 scripts/git_pr_reader.py comments https://github.com/owner/repo/pull/123
+python3 scripts/git_pr_reader.py comments https://github.com/owner/repo/pull/123 --include-resolved --json
+```
+
+#### diff — Get unified diff
+
+```bash
+python3 scripts/git_pr_reader.py diff https://github.com/owner/repo/pull/123
+```
+
+#### post — Post review comments
+
+```bash
+python3 scripts/git_pr_reader.py post https://github.com/owner/repo/pull/123 comments.json
+python3 scripts/git_pr_reader.py post https://github.com/owner/repo/pull/123 comments.json --dry-run
+```
+
+#### extract — Extract line numbers from diff
+
+```bash
+# Find line number for a pattern
+python3 scripts/git_pr_reader.py extract https://github.com/owner/repo/pull/123 path/to/file.adoc "pattern"
+
+# Dump all added/modified lines
+python3 scripts/git_pr_reader.py extract --dump https://github.com/owner/repo/pull/123 path/to/file.adoc
+
+# Validate a comments JSON file against the diff
+python3 scripts/git_pr_reader.py extract --validate https://github.com/owner/repo/pull/123 comments.json
+```
+
+#### detect — Auto-detect PR/MR for current branch
+
+```bash
+python3 scripts/git_pr_reader.py detect
+python3 scripts/git_pr_reader.py detect --json
 ```
 
 ### Authentication
@@ -47,57 +102,44 @@ GITHUB_TOKEN=your-github-pat    # required scope: "repo" for private, "public_re
 GITLAB_TOKEN=your-gitlab-pat    # required scope: "api"
 ```
 
-### Command Line Options
+### Python Library Usage
 
-- `--url URL`: GitHub PR or GitLab MR URL (required)
-- `--no-filter`: Disable file filtering (include all files)
-- `--max-files N`: Limit number of files to process (default: no limit)
-- `--include-stats`: Include statistics about filtered files
-- `--format {json,markdown}`: Output format (default: json)
+```python
+from git_pr_reader import GitReviewAPI
 
-### Output Formats
+api = GitReviewAPI.from_url("https://github.com/owner/repo/pull/123")
 
-**JSON (default):**
+# Read PR data with filtering
+data = api.get_pr_data()
+
+# Get PR info
+info = api.get_pr_info()
+
+# Get changed files
+files = api.get_changed_files()
+
+# Get review comments
+comments = api.get_review_comments()
+
+# Post comments
+api.post_comments([
+    {"file": "path/to/file.adoc", "line": 42, "message": "Issue description"}
+])
+
+# Extract line numbers from diff
+lines = api.extract_line_numbers("path/to/file.adoc")
+
+# Validate comments against diff
+results = api.validate_comments(comments_list)
+```
+
+## Comments JSON Format
+
 ```json
-{
-  "git_type": "github",
-  "url": "https://github.com/owner/repo/pull/123",
-  "title": "Fix authentication bug in user service",
-  "description": "This PR fixes the authentication issue...",
-  "diffs": [
-    {
-      "filename": "src/auth/service.py",
-      "diff": "@@ -45,7 +45,7 @@\n def authenticate(user):\n-    return user.password == hash(input)\n+    return secure_compare(user.password, hash(input))\n"
-    }
-  ],
-  "stats": {
-    "total_files": 45,
-    "filtered_files": 12,
-    "included_files": 33
-  }
-}
-```
-
-**Markdown:**
-```markdown
-# Fix authentication bug in user service
-
-**Source:** https://github.com/owner/repo/pull/123
-**Type:** GitHub Pull Request
-
-## Description
-
-This PR fixes the authentication issue...
-
-## Changed Files (33 of 45 total)
-
-### src/auth/service.py
-```diff
-@@ -45,7 +45,7 @@
- def authenticate(user):
--    return user.password == hash(input)
-+    return secure_compare(user.password, hash(input))
-```
+[
+  {"file": "path/to/file.adoc", "line": 42, "message": "Issue: missing title", "severity": "suggestion"},
+  {"file": "path/to/other.adoc", "line": 10, "message": "Typo in description", "severity": "suggestion"}
+]
 ```
 
 ## Configuration
@@ -112,18 +154,12 @@ Install required Python packages:
 python3 -m pip install PyGithub python-gitlab pyyaml
 ```
 
-## Use Cases
+## Integration with Other Skills
 
-1. **Release Note Generation**: Extract code changes to understand what was modified for release notes
-2. **Code Review Analysis**: Analyze PR/MR changes without navigating the web UI
-3. **Documentation Updates**: Identify changes that need documentation
-4. **Change Impact Assessment**: Understand scope of changes across codebase
-
-## Performance
-
-- **GitHub PRs**: Handles up to 1000 files per PR with pagination
-- **GitLab MRs**: Efficiently fetches all changes in single API call
-- **Filtering**: Typically reduces file count by 60-80% (tests, configs, generated code)
+This skill works well with:
+- **docs-tools:jira-reader**: Combine JIRA issue context with Git code changes
+- **docs-tools:jira-writer**: Generate release notes from JIRA + Git data, then push back to JIRA
+- **docs-tools:docs-review**: Post review findings as inline PR/MR comments
 
 ## Limitations
 
@@ -131,21 +167,3 @@ python3 -m pip install PyGithub python-gitlab pyyaml
 - GitLab API rate limits: 10 requests/second
 - Only fetches file-level diffs, not commit-level history
 - Requires public PRs/MRs unless authentication tokens are provided
-
-## Integration with Other Skills
-
-This skill works well with:
-- **docs-tools:jira-reader**: Combine JIRA issue context with Git code changes
-- **docs-tools:jira-writer**: Generate release notes from JIRA + Git data, then push back to JIRA
-
-## Example Workflow
-
-```bash
-# 1. Get JIRA issue details
-python3 scripts/jira_reader.py --issue COO-1145
-
-# 2. Extract Git PR/MR changes from links in JIRA
-python3 scripts/git_pr_reader.py --url "https://github.com/org/repo/pull/789"
-
-# 3. Use both outputs to generate comprehensive release notes
-```
