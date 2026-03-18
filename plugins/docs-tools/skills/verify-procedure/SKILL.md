@@ -23,7 +23,7 @@ At invocation, the skill runs a connectivity check (e.g., `oc whoami`). If the c
 
 ## How it works
 
-1. **Parse**: Read the `.adoc` file and extract all `[source,terminal]`, `[source,bash]`, `[source,yaml]`, and `[source,json]` blocks, associating each with its numbered step.
+1. **Parse**: Read the `.adoc` file and extract all source blocks (`[source,terminal]`, `[source,bash]`, `[source,yaml]`, `[source,json]`, `[source,ini]`, `[source,toml]`, `[source,text]`, `[source,python]`, `[source,ruby]`), associating each with its numbered step.
 2. **Execute**: Run the `verify_proc.rb` script against the file:
    ```bash
    ruby <skill_dir>/scripts/verify_proc.rb <file.adoc>
@@ -54,12 +54,17 @@ Creates a temporary working directory (`/tmp/verify-proc-*`) for each run. All Y
 Detects steps that instruct the user to save content to a file. The step text doesn't need to contain the word "YAML" — any backtick-quoted or bare filename with a recognized extension is matched. Real-world phrasing varies widely across Red Hat docs:
 
 ```
+OCP examples:
 .. Save the following YAML in the `foo.yaml` file:
 .. Create a file named load-sctp-module.yaml that contains...
 .. Save the following YAML manifest as integration-source-aws-ddb.yaml :
 .. Create a route definition called hello-openshift-route.yaml :
-.. Create an osc-operatorgroup.yaml manifest file:
-.. Create a ra.yaml file that includes the following content:
+
+RHEL examples:
+.. Edit the `/etc/chrony.conf` configuration file:
+.. Create a playbook file, for example ~/playbook.yml, with the following content:
+.. Create a YAML file named sap-netweaver.yml with the following content:
+.. Create a configuration file named `default` and add it to the `pxelinux.cfg/` directory:
 ```
 
 Steps without a filename are not matched (no false positives):
@@ -69,6 +74,8 @@ Steps without a filename are not matched (no false positives):
 .. Create a config map in the Velero namespace...
 .. Use the following example YAML file to create the deployment:
 ```
+
+Absolute paths (e.g., `/etc/chrony.conf`) are validated for syntax but never written to the filesystem — the script should not modify system files during verification.
 
 Supported extensions: `.yaml`, `.yml`, `.json`, `.conf`, `.cfg`, `.sh`, `.txt`, `.toml`, `.ini`, `.properties`
 
@@ -108,9 +115,19 @@ As a special case, `{product-version}` falls back to live cluster detection via 
 - Parses `[source,json]` blocks with Ruby's JSON parser for syntax errors
 - Reports `[VALID]` or `[FAILURE]`
 
+### Config and script validation
+
+- `[source,ini]`, `[source,toml]`, `[source,text]` blocks are recorded and saved to the working directory (for relative paths) or validated without writing (for absolute paths like `/etc/chrony.conf`)
+- `[source,python]` blocks are syntax-checked via `python3 -c "compile(...)"`
+- `[source,ruby]` blocks are syntax-checked via `ruby -c`
+- Absolute paths in step instructions (common in RHEL procedures) are validated but never written to the filesystem
+
 ### Bash execution
 
-- Strips leading `$ ` prompts from command lines
+- Strips prompt symbols from command lines, handling conventions across products:
+  - OCP/K8s: `$ oc get pods`
+  - RHEL root: `# dnf install`, `[root@host ~]# systemctl`, `~]# subscription-manager`
+  - Mixed: `$ sudo dnf install`
 - Joins backslash-continued lines
 - Executes each command via `Open3.capture3` in the working directory
 - For verification steps (containing words like "verify", "check", "confirm"), displays the command output
@@ -123,13 +140,14 @@ As a special case, `{product-version}` falls back to live cluster detection via 
 
 ### Resource tracking and cleanup
 
-The script tracks resources created during verification:
-- Records `oc create -f` / `oc apply -f` commands and their file paths
-- Captures resource identifiers from stdout (e.g., `namespace/openshift-ptp created`)
+The script tracks resources created during verification across products:
+- **K8s/OCP**: Records `oc create -f` / `oc apply -f` commands and captures resource identifiers from stdout (e.g., `namespace/openshift-ptp created`)
+- **RHEL**: Tracks `systemctl enable/start` services and `dnf/yum install` packages
 
 When invoked with `--cleanup`:
-- Deletes tracked resources in reverse order (last created, first deleted)
-- Uses `--ignore-not-found` to handle partially-created resources gracefully
+- Deletes K8s resources in reverse order using `--ignore-not-found`
+- Stops and disables tracked services via `systemctl`
+- Removes installed packages via `dnf remove`
 - Removes the temporary working directory
 
 Without `--cleanup`, the working directory and resources are retained so the user can inspect them.

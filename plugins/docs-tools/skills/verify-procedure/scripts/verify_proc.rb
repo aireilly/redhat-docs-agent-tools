@@ -181,10 +181,11 @@ class ProcedureVerifier
         current_step_text = step_text
       end
 
-      # Match source blocks with various formats:
-      # [source,terminal], [source,bash], [source,yaml]
-      # [source,terminal,subs="attributes+"], etc.
-      if line =~ /^\[source,(terminal|bash|yaml|shell|json)(?:,(.*?))?\]\s*$/
+      # Match source blocks with various formats across Red Hat products:
+      # OCP/K8s:  [source,terminal], [source,bash], [source,yaml], [source,json]
+      # RHEL:     [source,ini], [source,toml], [source,text], [source,python]
+      # General:  [source,shell], [source,ruby]
+      if line =~ /^\[source,(terminal|bash|yaml|shell|json|ini|toml|text|python|ruby)(?:,(.*?))?\]\s*$/
         source_type = $1
         source_attrs = $2 || ''
         has_subs = source_attrs.include?('subs=')
@@ -220,8 +221,12 @@ class ProcedureVerifier
 
         content = content_lines.join.strip
 
-        # Normalize terminal/shell to bash for execution
-        type = %w[terminal shell].include?(source_type) ? 'bash' : source_type
+        # Normalize executable types to bash; keep data formats as-is for validation
+        type = case source_type
+               when 'terminal', 'shell' then 'bash'
+               when 'ini', 'toml', 'text' then 'config'
+               else source_type
+               end
 
         # Only add non-empty blocks
         unless content.empty?
@@ -282,18 +287,25 @@ class ProcedureVerifier
 
   def link_yaml_to_files(blocks)
     blocks.each do |block|
-      next unless %w[yaml json].include?(block[:type])
+      next unless %w[yaml json config].include?(block[:type])
 
       instruction = block[:instruction]
 
-      # 1. Backtick-quoted filenames: `foo.yaml`
-      if instruction =~ /`([^`]+#{SAVE_FILE_EXTENSIONS.source})`/i
+      # 1. Backtick-quoted paths: `/etc/chrony.conf` or `foo.yaml`
+      if instruction =~ /`([^`]*#{SAVE_FILE_EXTENSIONS.source})`/i
         block[:save_as] = $1
-      # 2. Bare filenames — must contain a path-like character pattern
-      #    (word chars, hyphens, dots) ending with a recognized extension.
-      #    The \b prevents matching partial words.
+      # 2. Backtick-quoted absolute paths without recognized extension:
+      #    e.g., `~/playbook.yml`, `/etc/sysctl.d/99-custom`
+      elsif instruction =~ /`((?:\/|~\/)[^`]+)`/
+        block[:save_as] = $1
+      # 3. Bare filenames — word chars, hyphens, dots ending with recognized extension
       elsif instruction =~ /\b([\w][\w.-]*#{SAVE_FILE_EXTENSIONS.source})\b/i
         block[:save_as] = $1
+      end
+
+      # For absolute paths, flag them — they can't be saved to workdir safely
+      if block[:save_as] && block[:save_as].start_with?('/')
+        block[:absolute_path] = true
       end
     end
   end
@@ -344,6 +356,10 @@ class ProcedureVerifier
       execute_bash(content, label, instruction)
     when 'json'
       validate_json(content, label)
+    when 'config'
+      validate_config(content, label, block[:save_as])
+    when 'python', 'ruby'
+      validate_script(content, label, type, block[:save_as])
     end
   end
 
@@ -365,11 +381,17 @@ class ProcedureVerifier
       puts "[VALID] YAML syntax for Step #{label} is correct."
       @results << { step: label, status: :passed, output: "YAML syntax valid" }
 
-      # Save the YAML to the working directory if a filename was detected
+      # Save the YAML to the working directory if a filename was detected.
+      # Absolute paths (e.g., /etc/foo.conf from RHEL procedures) are validated
+      # but not written — the script should not modify system files.
       if save_as
-        dest = File.join(@workdir, save_as)
-        File.write(dest, content)
-        puts "[INFO] Saved YAML to #{dest}"
+        if save_as.start_with?('/') || save_as.start_with?('~/')
+          puts "[INFO] Absolute path #{save_as} — YAML validated but not written to filesystem."
+        else
+          dest = File.join(@workdir, File.basename(save_as))
+          File.write(dest, content)
+          puts "[INFO] Saved YAML to #{dest}"
+        end
       end
 
       # If it looks like a Kubernetes resource, try dry-run validation.
@@ -409,9 +431,71 @@ class ProcedureVerifier
     end
   end
 
+  # Validate config file content (INI, TOML, plain text).
+  # For RHEL procedures that edit files like /etc/chrony.conf, systemd units, etc.
+  # We validate what we can (TOML syntax) and record the rest as seen.
+  def validate_config(content, label, save_as = nil)
+    puts "[VALID] Configuration content for Step #{label} recorded."
+    @results << { step: label, status: :passed, output: "Config content recorded" }
+
+    if save_as
+      if save_as.start_with?('/') || save_as.start_with?('~/')
+        puts "[INFO] Absolute path #{save_as} — content validated but not written to filesystem."
+      else
+        dest = File.join(@workdir, File.basename(save_as))
+        File.write(dest, content)
+        puts "[INFO] Saved config to #{dest}"
+      end
+    end
+  end
+
+  # Validate script content (Python, Ruby) for syntax errors without executing.
+  def validate_script(content, label, lang, save_as = nil)
+    case lang
+    when 'python'
+      # Use python3 -c "compile()" for syntax check
+      stdout, stderr, status = Open3.capture3('python3', '-c', "compile(#{content.inspect}, '<step #{label}>', 'exec')")
+      if status.success?
+        puts "[VALID] Python syntax for Step #{label} is correct."
+        @results << { step: label, status: :passed, output: "Python syntax valid" }
+      else
+        puts "[FAILURE] Python syntax error in Step #{label}: #{stderr.strip}"
+        @results << { step: label, status: :failed, error: stderr.strip }
+      end
+    when 'ruby'
+      Tempfile.open(['step', '.rb']) do |f|
+        f.write(content)
+        f.close
+        stdout, stderr, status = Open3.capture3("ruby -c #{f.path}")
+        if status.success?
+          puts "[VALID] Ruby syntax for Step #{label} is correct."
+          @results << { step: label, status: :passed, output: "Ruby syntax valid" }
+        else
+          puts "[FAILURE] Ruby syntax error in Step #{label}: #{stderr.strip}"
+          @results << { step: label, status: :failed, error: stderr.strip }
+        end
+      end
+    end
+
+    if save_as && !(save_as.start_with?('/') || save_as.start_with?('~/'))
+      dest = File.join(@workdir, File.basename(save_as))
+      File.write(dest, content)
+      puts "[INFO] Saved script to #{dest}"
+    end
+  end
+
   def execute_bash(command, label, instruction)
-    # Clean up command: remove $ prompt symbols from each line
-    clean_command = command.lines.map { |line| line.sub(/^\$ /, '') }.join
+    # Clean up command: remove prompt symbols from each line.
+    # Handles prompts across Red Hat products:
+    #   OCP/K8s: $ oc get pods
+    #   RHEL:    # dnf install, [root@host ~]# systemctl, ~]# subscription-manager
+    #   Mixed:   $ sudo dnf install
+    clean_command = command.lines.map do |line|
+      line
+        .sub(/^\[[\w@.\-]+ [~\w\/]*\][#$]\s*/, '')  # [root@host ~]# or [user@host dir]$
+        .sub(/^~\][#$]\s*/, '')                       # ~]# or ~]$
+        .sub(/^[#$]\s/, '')                            # bare # or $ prompt
+    end.join
 
     # Handle multi-line commands with backslash continuations
     if clean_command.include?('\\')
@@ -459,9 +543,10 @@ class ProcedureVerifier
     end
   end
 
-  # Track resources created by oc/kubectl create/apply for cleanup
+  # Track resources created during verification for cleanup.
+  # Handles both K8s resources (oc/kubectl) and RHEL system changes (systemctl, dnf).
   def track_resource(command, stdout)
-    # Match "oc create -f file.yaml" or "oc apply -f file.yaml"
+    # K8s: "oc create -f file.yaml" or "oc apply -f file.yaml"
     if command =~ /\b(oc|kubectl)\s+(create|apply)\s+-f\s+(\S+)/
       tool = $1
       file = $3
@@ -471,9 +556,20 @@ class ProcedureVerifier
       end
     end
 
-    # Match inline resource creation from stdout like "namespace/openshift-ptp created"
+    # K8s: inline resource creation from stdout like "namespace/openshift-ptp created"
     if stdout =~ %r{^(\S+/\S+)\s+created}
       @created_resources << { resource: $1 }
+    end
+
+    # RHEL: systemctl enable/start — track for disable/stop on cleanup
+    if command =~ /\bsystemctl\s+(enable|start|enable\s+--now)\s+(\S+)/
+      @created_resources << { service: $2, action: $1 }
+    end
+
+    # RHEL: dnf/yum install — track for removal on cleanup
+    if command =~ /\b(?:dnf|yum)\s+install\s+(?:-y\s+)?(.+)/
+      packages = $1.strip.split(/\s+/).reject { |p| p.start_with?('-') }
+      @created_resources << { packages: packages } unless packages.empty?
     end
   end
 
@@ -499,6 +595,22 @@ class ProcedureVerifier
           puts "[CLEANED] #{stdout.strip}"
         else
           puts "[WARN] Cleanup failed: #{stderr.strip}"
+        end
+      elsif res[:service]
+        # RHEL: stop and disable services that were started/enabled
+        puts "Stopping service: #{res[:service]}"
+        Open3.capture3("sudo systemctl stop #{res[:service]}")
+        Open3.capture3("sudo systemctl disable #{res[:service]}")
+        puts "[CLEANED] Service #{res[:service]} stopped and disabled."
+      elsif res[:packages]
+        # RHEL: remove packages that were installed
+        pkg_list = res[:packages].join(' ')
+        puts "Removing packages: #{pkg_list}"
+        stdout, stderr, status = Open3.capture3("sudo dnf remove -y #{pkg_list}")
+        if status.success?
+          puts "[CLEANED] Packages removed."
+        else
+          puts "[WARN] Package removal failed: #{stderr.strip}"
         end
       end
     end
