@@ -161,9 +161,13 @@ args: "{ticket} --urls {pr_urls|join:,} --output {output}"
 
 If a list param is empty, the template segment resolves to an empty string (the flag is omitted entirely).
 
-## Reference Implementation: docs-workflow
+## Default Workflow Definition
 
-The existing docs-workflow expressed as YAML:
+When no `.claude/docs-orchestrator.yaml` exists in the user's repo, the orchestrator writes the following default on first run. This default mirrors the existing `docs-workflow` command pipeline — same stages, same order, same options — so that `docs-orchestrator` works out of the box with identical behavior.
+
+The user can then customize this file: reorder steps, remove stages they don't need, add team-specific stages, or change iteration/confirmation behavior.
+
+### Default YAML (written to `.claude/docs-orchestrator.yaml`)
 
 ```yaml
 workflow:
@@ -289,7 +293,7 @@ workflow:
       args: "{ticket} --project {create_jira_project} --plan {steps.planning.output}"
 ```
 
-### Design notes on the reference implementation
+### Design notes on the default workflow
 
 1. **Integration is two steps, not one.** The old monolith used a phase state machine inside a single stage. The YAML expresses this as two steps (`integrate-plan`, `integrate-execute`) with a `confirm` gate on the second. This is cleaner — no phase concept needed in the orchestrator.
 
@@ -307,9 +311,13 @@ workflow:
 plugins/docs-tools/skills/
   docs-orchestrator/
     docs-orchestrator.md                      # Generic orchestrator skill (~300 lines)
+    defaults/
+      docs-orchestrator.yaml                  # Default workflow definition (docs-workflow pipeline)
     scripts/
       workflow_state.py                       # State management (~150 lines)
 ```
+
+The `defaults/docs-orchestrator.yaml` file is the source of truth for the default workflow. On first run, if no `.claude/docs-orchestrator.yaml` exists in the user's repo, the orchestrator copies this file to `.claude/docs-orchestrator.yaml`.
 
 ### Step skills (from previous spec, unchanged)
 
@@ -385,6 +393,14 @@ When only one workflow YAML exists, the workflow name can be omitted.
 Search for YAML files:
   1. .claude/docs-orchestrator.yaml (single workflow)
   2. .claude/docs-orchestrator/<name>.yaml (named workflow)
+
+If NO YAML file exists:
+  Write the default workflow definition to .claude/docs-orchestrator.yaml.
+  The default is the docs-workflow reference implementation (see
+  "Default workflow definition" section below).
+  Inform the user: "No workflow definition found. Created default
+  docs-workflow definition at .claude/docs-orchestrator.yaml.
+  You can customize this file to change the workflow pipeline."
 
 If multiple workflows exist and no name was provided, list them and ask.
 Parse the YAML and validate against the schema.
