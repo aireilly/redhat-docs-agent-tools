@@ -68,7 +68,7 @@ Do not use old slash-command syntax (for example, `/jira-reader --issue PROJ-123
 | --- | --- | --- |
 | `python3 scripts/...` | Calling a co-located script from within the same skill | `scripts/git_pr_reader.py`, `scripts/callouts.rb` |
 | Path from repo root under `plugins/.../scripts/` | Cross-skill or cross-command script calls in Cursor | Same scripts as above, with full path from workspace root |
-| `Skill: plugin:skill` | Loading full skill knowledge — rules, checklists, domain expertise the model applies | `rh-ssg-formatting`, `ibm-sg-punctuation`, review skills |
+| `Skill: plugin:skill` | Loading full skill knowledge — rules, checklists, domain expertise the model applies | `docs-tools:rh-ssg-formatting`, `docs-tools:ibm-sg-punctuation` |
 
 ## Contributing rules
 

@@ -26,7 +26,7 @@
       "name": "dita-tools",
       "source": "./plugins/dita-tools",
       "description": "AsciiDoc cleanup, validation, and rewriting tools for DITA conversion preparation.",
-      "version": "0.0.9"
+      "version": "0.0.10"
     },
     {
       "name": "jtbd-tools",

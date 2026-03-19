@@ -1,13 +1,13 @@
 ---
 name: dita-validate-asciidoc
-description: Validate AsciiDoc files for DITA conversion readiness by running Vale linting with AsciiDocDITA rules. Reports warnings and errors in a markdown table format. Use this skill when asked to validate, check, or assess AsciiDoc files before DITA conversion.
+description: Validate AsciiDoc files for DITA conversion readiness by running Vale linting with AsciiDocDITA rules. Reports warnings and errors in a Markdown table format. Use this skill when asked to validate, check, or assess AsciiDoc files before DITA conversion.
 model: claude-haiku-4-5@20251001
 allowed-tools: Bash, Read, Glob
 ---
 
 # Validate AsciiDoc for DITA Conversion
 
-Validate AsciiDoc assemblies or modules for DITA conversion readiness by running Vale linting with AsciiDocDITA rules. Results are formatted as a markdown table with one issue per row.
+Validate AsciiDoc assemblies or modules for DITA conversion readiness by running Vale linting with AsciiDocDITA rules. Results are formatted as a Markdown table with one issue per row.
 
 ## Overview
 
@@ -56,9 +56,9 @@ Example output:
 /path/to/modules/ref-options.adoc:25:10:warning:AsciiDocDITA.EntityReference:Use Unicode instead of HTML entities
 ```
 
-## Formatting as markdown table
+## Formatting as Markdown table
 
-After running the script, format the output as a markdown table:
+After running the script, format the output as a Markdown table:
 
 | File | Line | Severity | Rule | Message |
 |------|------|----------|------|---------|
