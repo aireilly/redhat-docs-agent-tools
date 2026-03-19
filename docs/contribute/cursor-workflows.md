@@ -9,10 +9,10 @@ This page describes how to use and contribute to Red Hat Docs Agent Tools from *
 ## How Cursor fits this repository
 
 1. **Project instructions:** Cursor loads [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) at the repository root and rules under [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules). They mirror [CLAUDE.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/CLAUDE.md) conventions (skill naming, script paths, contributing rules).
-2. **Skills:** Skill files live at `plugins/<plugin>/skills/` as `SKILL.md` or flat `*.md`. They are plain Markdown. Point the agent at a path or ask it to apply a named skill using fully qualified names such as `docs-tools:jira-reader`.
-3. **Commands:** Claude Code exposes commands like `/hello-world:greet`. Cursor has no identical slash-command system. Treat command files under `plugins/<plugin>/commands/` as prompts or procedures: open the Markdown file and follow the **Implementation** and **Examples** sections, or paste the intended user request into the agent.
-4. **Agents:** Agent definitions under `plugins/<plugin>/agents/` are portable as Markdown personas; use them as system-style instructions or project rules when appropriate.
-5. **Installation:** There is no Cursor equivalent to `/plugin marketplace add`. Clone or add this repository as a workspace. All plugin sources are available on disk under `plugins/`.
+1. **Skills:** Skill files live at `plugins/<plugin>/skills/` as `SKILL.md` or flat `*.md`. They are plain Markdown. Point the agent at a path or ask it to apply a named skill using fully qualified names such as `docs-tools:jira-reader`.
+1. **Commands:** Claude Code exposes commands like `/hello-world:greet`. Cursor has no identical slash-command system. Treat command files under `plugins/<plugin>/commands/` as prompts or procedures: open the Markdown file and follow the **Implementation** and **Examples** sections, or paste the intended user request into the agent.
+1. **Agents:** Agent definitions under `plugins/<plugin>/agents/` are portable as Markdown personas; use them as system-style instructions or project rules when appropriate.
+1. **Installation:** There is no Cursor equivalent to `/plugin marketplace add`. Clone or add this repository as a workspace. All plugin sources are available on disk under `plugins/`.
 
 ## Contributing from Cursor
 
