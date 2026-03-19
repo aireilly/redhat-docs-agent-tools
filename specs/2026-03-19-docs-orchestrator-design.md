@@ -377,7 +377,6 @@ plugins/docs-tools/skills/
   docs-orchestrator/
     docs-workflow.yaml                        # Multiple workflows
     review-only.yaml
-    localization.yaml
 ```
 
 ### Existing files (unchanged)
@@ -660,7 +659,7 @@ complete-workflow --workflow <name> --identifier <id>
 - Pure Python, no `jq` dependency
 - Atomic writes (`tempfile` + `os.replace`)
 - `next-step` receives pre-resolved conditions as a JSON object so it can skip conditional steps without needing to parse YAML or resolve templates itself
-- The `--conditions` object format: `{"integrate-plan": true, "integrate-execute": true, "create-jira": false}` — the orchestrator resolves all condition templates and passes the boolean results
+- The `--conditions` object format: `{"integrate-plan": true, "integrate-execute": true, "create-jira": false}` — the orchestrator resolves all condition templates and passes the boolean results. Unconditional steps are omitted from the object (treated as always-true by `next-step`)
 - State files from the old `docs-workflow` command are not compatible — the orchestrator creates new state files with a different schema
 - `output_base` templates can only reference params (not step outputs), since it is resolved before any steps run
 - `next-step` treats both `completed` and `skipped` statuses as "done" — it advances past both
@@ -764,12 +763,12 @@ The orchestrator validates the YAML before execution:
 
 | Field | Required | Level |
 |---|---|---|
-| `workflow.name` | Yes | Workflow |
+| `workflow.name` | Yes (inferred from filename if omitted) | Workflow |
 | `workflow.description` | No | Workflow |
 | `workflow.steps` | Yes (non-empty) | Workflow |
-| `step.name` | Yes | Step |
+| `step.name` | Yes (inferred from skill name if omitted) | Step |
 | `step.skill` | Yes | Step |
-| `step.description` | Yes | Step |
+| `step.description` | Yes (inferred from skill frontmatter if omitted) | Step |
 | `step.args` | Yes | Step |
 
 ### Validation rules
