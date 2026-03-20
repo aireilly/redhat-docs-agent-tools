@@ -1,0 +1,69 @@
+#!/bin/bash
+# workflow-completion-check.sh
+#
+# Stop hook: blocks Claude from stopping while a workflow is still running.
+# Checks each progress file for incomplete steps.
+#
+# Exit codes:
+#   0 = allow stop
+#   2 = block stop (reason sent to stderr)
+#
+# Requires: jq
+
+INPUT=$(cat)
+
+if ! cd "${CLAUDE_PROJECT_DIR:-.}" 2>/dev/null; then
+  echo "Cannot access project directory; cannot verify workflow status." >&2
+  exit 2
+fi
+
+# If the hook already triggered a retry, allow stop to prevent loops
+STOP_HOOK_ACTIVE=$(echo "$INPUT" | jq -r '.stop_hook_active // false')
+if [ "$STOP_HOOK_ACTIVE" = "true" ]; then
+  exit 0
+fi
+
+# Look for progress files
+PROGRESS_FILES=$(ls .claude/docs/*/workflow/*.json 2>/dev/null)
+if [ -z "$PROGRESS_FILES" ]; then
+  exit 0
+fi
+
+for pfile in $PROGRESS_FILES; do
+  WORKFLOW_STATUS=$(jq -r '.status' "$pfile" 2>/dev/null)
+
+  # Skip workflows that aren't running
+  if [ "$WORKFLOW_STATUS" != "in_progress" ]; then
+    continue
+  fi
+
+  TICKET=$(jq -r '.ticket' "$pfile")
+  WORKFLOW_TYPE=$(jq -r '.workflow_type' "$pfile")
+
+  # Get step order from the progress file
+  mapfile -t STEP_ORDER < <(jq -r '.step_order[]' "$pfile" 2>/dev/null)
+
+  if [ ${#STEP_ORDER[@]} -eq 0 ]; then
+    # Fall back to alphabetical key order
+    mapfile -t STEP_ORDER < <(jq -r '.steps | keys[]' "$pfile" 2>/dev/null)
+  fi
+
+  # Find the first incomplete step
+  NEXT_STEP=""
+  for step in "${STEP_ORDER[@]}"; do
+    STEP_STATUS=$(jq -r ".steps[\"$step\"].status // \"missing\"" "$pfile")
+    case "$STEP_STATUS" in
+      completed|skipped) continue ;;
+      *) NEXT_STEP="$step"; break ;;
+    esac
+  done
+
+  if [ -n "$NEXT_STEP" ]; then
+    echo "Documentation workflow '$WORKFLOW_TYPE' for $TICKET is not complete. Next step: $NEXT_STEP. Continue the workflow." >&2
+    exit 2
+  fi
+
+  # All steps done — orchestrator will update the top-level status next
+done
+
+exit 0
