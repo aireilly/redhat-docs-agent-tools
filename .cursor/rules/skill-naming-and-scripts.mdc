@@ -1,0 +1,21 @@
+---
+description: Fully qualified skill names and script path conventions for plugins
+alwaysApply: true
+---
+
+# Skills and scripts
+
+## Skill references
+
+Always use fully qualified `plugin:skill` names (for example, `docs-tools:jira-reader`, `vale-tools:lint-with-vale`), not bare skill names.
+
+## Scripts
+
+- **Same skill:** use paths relative to the skill directory (`python3 scripts/foo.py`).
+- **Cross-skill calls in Cursor:** use paths from the repository root, for example `plugins/<plugin>/skills/<skill>/scripts/foo.py`.
+
+## Knowledge-only skills
+
+For checklist or knowledge-only skills with no script, use the `Skill: plugin:skill` convention with args as documented in `AGENTS.md`.
+
+Do not use legacy slash-only invocations that omit the plugin prefix.

@@ -1,0 +1,23 @@
+---
+description: Red Hat Docs Agent Tools — repository layout, docs commands, and contributing rules
+alwaysApply: true
+---
+
+# Project context
+
+This repository holds Claude Code-style plugins under `plugins/<name>/` with `.claude-plugin/plugin.json`, plus skills, commands, and agents as Markdown. Cursor users follow the same file layout; see `AGENTS.md` and `docs/contribute/cursor-workflows.md`.
+
+## Commands
+
+- `make update` — Regenerate plugin catalog and install docs under `docs/`
+- `make serve` — Zensical dev server
+- `make build` — Zensical site build
+
+## Contributing rules
+
+- Kebab-case for plugin and command names
+- Each plugin needs `.claude-plugin/plugin.json` (name, version, description); keep `.claude-plugin/marketplace.json` in sync when metadata changes
+- Bump `plugin.json` version when changing a plugin
+- Do not commit auto-generated `docs/plugins.md`, `docs/plugins/`, or `docs/install/` — run `make update` locally to preview
+- Reference `python3` and `python3 -m pip install`, not bare `pip install`
+- Temporary files go in `.work/` (gitignored)

@@ -65,7 +65,7 @@ Do NOT use old slash-command syntax (e.g., `/jira-reader --issue PROJ-123`).
 |---|---|---|
 | `python3 scripts/...` | Calling a co-located script from within the same skill | `scripts/git_pr_reader.py`, `scripts/callouts.rb` |
 | `python3 ${CLAUDE_PLUGIN_ROOT}/...` | Cross-skill/command script calls | `git_pr_reader.py info`, `jira_reader.py`, `callouts.rb` |
-| `Skill: plugin:skill` | Loading full skill knowledge — rules, checklists, domain expertise the LLM applies | `rh-ssg-formatting`, `ibm-sg-punctuation`, review skills |
+| `Skill: plugin:skill` | Loading full skill knowledge — rules, checklists, domain expertise the LLM applies | `docs-tools:rh-ssg-formatting`, `docs-tools:ibm-sg-punctuation` |
 
 ## Contributing rules
 
@@ -77,3 +77,7 @@ Do NOT use old slash-command syntax (e.g., `/jira-reader --issue PROJ-123`).
 - Use the hello-world plugin as a reference implementation
 - Use `.work/` directory for temporary files (gitignored)
 - When referencing Python in install steps or prerequisites, always refer to `python3`. Use `python3 -m pip install` instead of `pip install`
+
+## Cursor users
+
+For Cursor-specific instructions (including workspace-relative script paths), see [AGENTS.md](AGENTS.md) and [docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md).
