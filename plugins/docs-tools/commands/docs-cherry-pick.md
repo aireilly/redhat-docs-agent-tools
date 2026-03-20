@@ -71,7 +71,7 @@ Intelligently backport documentation changes from a PR or commit to one or more 
 ### Workflow Overview
 
 1. **Validate**: Check inputs and access
-2. **Audit**: Run `docs-branch-audit` to determine file applicability per branch
+2. **Audit**: Run `docs-tools:docs-branch-audit` to determine file applicability per branch
 3. **Deep audit** (if `--deep`): Content comparison and patch applicability check
 4. **Confirm**: Present the plan and ask for approval
 5. **Apply**: Create branch, cherry-pick, resolve conflicts
@@ -190,7 +190,7 @@ echo "Source PR stats: ${SOURCE_FILE_COUNT} files changed, +${SOURCE_INSERTIONS}
 
 #### Step 4: Run branch audit
 
-Use the `docs-branch-audit` skill to check file existence on each target branch:
+Use the `docs-tools:docs-branch-audit` skill to check file existence on each target branch:
 
 ```bash
 bash ${CLAUDE_PLUGIN_ROOT}/skills/docs-branch-audit/scripts/branch_audit.sh \
@@ -621,5 +621,5 @@ git checkout -
 
 ## Related
 
-- **docs-branch-audit skill**: The underlying file existence and content comparison check used by this command
-- **git-pr-reader skill**: PR/MR file listing and diff extraction used for source analysis
+- **docs-tools:docs-branch-audit**: The underlying file existence and content comparison check used by this command
+- **docs-tools:git-pr-reader**: PR/MR file listing and diff extraction used for source analysis
