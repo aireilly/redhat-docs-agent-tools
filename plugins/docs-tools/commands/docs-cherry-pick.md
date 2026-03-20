@@ -143,11 +143,17 @@ if [[ "$PR_MERGED" == "true" ]]; then
     # Merged PR — use the merge commit's parent (the actual PR commit)
     COMMIT_SHA=$(jq -r '.merge_commit_sha' /tmp/cherry-pick-pr-info.json)
 elif [[ "$PR_STATE" == "open" ]]; then
-    # Open (unmerged) PR — fetch the PR head ref
-    PR_NUMBER=$(echo "$SOURCE" | grep -oP '\d+$')
-    git fetch upstream "pull/${PR_NUMBER}/head:pr-${PR_NUMBER}"
-    COMMIT_SHA=$(git rev-parse "pr-${PR_NUMBER}")
-    echo "WARNING: PR is not merged. Using head commit: ${COMMIT_SHA}"
+    # Open (unmerged) PR/MR — fetch the head ref
+    if [[ "$PLATFORM" = "github" ]]; then
+        PR_NUMBER=$(echo "$SOURCE" | grep -oP '\d+$')
+        git fetch upstream "pull/${PR_NUMBER}/head:pr-${PR_NUMBER}"
+        COMMIT_SHA=$(git rev-parse "pr-${PR_NUMBER}")
+    elif [[ "$PLATFORM" = "gitlab" ]]; then
+        MR_NUMBER=$(echo "$SOURCE" | grep -oP '\d+$')
+        git fetch upstream "merge-requests/${MR_NUMBER}/head:mr-${MR_NUMBER}"
+        COMMIT_SHA=$(git rev-parse "mr-${MR_NUMBER}")
+    fi
+    echo "WARNING: PR/MR is not merged. Using head commit: ${COMMIT_SHA}"
 else
     # Closed without merging
     echo "ERROR: PR is closed without being merged. Cannot cherry-pick."
