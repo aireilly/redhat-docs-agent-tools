@@ -1,6 +1,6 @@
 [project]
 site_name = "Red Hat Docs Agent Tools"
-site_description = "Claude Code plugins, skills, agents, and commands for Red Hat documentation workflows"
+site_description = "Plugins, skills, agents, and commands for Red Hat documentation workflows (Claude Code and Cursor)"
 site_url = "https://redhat-documentation.github.io/redhat-docs-agent-tools/"
 repo_url = "https://github.com/redhat-documentation/redhat-docs-agent-tools"
 edit_uri = "edit/main/docs/"
@@ -24,6 +24,13 @@ nav = [
         {"Contributing" = "contribute/index.md"},
         {"Creating a new plugin" = "contribute/creating-a-new-plugin.md"},
         {"Evaluating skills" = "contribute/evaluating-skills.md"},
+        {"Contributing with Cursor" = "contribute/cursor-contributing-tools.md"},
+        {"Cursor workflows" = "contribute/cursor-workflows.md"},
+    ]},
+    {"Get Started with Cursor" = [
+        {"Overview" = "get-started/index.md"},
+        {"Cursor fundamentals" = "get-started/cursor-fundamentals.md"},
+        {"Using Cursor with your documentation" = "get-started/cursor-product-documentation.md"},
     ]},
 ]
 
@@ -79,5 +86,8 @@ pygments_lang_class = true
 [project.markdown_extensions.pymdownx.inlinehilite]
 [project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
 [project.markdown_extensions.admonition]
 [project.markdown_extensions.pymdownx.details]
