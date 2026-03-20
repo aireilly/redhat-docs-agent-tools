@@ -139,7 +139,6 @@ class ProcedureVerifier
     # Hierarchical step tracking: [major, sub, subsub]
     step_counters = [0, 0, 0]
     current_step_label = nil
-    current_step_depth = 0
 
     ifdef_depth = 0
 
@@ -177,7 +176,6 @@ class ProcedureVerifier
         end
 
         current_step_label = format_step_label(step_counters, depth)
-        current_step_depth = depth
         current_step_text = step_text
       end
 
@@ -375,6 +373,18 @@ class ProcedureVerifier
     content.include?('REPLACE')
   end
 
+  # Ensure a path stays within the working directory (prevents traversal attacks)
+  def safe_workdir_path(relative_path)
+    return nil if relative_path.start_with?('/') || relative_path.start_with?('~/')
+
+    dest = File.expand_path(relative_path, @workdir)
+    workdir_root = File.expand_path(@workdir) + File::SEPARATOR
+    return nil unless dest.start_with?(workdir_root)
+
+    FileUtils.mkdir_p(File.dirname(dest))
+    dest
+  end
+
   def validate_yaml(content, label, save_as = nil)
     begin
       # Lint the YAML for syntax errors
@@ -386,11 +396,10 @@ class ProcedureVerifier
       # Absolute paths (e.g., /etc/foo.conf from RHEL procedures) are validated
       # but not written — the script should not modify system files.
       if save_as
-        if save_as.start_with?('/') || save_as.start_with?('~/')
-          puts "[INFO] Absolute path #{save_as} — YAML validated but not written to filesystem."
+        dest = safe_workdir_path(save_as)
+        if dest.nil?
+          puts "[INFO] Path #{save_as} — YAML validated but not written to filesystem."
         else
-          dest = File.join(@workdir, save_as)
-          FileUtils.mkdir_p(File.dirname(dest))
           File.write(dest, content)
           puts "[INFO] Saved YAML to #{dest}"
         end
@@ -405,7 +414,7 @@ class ProcedureVerifier
           Tempfile.open(['resource', '.yaml']) do |f|
             f.write(content)
             f.close
-            stdout, stderr, status = Open3.capture3("#{@cli_tool} apply -f #{f.path} --dry-run=client")
+            _, stderr, status = Open3.capture3(@cli_tool, 'apply', '-f', f.path, '--dry-run=client')
             if status.success?
               puts "[VALID] Resource dry-run (#{@cli_tool}) passed for Step #{label}."
             elsif stderr.include?("Unable to connect") || stderr.include?("no such host") || stderr.include?("connection refused")
@@ -434,11 +443,10 @@ class ProcedureVerifier
       @results << { step: label, status: :passed, output: "JSON syntax valid" }
 
       if save_as
-        if save_as.start_with?('/') || save_as.start_with?('~/')
-          puts "[INFO] Absolute path #{save_as} — JSON validated but not written to filesystem."
+        dest = safe_workdir_path(save_as)
+        if dest.nil?
+          puts "[INFO] Path #{save_as} — JSON validated but not written to filesystem."
         else
-          dest = File.join(@workdir, save_as)
-          FileUtils.mkdir_p(File.dirname(dest))
           File.write(dest, content)
           puts "[INFO] Saved JSON to #{dest}"
         end
@@ -457,11 +465,10 @@ class ProcedureVerifier
     @results << { step: label, status: :passed, output: "Config content recorded" }
 
     if save_as
-      if save_as.start_with?('/') || save_as.start_with?('~/')
-        puts "[INFO] Absolute path #{save_as} — content validated but not written to filesystem."
+      dest = safe_workdir_path(save_as)
+      if dest.nil?
+        puts "[INFO] Path #{save_as} — content validated but not written to filesystem."
       else
-        dest = File.join(@workdir, save_as)
-        FileUtils.mkdir_p(File.dirname(dest))
         File.write(dest, content)
         puts "[INFO] Saved config to #{dest}"
       end
@@ -485,7 +492,7 @@ class ProcedureVerifier
       Tempfile.open(['step', '.rb']) do |f|
         f.write(content)
         f.close
-        stdout, stderr, status = Open3.capture3("ruby -c #{f.path}")
+        _, stderr, status = Open3.capture3('ruby', '-c', f.path)
         if status.success?
           puts "[VALID] Ruby syntax for Step #{label} is correct."
           @results << { step: label, status: :passed, output: "Ruby syntax valid" }
@@ -496,11 +503,12 @@ class ProcedureVerifier
       end
     end
 
-    if save_as && !(save_as.start_with?('/') || save_as.start_with?('~/'))
-      dest = File.join(@workdir, save_as)
-      FileUtils.mkdir_p(File.dirname(dest))
-      File.write(dest, content)
-      puts "[INFO] Saved script to #{dest}"
+    if save_as
+      dest = safe_workdir_path(save_as)
+      if dest
+        File.write(dest, content)
+        puts "[INFO] Saved script to #{dest}"
+      end
     end
   end
 
@@ -630,18 +638,18 @@ class ProcedureVerifier
       if res[:file]
         tool = res[:tool] || @cli_tool || 'oc'
         puts "Deleting resources from: #{res[:file]}"
-        stdout, stderr, status = Open3.capture3("#{tool} delete -f #{res[:file]} --ignore-not-found")
+        _, stderr, status = Open3.capture3(tool, 'delete', '-f', res[:file], '--ignore-not-found')
         if status.success?
-          puts "[CLEANED] #{stdout.strip}"
+          puts "[CLEANED] Deleted resources from #{res[:file]}"
         else
           puts "[WARN] Cleanup failed: #{stderr.strip}"
         end
       elsif res[:resource]
         tool = @cli_tool || 'oc'
         puts "Deleting: #{res[:resource]}"
-        stdout, stderr, status = Open3.capture3("#{tool} delete #{res[:resource]} --ignore-not-found")
+        _, stderr, status = Open3.capture3(tool, 'delete', res[:resource], '--ignore-not-found')
         if status.success?
-          puts "[CLEANED] #{stdout.strip}"
+          puts "[CLEANED] Deleted #{res[:resource]}"
         else
           puts "[WARN] Cleanup failed: #{stderr.strip}"
         end
@@ -660,7 +668,7 @@ class ProcedureVerifier
         pkg_manager = res[:pkg_manager] || 'dnf'
         pkg_list = res[:packages].join(' ')
         puts "Removing packages (#{pkg_manager}): #{pkg_list}"
-        stdout, stderr, status = Open3.capture3('sudo', pkg_manager, 'remove', '-y', *res[:packages])
+        _, stderr, status = Open3.capture3('sudo', pkg_manager, 'remove', '-y', *res[:packages])
         if status.success?
           puts "[CLEANED] Packages removed."
         else
