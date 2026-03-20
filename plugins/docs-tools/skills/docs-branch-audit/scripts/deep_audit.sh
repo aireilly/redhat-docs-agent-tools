@@ -90,10 +90,10 @@ while IFS= read -r filepath; do
         if [[ "$BRANCH_DIFF_LINES" -eq 0 ]]; then
             # Files are identical between branches — PR changes will apply cleanly
             ISSUES+=("files-identical: File is identical on both branches")
-        elif [[ "$BRANCH_DIFF_LINES" -gt 200 ]]; then
+        elif [[ "$BRANCH_DIFF_LINES" -gt 100 ]]; then
             CONFIDENCE="needs-review"
             ISSUES+=("large-divergence: ${BRANCH_DIFF_LINES} lines differ between branches")
-        elif [[ "$BRANCH_DIFF_LINES" -gt 50 ]]; then
+        elif [[ "$BRANCH_DIFF_LINES" -gt 20 ]]; then
             CONFIDENCE="medium"
             ISSUES+=("moderate-divergence: ${BRANCH_DIFF_LINES} lines differ between branches")
         else
