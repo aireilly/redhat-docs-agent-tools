@@ -257,7 +257,8 @@ class ProcedureVerifier
       parts << ('a'..'z').to_a[counters[1] - 1]
     end
     if depth >= 3 && counters[2] > 0
-      parts << ('i'..'xxvi').to_a[counters[2] - 1]
+      roman = %w[i ii iii iv v vi vii viii ix x xi xii xiii xiv xv xvi xvii xviii xix xx xxi xxii xxiii xxiv xxv xxvi]
+      parts << roman[counters[2] - 1]
     end
     parts.join('.')
   end
@@ -355,7 +356,7 @@ class ProcedureVerifier
     when 'bash'
       execute_bash(content, label, instruction)
     when 'json'
-      validate_json(content, label)
+      validate_json(content, label, block[:save_as])
     when 'config'
       validate_config(content, label, block[:save_as])
     when 'python', 'ruby'
@@ -388,7 +389,8 @@ class ProcedureVerifier
         if save_as.start_with?('/') || save_as.start_with?('~/')
           puts "[INFO] Absolute path #{save_as} — YAML validated but not written to filesystem."
         else
-          dest = File.join(@workdir, File.basename(save_as))
+          dest = File.join(@workdir, save_as)
+          FileUtils.mkdir_p(File.dirname(dest))
           File.write(dest, content)
           puts "[INFO] Saved YAML to #{dest}"
         end
@@ -425,11 +427,22 @@ class ProcedureVerifier
     end
   end
 
-  def validate_json(content, label)
+  def validate_json(content, label, save_as = nil)
     begin
       JSON.parse(content)
       puts "[VALID] JSON syntax for Step #{label} is correct."
       @results << { step: label, status: :passed, output: "JSON syntax valid" }
+
+      if save_as
+        if save_as.start_with?('/') || save_as.start_with?('~/')
+          puts "[INFO] Absolute path #{save_as} — JSON validated but not written to filesystem."
+        else
+          dest = File.join(@workdir, save_as)
+          FileUtils.mkdir_p(File.dirname(dest))
+          File.write(dest, content)
+          puts "[INFO] Saved JSON to #{dest}"
+        end
+      end
     rescue JSON::ParserError => e
       puts "[FAILURE] JSON Syntax error in Step #{label}: #{e.message}"
       @results << { step: label, status: :failed, error: e.message }
@@ -447,7 +460,8 @@ class ProcedureVerifier
       if save_as.start_with?('/') || save_as.start_with?('~/')
         puts "[INFO] Absolute path #{save_as} — content validated but not written to filesystem."
       else
-        dest = File.join(@workdir, File.basename(save_as))
+        dest = File.join(@workdir, save_as)
+        FileUtils.mkdir_p(File.dirname(dest))
         File.write(dest, content)
         puts "[INFO] Saved config to #{dest}"
       end
@@ -483,10 +497,39 @@ class ProcedureVerifier
     end
 
     if save_as && !(save_as.start_with?('/') || save_as.start_with?('~/'))
-      dest = File.join(@workdir, File.basename(save_as))
+      dest = File.join(@workdir, save_as)
+      FileUtils.mkdir_p(File.dirname(dest))
       File.write(dest, content)
       puts "[INFO] Saved script to #{dest}"
     end
+  end
+
+  def run_command_with_timeout(command, chdir:, timeout:)
+    stdout = +''
+    stderr = +''
+    status = nil
+
+    Open3.popen3(command, chdir: chdir) do |stdin, out, err, wait_thr|
+      stdin.close
+      out_reader = Thread.new { stdout << out.read }
+      err_reader = Thread.new { stderr << err.read }
+
+      begin
+        Timeout.timeout(timeout) { status = wait_thr.value }
+      rescue Timeout::Error
+        Process.kill('TERM', wait_thr.pid) rescue nil
+        Process.kill('KILL', wait_thr.pid) rescue nil
+        Process.wait(wait_thr.pid) rescue nil
+        raise
+      ensure
+        out.close unless out.closed?
+        err.close unless err.closed?
+        out_reader.join
+        err_reader.join
+      end
+    end
+
+    [stdout, stderr, status]
   end
 
   def execute_bash(command, label, instruction)
@@ -512,11 +555,11 @@ class ProcedureVerifier
 
     puts "Executing: #{clean_command[0..150]}#{clean_command.length > 150 ? '...' : ''}"
 
-    # Run commands in the working directory with a 120-second timeout
+    # Run commands in the working directory with a 120-second timeout.
+    # Uses popen3 with explicit TERM/KILL to ensure the child process
+    # is terminated on timeout (not just the Ruby caller).
     begin
-      stdout, stderr, status = Timeout.timeout(120) do
-        Open3.capture3(clean_command, chdir: @workdir)
-      end
+      stdout, stderr, status = run_command_with_timeout(clean_command, chdir: @workdir, timeout: 120)
     rescue Timeout::Error
       puts "[FAILURE] Step #{label} timed out after 120 seconds."
       @results << { step: label, status: :failed, error: "Command timed out after 120 seconds" }
@@ -567,14 +610,15 @@ class ProcedureVerifier
     end
 
     # RHEL: systemctl enable/start — track for disable/stop on cleanup
-    if command =~ /\bsystemctl\s+(enable|start|enable\s+--now)\s+(\S+)/
+    if command =~ /\bsystemctl\s+(enable\s+--now|enable|start)\s+(\S+)/
       @created_resources << { service: $2, action: $1 }
     end
 
     # RHEL: dnf/yum install — track for removal on cleanup
-    if command =~ /\b(?:dnf|yum)\s+install\s+(?:-y\s+)?(.+)/
-      packages = $1.strip.split(/\s+/).reject { |p| p.start_with?('-') }
-      @created_resources << { packages: packages } unless packages.empty?
+    if command =~ /\b(dnf|yum)\s+install\s+(?:-y\s+)?(.+)/
+      pkg_manager = $1
+      packages = $2.strip.split(/\s+/).reject { |p| p.start_with?('-') }
+      @created_resources << { packages: packages, pkg_manager: pkg_manager } unless packages.empty?
     end
   end
 
@@ -604,14 +648,19 @@ class ProcedureVerifier
       elsif res[:service]
         # RHEL: stop and disable services that were started/enabled
         puts "Stopping service: #{res[:service]}"
-        Open3.capture3("sudo systemctl stop #{res[:service]}")
-        Open3.capture3("sudo systemctl disable #{res[:service]}")
-        puts "[CLEANED] Service #{res[:service]} stopped and disabled."
+        _, stop_stderr, stop_status = Open3.capture3('sudo', 'systemctl', 'stop', res[:service].to_s)
+        _, disable_stderr, disable_status = Open3.capture3('sudo', 'systemctl', 'disable', res[:service].to_s)
+        if stop_status.success? && disable_status.success?
+          puts "[CLEANED] Service #{res[:service]} stopped and disabled."
+        else
+          puts "[WARN] Service cleanup failed: #{[stop_stderr, disable_stderr].reject(&:empty?).join(' | ')}"
+        end
       elsif res[:packages]
-        # RHEL: remove packages that were installed
+        # RHEL: remove packages using the same package manager that installed them
+        pkg_manager = res[:pkg_manager] || 'dnf'
         pkg_list = res[:packages].join(' ')
-        puts "Removing packages: #{pkg_list}"
-        stdout, stderr, status = Open3.capture3("sudo dnf remove -y #{pkg_list}")
+        puts "Removing packages (#{pkg_manager}): #{pkg_list}"
+        stdout, stderr, status = Open3.capture3('sudo', pkg_manager, 'remove', '-y', *res[:packages])
         if status.success?
           puts "[CLEANED] Packages removed."
         else

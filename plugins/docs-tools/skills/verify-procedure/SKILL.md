@@ -26,8 +26,8 @@ At invocation, the skill runs a connectivity check (e.g., `oc whoami`). If the c
 1. **Parse**: Read the `.adoc` file and extract all source blocks (`[source,terminal]`, `[source,bash]`, `[source,yaml]`, `[source,json]`, `[source,ini]`, `[source,toml]`, `[source,text]`, `[source,python]`, `[source,ruby]`), associating each with its numbered step.
 2. **Execute**: Run the `verify_proc.rb` script against the file:
    ```bash
-   ruby <skill_dir>/scripts/verify_proc.rb <file.adoc>
-   ruby <skill_dir>/scripts/verify_proc.rb --cleanup <file.adoc>
+   ruby scripts/verify_proc.rb <file.adoc>
+   ruby scripts/verify_proc.rb --cleanup <file.adoc>
    ```
 3. **Report**: Present the script output and flag any additional observations.
 
@@ -53,7 +53,7 @@ Creates a temporary working directory (`/tmp/verify-proc-*`) for each run. All Y
 
 Detects steps that instruct the user to save content to a file. The step text doesn't need to contain the word "YAML" — any backtick-quoted or bare filename with a recognized extension is matched. Real-world phrasing varies widely across Red Hat docs:
 
-```
+```text
 OCP examples:
 .. Save the following YAML in the `foo.yaml` file:
 .. Create a file named load-sctp-module.yaml that contains...
@@ -69,7 +69,7 @@ RHEL examples:
 
 Steps without a filename are not matched (no false positives):
 
-```
+```text
 .. Apply the following YAML for a specific backing store:
 .. Create a config map in the Velero namespace...
 .. Use the following example YAML file to create the deployment:
@@ -163,7 +163,7 @@ Without `--cleanup`, the working directory and resources are retained so the use
 
 The script produces structured terminal output:
 
-```
+```text
 --- Starting Procedure Validation: <file.adoc> ---
 [INFO] Working directory: /tmp/verify-proc-abc123
 
