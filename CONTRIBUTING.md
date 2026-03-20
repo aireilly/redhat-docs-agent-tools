@@ -4,6 +4,25 @@ This repository is a collection of plugins, skills, agents, and commands for Red
 
 This guide helps you contribute effectively and helps maintainers review efficiently.
 
+## Cursor users
+
+This repository includes Cursor-oriented project instructions and rules so you can follow the same conventions as Claude Code contributors:
+
+- **[AGENTS.md](AGENTS.md)** — Cursor counterpart to [CLAUDE.md](CLAUDE.md): skill naming, script paths from the workspace root, and contributing rules
+- **[docs/get-started/index.md](docs/get-started/index.md)** — Get Started with Cursor (section overview and entry point for Cursor guides).
+- **[docs/get-started/cursor-fundamentals.md](docs/get-started/cursor-fundamentals.md)** — Agent panel, AGENTS.md, `plugin:skill` names, shared terminology.
+- **[docs/get-started/cursor-product-documentation.md](docs/get-started/cursor-product-documentation.md)** — Use skills while editing product docs in another repository.
+- **[docs/contribute/cursor-contributing-tools.md](docs/contribute/cursor-contributing-tools.md)** — Contribute inside the Tools repository with Cursor.
+- **[docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md)** — How skills, commands, agents, and evals map (or do not map) to Cursor; how to test and submit changes
+
+### Script paths
+
+Documentation for Claude Code often uses `${CLAUDE_PLUGIN_ROOT}` for scripts in other skills. In Cursor, use paths relative to the repository root (for example, `plugins/<plugin>/skills/<skill>/scripts/...`). See AGENTS.md for examples.
+
+### Evals
+
+The eval runner described in [Evaluating skills](docs/contribute/evaluating-skills.md) is a Claude Code tool. If you use Cursor, keep `evals/evals.json` accurate and explain in your pull request how reviewers can verify behavior manually.
+
 ## Before you contribute
 
 ### Check for existing capabilities
@@ -14,7 +33,9 @@ Before creating something new, search the existing plugins to see if your use ca
 2. Read the README, commands, skills, and agents in each plugin under `plugins/`.
 3. Search for keywords related to your capability using `grep -r "your-keyword" plugins/`.
 
-**If similar functionality already exists, contribute to the existing plugin rather than creating a new one.** For example:
+#### If similar functionality already exists
+
+Contribute to the existing plugin rather than creating a new one. For example:
 
 - A new AsciiDoc linting rule belongs in `vale-tools`, not in a new plugin.
 - A new documentation review checklist belongs in `docs-tools`, not in a new plugin.
@@ -25,7 +46,7 @@ Duplicate capabilities fragment the user experience and increase the maintenance
 ### Decide what type of contribution to make
 
 | Type | When to use | Location |
-|------|-------------|----------|
+| --- | --- | --- |
 | **Skill** | Reusable knowledge, checklists, style rules, or domain expertise that the agent applies automatically | `plugins/<plugin>/skills/<skill-name>/SKILL.md` |
 | **Command** | A user-invokable action triggered with `/plugin-name:command` | `plugins/<plugin>/commands/<command>.md` |
 | **Agent** | A specialized agent persona with a defined role and workflow | `plugins/<plugin>/agents/<agent>.md` |
@@ -100,7 +121,7 @@ If you can run evals, test your skill or command using the eval runner described
 
 ## Plugin structure
 
-```
+```text
 plugins/<plugin-name>/
 ├── .claude-plugin/
 │   └── plugin.json          # Required: name, version, description, author
