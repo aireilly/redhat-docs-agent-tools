@@ -299,7 +299,7 @@ If `--dry-run` is set, display the audit results (and deep audit if `--deep`) an
 
 Otherwise, present the plan to the user using `AskUserQuestion`:
 
-```
+```text
 Cherry-pick plan for <source> → <target-branch>:
 
 Include (<N> files):
@@ -381,7 +381,7 @@ For each conflicted file, use Claude to resolve the conflict intelligently:
 
 **Conflict resolution with subagents** — spawn one `Agent` per conflicted file:
 
-```
+```text
 Agent(subagent_type="general-purpose", description="resolve conflict in <file>",
   prompt="You are resolving a git cherry-pick conflict for a documentation backport.
 
@@ -448,7 +448,7 @@ git add ${CONFLICTED_FILES}
 
 If any conflicts were flagged with `// REVIEW:` comments, present them to the user via `AskUserQuestion`:
 
-```
+```text
 The following conflicts could not be resolved automatically:
 
 File: modules/nw-ptp-installing-operator-web-console.adoc
@@ -512,7 +512,7 @@ DEL_DIFF=$((SOURCE_DELETIONS - BACKPORT_DELETIONS))
 
 Display the comparison:
 
-```
+```text
 Stats comparison (source PR vs backport):
   Original PR:  <SOURCE_FILE_COUNT> files changed, +<SOURCE_INSERTIONS> -<SOURCE_DELETIONS>
   Backport:     <BACKPORT_FILE_COUNT> files changed, +<BACKPORT_INSERTIONS> -<BACKPORT_DELETIONS>
@@ -523,7 +523,7 @@ Reason for difference: <EXCLUDE_COUNT> file(s) excluded (not present on <TARGET_
 
 If the difference in files does not equal the number of excluded files, or line deltas diverge beyond what exclusions explain, flag this for user attention:
 
-```
+```text
 ⚠️  Stats divergence exceeds excluded files — review the backport for unintended changes.
 ```
 
@@ -603,7 +603,7 @@ Backport of <source-pr-link> to <target-branch>.
 
 Write the file and inform the user:
 
-```
+```text
 Branch pushed: <branch-name>
 
 PR description written to /tmp/cherry-pick-pr-description.md
