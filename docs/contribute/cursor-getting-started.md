@@ -33,11 +33,11 @@ The following terms appear often in Cursor and in the repository documentation.
 
 ## What Cursor is
 
-Cursor is a code editor based on VS Code with integrated AI assistance. If you know VS Code, you will already feel comfortable in the Cursor UI. If you have never used VS Code, treat Cursor like any desktop editor with a file tree on the side, tabs for open files, and a **Terminal** menu for a built-in shell. Use **File** → **Open Folder** (or your operating system equivalent) to open the clone folder `redhat-docs-agent-tools/`. The **Agent** side panel is separate from the file tree; open it when you want AI help.
+Cursor is a code editor based on VS Code with integrated AI assistance. If you know VS Code, you will already feel comfortable in the Cursor UI. If you have never used VS Code, treat Cursor like any desktop editor with a file tree on the side, tabs for open files, and a **Terminal** menu for a built-in shell. Use **File** > **Open Folder** (or your operating system equivalent) to open the cloned repo folder `redhat-docs-agent-tools/`. The **Agent** side panel on the right is separate from the file tree; open it when you want AI help.
 
-Using Cursor, you can select different modes (`Ask`, `Debug`, `Plan`, `Agent`) and also choose the model you want to use to provide assistance (including different `claude` and `gpt` models).
+No matter what repository you're working in, using Cursor, you can select different modes (`Ask`, `Debug`, `Plan`, `Agent`) depending on what goals you are trying to achieve. You can also choose the model you want to use to provide assistance (including different `claude` and `gpt` models).
 
-In the Red Hat Docs Agent Tools repository, you use Cursor to read and edit skills, commands, and agents under `plugins/`. These items are formatted as plain Markdown. You can also preview the Red Hat Docs Agent Tools documentation site locally with `make serve`.
+In the Red Hat Docs Agent Tools repo, you use Cursor to read and edit skills, commands, and agents under `plugins/`. These items are formatted as plain Markdown. You can also preview the Red Hat Docs Agent Tools documentation site locally with `make serve`.
 
 The Red Hat Docs Agent Tools repository also includes [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) and [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules), which enables the Cursor assistant to follow the same conventions as [CLAUDE.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/CLAUDE.md) for collaborators who use Claude Code elsewhere.
 
@@ -58,6 +58,36 @@ Note that no Claude Code marketplace equivalent exists inside Cursor. You work w
 ## Skills and fully qualified names
 
 Always reference **skills** with the fully qualified form `plugin:skill` (for example, `docs-tools:jira-reader`, not `jira-reader` alone). The same rule applies in agent instructions, cross-references, and inline text. See [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) for the full convention and examples.
+
+## Example: use a skill in a documentation repository
+
+Your **product documentation** usually lives in a different Git repository from Red Hat Docs Agent Tools. Skills are Markdown files under `plugins/<plugin>/skills/` in the Red Hat Docs Agent Tools clone. In Cursor you **do not** install skills into the docs repo; you **load** the skill files and project rules into the assistant while you work on your AsciiDoc, Markdown, or other doc sources.
+
+**Recommended layout: multi-root workspace**
+
+1. Clone [redhat-docs-agent-tools](https://github.com/redhat-documentation/redhat-docs-agent-tools) so the skill sources from the Tools repo exist on your local filesystem.
+1. In Cursor, open your documentation repository as the first folder, then use **File** > **Add Folder to Workspace** and add the `redhat-docs-agent-tools` clone. Both trees appear in the sidebar so **`@`** can attach files from either repo.
+1. Open the file you want to edit (from **your** docs repo).
+1. In **Agent** mode, attach **`AGENTS.md`** from the Tools repository root, then attach the **`SKILL.md`** for the skill you want (for example `plugins/docs-tools/skills/rh-ssg-formatting/SKILL.md`). Attach your topic file if it is not already in context.
+1. Send a prompt that names the fully qualified skill and the path to **your** file (relative to **your** docs repo root). See the example below.
+
+Browse available skills in the [Cursor skill index](../cursor-skills-index.md) or under `plugins/` in the clone.
+
+**Example prompt (AsciiDoc or Markdown topic)**
+
+Use a pattern such as the following; replace paths and the skill with your actual file names and `plugin:skill` name:
+
+```text
+Context loaded: @AGENTS.md, @plugins/docs-tools/skills/rh-ssg-formatting/SKILL.md,
+and my topic at modules/install/overview.adoc (path in the docs repo).
+
+Task: Apply docs-tools:rh-ssg-formatting to modules/install/overview.adoc only.
+List concrete issues first, then propose minimal edits. Do not change other modules.
+```
+
+If your documentation uses a different structure, keep the same idea: **load the skill and AGENTS.md from the plugin folder**, **point at one or more paths in your docs repo**, and **name the skill** as `plugin:skill` in the prompt.
+
+**Privacy:** Follow your team rules for putting product or customer content in the assistant. If policy limits what may leave your network, use offline or approved workflows; see [Privacy and responsibility](#privacy-and-responsibility).
 
 ## Privacy and responsibility
 
