@@ -174,6 +174,8 @@ for branch in "${BRANCH_ARRAY[@]}"; do
 
     INCLUDE_FILES=()
     EXCLUDE_FILES=()
+    unset RENAMED_MAP 2>/dev/null || true
+    declare -A RENAMED_MAP  # source_path → target_path for fuzzy matches
 
     # Determine the ref to check against
     REF=""
@@ -186,6 +188,10 @@ for branch in "${BRANCH_ARRAY[@]}"; do
         continue
     fi
 
+    # Build target branch file index for fuzzy matching (one-time per branch)
+    TARGET_FILE_INDEX=$(mktemp /tmp/branch-audit-index.XXXXXX)
+    git ls-tree -r --name-only "$REF" | grep '\.adoc$' > "$TARGET_FILE_INDEX"
+
     while IFS= read -r filepath; do
         [[ -z "$filepath" ]] && continue
         filepath=$(echo "$filepath" | xargs)  # trim whitespace
@@ -193,12 +199,49 @@ for branch in "${BRANCH_ARRAY[@]}"; do
         if git cat-file -e "${REF}:${filepath}" 2>/dev/null; then
             INCLUDE_FILES+=("$filepath")
         else
-            EXCLUDE_FILES+=("$filepath")
+            # Fuzzy filename search: look for similar basenames on target branch
+            BASENAME=$(basename "$filepath")
+            DIRPATH=$(dirname "$filepath")
+            FUZZY_MATCH=$(python3 -c "
+import difflib, sys
+basename = sys.argv[1]
+candidates = []
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    candidates.append(line)
+# Build basename-to-fullpath map
+base_map = {}
+for c in candidates:
+    b = c.rsplit('/', 1)[-1]
+    base_map.setdefault(b, []).append(c)
+# Find close basename matches (cutoff 0.85 catches single-char typos)
+close = difflib.get_close_matches(basename, list(base_map.keys()), n=1, cutoff=0.85)
+if close:
+    # Prefer match in same directory, fall back to first match
+    paths = base_map[close[0]]
+    same_dir = [p for p in paths if p.startswith(sys.argv[2] + '/')]
+    print(same_dir[0] if same_dir else paths[0])
+" "$BASENAME" "$DIRPATH" < "$TARGET_FILE_INDEX" 2>/dev/null || true)
+
+            if [[ -n "$FUZZY_MATCH" ]]; then
+                INCLUDE_FILES+=("$filepath")
+                RENAMED_MAP["$filepath"]="$FUZZY_MATCH"
+                echo "  FUZZY MATCH: $filepath → $FUZZY_MATCH on $branch" >&2
+            else
+                EXCLUDE_FILES+=("$filepath")
+            fi
         fi
     done < "$CANDIDATE_FILES"
 
+    rm -f "$TARGET_FILE_INDEX"
+
     INCLUDE_COUNT=${#INCLUDE_FILES[@]}
     EXCLUDE_COUNT=${#EXCLUDE_FILES[@]}
+    # Safe count for associative array under set -u
+    RENAMED_COUNT=0
+    for _ in "${!RENAMED_MAP[@]}"; do RENAMED_COUNT=$((RENAMED_COUNT + 1)); done 2>/dev/null || true
 
     if [[ "$JSON_OUTPUT" = true ]]; then
         # JSON output
@@ -206,6 +249,7 @@ for branch in "${BRANCH_ARRAY[@]}"; do
         echo "    \"$branch\": {"
         echo "      \"include_count\": $INCLUDE_COUNT,"
         echo "      \"exclude_count\": $EXCLUDE_COUNT,"
+        echo "      \"renamed_count\": $RENAMED_COUNT,"
         echo -n "      \"include\": ["
         for i in "${!INCLUDE_FILES[@]}"; do
             [[ $i -gt 0 ]] && echo -n ", "
@@ -217,7 +261,17 @@ for branch in "${BRANCH_ARRAY[@]}"; do
             [[ $i -gt 0 ]] && echo -n ", "
             echo -n "\"${EXCLUDE_FILES[$i]}\""
         done
-        echo "]"
+        echo "],"
+        echo -n "      \"renamed\": {"
+        if [[ $RENAMED_COUNT -gt 0 ]]; then
+            RENAME_IDX=0
+            for src in "${!RENAMED_MAP[@]}"; do
+                [[ $RENAME_IDX -gt 0 ]] && echo -n ", "
+                echo -n "\"$src\": \"${RENAMED_MAP[$src]}\""
+                RENAME_IDX=$((RENAME_IDX + 1))
+            done
+        fi
+        echo "}"
         echo -n "    }"
     else
         # Text output
@@ -225,9 +279,20 @@ for branch in "${BRANCH_ARRAY[@]}"; do
         echo ""
         echo "Include ($INCLUDE_COUNT files):"
         for f in "${INCLUDE_FILES[@]}"; do
-            echo "  $f"
+            if [[ -n "${RENAMED_MAP[$f]:-}" ]]; then
+                echo "  $f  →  ${RENAMED_MAP[$f]} (renamed)"
+            else
+                echo "  $f"
+            fi
         done
         echo ""
+        if [[ $RENAMED_COUNT -gt 0 ]]; then
+            echo "Renamed ($RENAMED_COUNT files — fuzzy matched to different filename on branch):"
+            for src in "${!RENAMED_MAP[@]}"; do
+                echo "  $src  →  ${RENAMED_MAP[$src]}"
+            done
+            echo ""
+        fi
         if [[ $EXCLUDE_COUNT -gt 0 ]]; then
             echo "Exclude ($EXCLUDE_COUNT files — not on branch):"
             for f in "${EXCLUDE_FILES[@]}"; do
@@ -237,7 +302,7 @@ for branch in "${BRANCH_ARRAY[@]}"; do
             echo "Exclude: none (all files exist on this branch)"
         fi
         echo ""
-        echo "Summary: $INCLUDE_COUNT/$TOTAL_FILES files applicable to $branch"
+        echo "Summary: $INCLUDE_COUNT/$TOTAL_FILES files applicable to $branch ($RENAMED_COUNT renamed)"
         echo ""
     fi
 done
@@ -278,15 +343,45 @@ if [[ "$DEEP" = true && "$DRY_RUN" = false ]]; then
 
             [[ -z "$TARGET_REF" ]] && continue
 
-            # Build included files list for this branch
+            # Build included files list for this branch (with fuzzy matching)
             INCLUDE_LIST=$(mktemp /tmp/deep-audit-include.XXXXXX)
+            TARGET_FILE_INDEX_DEEP=$(mktemp /tmp/branch-audit-index-deep.XXXXXX)
+            git ls-tree -r --name-only "$TARGET_REF" | grep '\.adoc$' > "$TARGET_FILE_INDEX_DEEP"
             while IFS= read -r filepath; do
                 [[ -z "$filepath" ]] && continue
                 filepath=$(echo "$filepath" | xargs)
                 if git cat-file -e "${TARGET_REF}:${filepath}" 2>/dev/null; then
                     echo "$filepath" >> "$INCLUDE_LIST"
+                else
+                    # Fuzzy match for deep audit
+                    BASENAME_DEEP=$(basename "$filepath")
+                    DIRPATH_DEEP=$(dirname "$filepath")
+                    FUZZY_DEEP=$(python3 -c "
+import difflib, sys
+basename = sys.argv[1]
+candidates = []
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    candidates.append(line)
+base_map = {}
+for c in candidates:
+    b = c.rsplit('/', 1)[-1]
+    base_map.setdefault(b, []).append(c)
+close = difflib.get_close_matches(basename, list(base_map.keys()), n=1, cutoff=0.85)
+if close:
+    paths = base_map[close[0]]
+    same_dir = [p for p in paths if p.startswith(sys.argv[2] + '/')]
+    print(same_dir[0] if same_dir else paths[0])
+" "$BASENAME_DEEP" "$DIRPATH_DEEP" < "$TARGET_FILE_INDEX_DEEP" 2>/dev/null || true)
+                    if [[ -n "$FUZZY_DEEP" ]]; then
+                        # Write as source→target for deep audit to handle path mapping
+                        echo "${filepath}→${FUZZY_DEEP}" >> "$INCLUDE_LIST"
+                    fi
                 fi
             done < "$CANDIDATE_FILES"
+            rm -f "$TARGET_FILE_INDEX_DEEP"
 
             echo ""
             bash "${SCRIPT_DIR}/deep_audit.sh" \
