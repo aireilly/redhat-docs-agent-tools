@@ -9,6 +9,7 @@ This guide helps you contribute effectively and helps maintainers review efficie
 This repository includes Cursor-oriented project instructions and rules so you can follow the same conventions as Claude Code contributors:
 
 - **[AGENTS.md](AGENTS.md)** — Cursor counterpart to [CLAUDE.md](CLAUDE.md): skill naming, script paths from the workspace root, and contributing rules
+- **[docs/contribute/cursor-getting-started.md](docs/contribute/cursor-getting-started.md)** — Concepts and first steps (workspace root, AGENTS.md, trying a skill or command file)
 - **[docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md)** — How skills, commands, agents, and evals map (or do not map) to Cursor; how to test and submit changes
 
 **Script paths:** Documentation for Claude Code often uses `${CLAUDE_PLUGIN_ROOT}` for scripts in other skills. In Cursor, use paths relative to the repository root (for example, `plugins/<plugin>/skills/<skill>/scripts/...`). See AGENTS.md for examples.

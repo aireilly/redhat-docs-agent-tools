@@ -24,6 +24,7 @@ nav = [
         {"Contributing" = "contribute/index.md"},
         {"Creating a new plugin" = "contribute/creating-a-new-plugin.md"},
         {"Evaluating skills" = "contribute/evaluating-skills.md"},
+        {"Getting started with Cursor" = "contribute/cursor-getting-started.md"},
         {"Cursor workflows" = "contribute/cursor-workflows.md"},
     ]},
 ]
@@ -80,5 +81,8 @@ pygments_lang_class = true
 [project.markdown_extensions.pymdownx.inlinehilite]
 [project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
 [project.markdown_extensions.admonition]
 [project.markdown_extensions.pymdownx.details]

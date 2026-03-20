@@ -4,6 +4,8 @@ icon: lucide/monitor
 
 # Cursor workflows
 
+If you are new to Cursor or to agent-style workflows in the editor, read [Getting started with Cursor](cursor-getting-started.md) first.
+
 This page describes how to use and contribute to Red Hat Docs Agent Tools from **Cursor**. The plugin format and marketplace in this repository target **Claude Code**; Cursor does not implement the same marketplace or slash-command surface. You can still author and review the same Markdown skills, commands, agents, and reference material when you work in this repository.
 
 ## How Cursor fits this repository
@@ -11,7 +13,7 @@ This page describes how to use and contribute to Red Hat Docs Agent Tools from *
 1. **Project instructions:** Cursor loads [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) at the repository root and rules under [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules). They mirror [CLAUDE.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/CLAUDE.md) conventions (skill naming, script paths, contributing rules).
 1. **Skills:** Skill files live at `plugins/<plugin>/skills/` as `SKILL.md` or flat `*.md`. They are plain Markdown. Point the agent at a path or ask it to apply a named skill using fully qualified names such as `docs-tools:jira-reader`.
 1. **Commands:** Claude Code exposes commands like `/hello-world:greet`. Cursor has no identical slash-command system. Treat command files under `plugins/<plugin>/commands/` as prompts or procedures: open the Markdown file and follow the **Implementation** and **Examples** sections, or paste the intended user request into the agent.
-1. **Agents:** Agent definitions under `plugins/<plugin>/agents/` are portable as Markdown personas; use them as system-style instructions or project rules when appropriate.
+1. **Agents:** Agent definitions under `plugins/<plugin>/agents/` are portable as Markdown personas; use them as system-style instructions or project rules when appropriate. For procedural steps (layering AGENTS.md, skills, commands, and agents in Agent mode), see [Invoke a more complex workflow](cursor-getting-started.md#invoke-a-more-complex-workflow) on the getting-started page.
 1. **Installation:** There is no Cursor equivalent to `/plugin marketplace add`. Clone or add this repository as a workspace. All plugin sources are available on disk under `plugins/`.
 
 ## Contributing from Cursor
