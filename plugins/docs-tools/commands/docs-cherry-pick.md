@@ -4,16 +4,24 @@ argument-hint: <pr-url|--commit sha> --target <branch> [--dry-run]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, AskUserQuestion, Agent
 ---
 
-# Cherry-Pick Backport Workflow
+## Name
+
+docs-tools:docs-cherry-pick
+
+## Synopsis
+
+`/docs-tools:docs-cherry-pick <pr-url|--commit sha> --target <branch1[,branch2,...]> [--dry-run] [--deep] [--no-push] [--ticket <id>]`
+
+## Description
 
 Intelligently backport documentation changes from a PR or commit to one or more enterprise branches. Automatically identifies which files exist on each target branch and creates clean, targeted backport PRs that exclude modules not present on that release.
 
-## Required Arguments
+### Required Arguments
 
 - **source**: A GitHub PR URL, GitLab MR URL, or `--commit <sha>`
 - **--target**: Target enterprise branch(es), comma-separated (e.g., `enterprise-4.17` or `enterprise-4.17,enterprise-4.16`)
 
-## Options
+### Options
 
 | Option | Description |
 |--------|-------------|
@@ -26,7 +34,41 @@ Intelligently backport documentation changes from a PR or commit to one or more 
 
 **IMPORTANT**: This command requires a source and `--target`. If either is missing, stop and ask the user to provide them.
 
-## Workflow Overview
+### Usage Examples
+
+```bash
+# Backport a PR to enterprise-4.17
+/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
+  --target enterprise-4.17
+
+# Backport to multiple branches
+/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
+  --target enterprise-4.17,enterprise-4.16
+
+# Audit only (no changes)
+/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
+  --target enterprise-4.17,enterprise-4.16 --dry-run
+
+# Deep audit — check patch applicability and flag version-specific content
+/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
+  --target enterprise-4.17 --dry-run --deep
+
+# Backport with deep analysis and intelligent conflict resolution
+/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
+  --target enterprise-4.17 --deep
+
+# Backport from a specific commit
+/docs-tools:docs-cherry-pick --commit abc123def \
+  --target enterprise-4.17 --ticket TELCODOCS-2647
+
+# Local only (don't push)
+/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
+  --target enterprise-4.17 --no-push
+```
+
+## Implementation
+
+### Workflow Overview
 
 1. **Validate**: Check inputs and access
 2. **Audit**: Run `docs-branch-audit` to determine file applicability per branch
@@ -38,9 +80,9 @@ Intelligently backport documentation changes from a PR or commit to one or more 
 
 ---
 
-## Phase 1: Validate Inputs
+### Phase 1: Validate Inputs
 
-### Step 1: Parse arguments
+#### Step 1: Parse arguments
 
 ```bash
 # Check for required arguments
@@ -59,7 +101,7 @@ elif echo "$SOURCE" | grep -q "gitlab"; then
 fi
 ```
 
-### Step 2: Verify access
+#### Step 2: Verify access
 
 ```bash
 # For PR source: verify token
@@ -73,7 +115,7 @@ fi
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "ERROR: Not in a git repo"; exit 1; }
 ```
 
-### Step 3: Extract source information
+#### Step 3: Extract source information
 
 ```bash
 # Get PR info
@@ -88,7 +130,7 @@ fi
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py files "$SOURCE" > /tmp/cherry-pick-source-files.txt
 ```
 
-### Step 3a: Resolve commit SHA for cherry-pick
+#### Step 3a: Resolve commit SHA for cherry-pick
 
 The cherry-pick requires a commit SHA. How to obtain it depends on the PR state:
 
@@ -122,7 +164,7 @@ if ! git cat-file -e "$COMMIT_SHA" 2>/dev/null; then
 fi
 ```
 
-### Step 3b: Capture source PR stats
+#### Step 3b: Capture source PR stats
 
 Collect the file count and line delta from the source PR for later comparison:
 
@@ -144,9 +186,9 @@ echo "Source PR stats: ${SOURCE_FILE_COUNT} files changed, +${SOURCE_INSERTIONS}
 
 ---
 
-## Phase 2: Branch Audit
+### Phase 2: Branch Audit
 
-### Step 4: Run branch audit
+#### Step 4: Run branch audit
 
 Use the `docs-branch-audit` skill to check file existence on each target branch:
 
@@ -174,7 +216,7 @@ bash ${CLAUDE_PLUGIN_ROOT}/skills/docs-branch-audit/scripts/branch_audit.sh \
   --branches "$TARGET_BRANCHES"
 ```
 
-### Step 5: Analyze assembly paths
+#### Step 5: Analyze assembly paths
 
 Assemblies may have different paths on different branches. The openshift-docs repo has reorganized directory structures across releases (e.g., `networking/ptp/` on 4.16 became `networking/advanced_networking/ptp/` on 4.17+). This step detects these path differences proactively.
 
@@ -220,7 +262,7 @@ done
 
 Report any path differences to the user in the confirmation step.
 
-### Step 5a: Deep content comparison (if `--deep`)
+#### Step 5a: Deep content comparison (if `--deep`)
 
 If `--deep` is set, run the deep audit to check patch applicability and flag version-specific content:
 
@@ -243,9 +285,9 @@ Files marked `NEEDS-REVIEW` will require conflict resolution during the apply ph
 
 ---
 
-## Phase 3: Confirm Plan
+### Phase 3: Confirm Plan
 
-### Step 6: Present the plan
+#### Step 6: Present the plan
 
 If `--dry-run` is set, display the audit results (and deep audit if `--deep`) and stop.
 
@@ -276,11 +318,11 @@ Wait for user confirmation before proceeding. If the user says no, stop.
 
 ---
 
-## Phase 4: Apply Changes
+### Phase 4: Apply Changes
 
 Process each target branch sequentially.
 
-### Step 7: Create backport branch
+#### Step 7: Create backport branch
 
 ```bash
 TARGET_BRANCH="enterprise-4.17"  # current target being processed
@@ -294,9 +336,9 @@ git checkout -b "$BRANCH_NAME" "upstream/$TARGET_BRANCH"
 echo "Created branch: $BRANCH_NAME from upstream/$TARGET_BRANCH"
 ```
 
-### Step 8: Cherry-pick and resolve conflicts
+#### Step 8: Cherry-pick and resolve conflicts
 
-#### Step 8a: Attempt cherry-pick
+##### Step 8a: Attempt cherry-pick
 
 ```bash
 # Try cherry-picking the source commit(s)
@@ -304,7 +346,7 @@ git cherry-pick --no-commit "$COMMIT_SHA" 2>/tmp/cherry-pick-result.txt
 CP_EXIT=$?
 ```
 
-#### Step 8b: Remove excluded files
+##### Step 8b: Remove excluded files
 
 Whether the cherry-pick succeeded or conflicted, unstage any excluded files:
 
@@ -314,11 +356,11 @@ for excluded_file in "${EXCLUDE_FILES[@]}"; do
 done
 ```
 
-#### Step 8c: Handle clean cherry-pick (exit code 0)
+##### Step 8c: Handle clean cherry-pick (exit code 0)
 
 If the cherry-pick applied cleanly, skip to Step 9 (Commit).
 
-#### Step 8d: Resolve conflicts (exit code != 0)
+##### Step 8d: Resolve conflicts (exit code != 0)
 
 If the cherry-pick has conflicts, identify and resolve them:
 
@@ -381,7 +423,7 @@ Agent(subagent_type="general-purpose", description="resolve conflict in <file>",
 | New xref to an anchor/module that doesn't exist on the target branch | Drop the xref (don't add broken cross-references) |
 | Ambiguous — can't determine correct resolution | Keep target version, flag with `// REVIEW:` comment |
 
-#### Step 8e: Verify resolution
+##### Step 8e: Verify resolution
 
 After all conflicts are resolved:
 
@@ -396,7 +438,7 @@ fi
 git add ${CONFLICTED_FILES}
 ```
 
-#### Step 8f: Handle files that need human review
+##### Step 8f: Handle files that need human review
 
 If any conflicts were flagged with `// REVIEW:` comments, present them to the user via `AskUserQuestion`:
 
@@ -413,7 +455,7 @@ Keep the 4.17 version or apply the main version?
 
 Apply the user's decision and remove the `// REVIEW:` comment.
 
-### Step 9: Commit changes
+#### Step 9: Commit changes
 
 ```bash
 # Build commit message with exclusion and conflict documentation
@@ -445,7 +487,7 @@ The `CONFLICT_DETAILS` array should be populated during Step 8d with a summary o
 - `cnf-configuring-log-filtering-for-linuxptp.adoc: applied abstract rewrite`
 - `configuring-ptp.adoc: kept 4.16-correct xref paths`
 
-### Step 9a: Compare stats with source PR
+#### Step 9a: Compare stats with source PR
 
 Compare the backport's file count and line delta against the source PR to satisfy the CQA requirement that reviewers can verify counts match or have documented reasons for differences:
 
@@ -497,9 +539,9 @@ EOF
 
 ---
 
-## Phase 5: Push and Report
+### Phase 5: Push and Report
 
-### Step 10: Push branch
+#### Step 10: Push branch
 
 Unless `--no-push` is set:
 
@@ -507,7 +549,7 @@ Unless `--no-push` is set:
 git push -u origin "$BRANCH_NAME"
 ```
 
-### Step 11: Generate PR description
+#### Step 11: Generate PR description
 
 Write a structured PR description to `/tmp/cherry-pick-pr-description.md`:
 
@@ -566,47 +608,13 @@ Copy to clipboard:
 Create the PR targeting <target-branch> and paste the description.
 ```
 
-### Step 12: Process additional branches
+#### Step 12: Process additional branches
 
 If multiple target branches were specified, switch back to the original branch and repeat Steps 7-11 for each remaining target branch.
 
 ```bash
 # Return to original branch before processing next target
 git checkout -
-```
-
----
-
-## Usage Examples
-
-```bash
-# Backport a PR to enterprise-4.17
-/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
-  --target enterprise-4.17
-
-# Backport to multiple branches
-/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
-  --target enterprise-4.17,enterprise-4.16
-
-# Audit only (no changes)
-/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
-  --target enterprise-4.17,enterprise-4.16 --dry-run
-
-# Deep audit — check patch applicability and flag version-specific content
-/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
-  --target enterprise-4.17 --dry-run --deep
-
-# Backport with deep analysis and intelligent conflict resolution
-/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
-  --target enterprise-4.17 --deep
-
-# Backport from a specific commit
-/docs-tools:docs-cherry-pick --commit abc123def \
-  --target enterprise-4.17 --ticket TELCODOCS-2647
-
-# Local only (don't push)
-/docs-tools:docs-cherry-pick https://github.com/openshift/openshift-docs/pull/106280 \
-  --target enterprise-4.17 --no-push
 ```
 
 ---
