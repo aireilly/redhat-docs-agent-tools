@@ -4,7 +4,7 @@ icon: lucide/home
 
 # Red Hat Docs Agent Tools
 
-A collection of plugins, skills, and agent tools for Red Hat documentation workflows. Install and use them with Claude Code, or open this repository in Cursor and start with [Get Started with Cursor](get-started/index.md) and [Cursor workflows](contribute/cursor-workflows.md).
+Plugins, skills, and agent tools for Red Hat documentation workflows. Install them in Claude Code or open the repository in Cursor. For Cursor, see [Get Started with Cursor](get-started/index.md).
 
 ## Explore
 
@@ -23,7 +23,7 @@ A collection of plugins, skills, and agent tools for Red Hat documentation workf
 
     ---
 
-    Use Cursor with Agent Tools: fundamentals, hub, and workflows for your docs repo
+    Set up Cursor, load project context, and run workflows
 
     [:octicons-arrow-right-24: Get Started with Cursor](get-started/index.md)
 

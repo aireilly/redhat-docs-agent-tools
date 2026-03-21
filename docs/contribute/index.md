@@ -8,7 +8,11 @@ This repository is a collection of plugins for Red Hat documentation workflows. 
 
 For the full contributor guide, see [CONTRIBUTING.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/CONTRIBUTING.md).
 
-If you use **Cursor**, start with [Get Started with Cursor](../get-started/index.md), read [Cursor fundamentals](../get-started/cursor-fundamentals.md), then open [Using Cursor with your documentation](../get-started/cursor-product-documentation.md) or [Contributing with Cursor](cursor-contributing-tools.md) for your workflow. See [Cursor workflows](cursor-workflows.md) for how project rules, skills, and testing align with Claude Code in this repository.
+If you use **Cursor**, start with [Get Started with Cursor](../get-started/index.md) and [Cursor fundamentals](../get-started/cursor-fundamentals.md). Then pick the guide that matches your task:
+
+- [Product documentation](../get-started/cursor-product-documentation.md) — your docs live in another repository.
+- [Contributing with Cursor](cursor-contributing-tools.md) — you are editing plugins in this repository.
+- [Cursor workflows](cursor-workflows.md) — parity between Cursor and Claude Code.
 
 ## Key principles
 
@@ -48,7 +52,7 @@ For anything beyond trivial fixes, open an issue to discuss your contribution be
 | Type | When to use | Location |
 | --- | --- | --- |
 | **Skill** | Reusable knowledge, checklists, style rules, or domain expertise | `plugins/<plugin>/skills/<name>/SKILL.md` |
-| **Command** | User-invokable action (`/plugin:command`) | `plugins/<plugin>/commands/<name>.md` |
+| **Command** | User-invokable action (`plugin:command` after install in Claude Code) | `plugins/<plugin>/commands/<name>.md` |
 | **Agent** | Specialized agent persona with a defined role | `plugins/<plugin>/agents/<name>.md` |
 | **Reference** | Static reference material for skills or agents | `plugins/<plugin>/reference/<name>.md` |
 | **New plugin** | A genuinely new capability domain | `plugins/<new-plugin>/` |
