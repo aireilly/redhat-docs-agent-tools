@@ -188,20 +188,10 @@ echo ""
 
 #### JIRA Environment File Fallback
 
-If JIRA access fails later during requirements analysis, try alternate env files:
+If JIRA access fails later during requirements analysis:
 
-1. Search for `~/.env*` files containing "jira"
-2. Source each alternate file and retry
-3. If all fail, reset to `~/.env` and retry
-4. If still failing, STOP and report the error
-
-```bash
-# List alternate JIRA env files
-ls -la ~/.env*jira* ~/.env*.jira* 2>/dev/null
-
-# Source an alternate env file
-set -a && source ~/.env.jira_internal && set +a
-```
+1. Reset to default: `set -a && source ~/.env && set +a` and retry
+2. If it fails: **STOP** and report the error
 
 ### Step 3: Initialize or Load State
 
