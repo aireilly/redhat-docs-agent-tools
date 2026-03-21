@@ -4,126 +4,60 @@ icon: lucide/files
 
 # Using Cursor with your product documentation
 
-This guide is for people who edit AsciiDoc or Markdown in a separate Git
-repository and want to apply skills from Red Hat Docs Agent Tools in Cursor.
+Use this guide when your AsciiDoc or Markdown source lives in a **different** Git repository from Red Hat Docs Agent Tools, and you want to run Agent Tools skills in Cursor.
 
-Read [Cursor fundamentals](cursor-fundamentals.md) first to learn about the Agent
-panel, `AGENTS.md`, `@` mentions, and `plugin:skill` names. For an overview, see
-[Get Started with Cursor](index.md).
+## Checklist
 
-## Start here
-
-### Checklist
-
-1. Meet the [Prerequisites](#prerequisites): install Cursor and Git.
-1. Clone **Red Hat Docs Agent Tools** beside your product documentation repository
-   and open a **multi-root** workspace in Cursor. See [Use a skill in your
-   documentation repository](#use-a-skill-in-your-documentation-repository).
-1. Open Cursor. Open the **Agent** panel and pick **Agent** mode and a model (see
-   [Orient yourself in the
-   UI](cursor-fundamentals.md#orient-yourself-in-the-ui)).
-1. Attach **`AGENTS.md`** from the **redhat-docs-agent-tools** tree before substantive
-   edits. See [Load project
-   instructions](cursor-fundamentals.md#load-project-instructions).
-1. Attach the relevant **`SKILL.md`**, scope paths under your docs root, and use
-   a `plugin:skill` name in the prompt. See the example prompt below. Browse names
-   in the [Cursor skill index](../cursor-skills-index.md).
+1. Install Cursor and Git (see [Prerequisites](#prerequisites)).
+1. Clone **Red Hat Docs Agent Tools** beside your docs repository and open both in a **multi-root workspace** (see [Set up the workspace](#set-up-the-workspace)).
+1. Open the Agent panel, pick **Agent** mode, and attach **`AGENTS.md`** from the Agent Tools tree.
+1. Attach the **`SKILL.md`** you need and write a prompt with the `plugin:skill` name and your file paths (see [Example prompt](#example-prompt)).
 1. If something fails, see [Tips and troubleshooting](#tips-and-troubleshooting).
 
 ## Prerequisites
 
-- You have installed Cursor.
-- You have installed Git and it has access to your documentation repository (and
-  to GitHub if you clone Agent Tools from there).
-- You do **not** need `python3` or a local docs build in the Tools repo to use
-  skills on your product docs.
+- Cursor is installed.
+- Git is installed and can access your documentation repository and GitHub.
+- You do **not** need `python3` or a local docs build to use skills on your product docs.
 
-## Use a skill in your documentation repository
+## Set up the workspace
 
-Read [Cursor fundamentals](cursor-fundamentals.md) first. The steps below assume
-you already use **Agent** mode and `@` to attach files.
+Skills stay in the Agent Tools clone under `plugins/<plugin>/skills/`. Do not copy skill files into your docs repository.
 
-Your product documentation usually sits in its own Git repository.
+### Clone both repositories
 
-The skills you want live only in a clone of the Red Hat Docs Agent Tools repo, under
-`plugins/<plugin>/skills/`.
+Place both repositories in a shared parent directory.
 
-You **do not** copy those skill files into your docs repo. That is, you do not
-change the docs repo layout to “install” skills from the Agent Tools repo.
+```text
+~/repos/
+  my-product-docs/          # your documentation repository
+  redhat-docs-agent-tools/  # Agent Tools plugins and skills
+```
 
-However, you **can** keep both folders in a single Cursor multi-root workspace so
-that you can attach the skill files (and `AGENTS.md` when needed) in the chat
-panel. The assistant can then use them while you edit AsciiDoc, Markdown, or other
-doc sources in the product repo.
+```bash
+mkdir -p ~/repos && cd ~/repos
+git clone https://github.com/your-org/my-product-docs.git
+git clone https://github.com/redhat-documentation/redhat-docs-agent-tools.git
+```
 
-### Recommended layout: multi-root workspace
+### Open a multi-root workspace
 
-1. **Clone both repositories to your local disk.** Clone
-    [redhat-docs-agent-tools](https://github.com/redhat-documentation/redhat-docs-agent-tools)
-    so the skill sources exist locally.
+1. Use **File > Open Folder** and select your docs repository first.
+1. Use **File > Add Folder to Workspace** and add `redhat-docs-agent-tools`.
+1. Save the workspace when prompted so you can reopen both folders next time.
 
-    1. Use a shared parent directory with two sibling folders (for example the
-        layout below).
+Confirm the sidebar shows **two** top-level roots.
 
-        ```text
-        ~/repos/
-          my-product-docs/          # your documentation repository
-          redhat-docs-agent-tools/  # Agent Tools plugins and skills
-        ```
+### Attach files and write a prompt
 
-    1. On Linux or macOS, run commands such as the following (adjust URLs and
-        paths to match your forks and directories).
+1. Open a file from your docs repository in the editor.
+1. In the Agent panel, type **`@`** and attach **`AGENTS.md`** from the **redhat-docs-agent-tools** root (next to `plugins/`, not from your docs tree).
+1. Attach the skill file you need (for example `plugins/docs-tools/skills/rh-ssg-formatting/SKILL.md`).
+1. Write your prompt using the `plugin:skill` name and repo-relative paths.
 
-        ```bash
-        mkdir -p ~/repos && cd ~/repos
-        git clone https://github.com/your-org/my-product-docs.git
-        git clone https://github.com/redhat-documentation/redhat-docs-agent-tools.git
-        ```
+## Example prompt
 
-1. **Open a multi-root workspace in Cursor.**
-
-    1. Use **File** → **Open Folder** and select `~/repos/my-product-docs` (or your
-        real docs path) first.
-    1. Use **File** → **Add Folder to Workspace** and add
-        `~/repos/redhat-docs-agent-tools`.
-    1. Save the workspace if prompted (for example **File** → **Save Workspace As**
-        → `my-docs-and-tools.code-workspace`) so you can reopen both folders next
-        time.
-    1. In the sidebar, confirm **two** top-level roots, often labeled with the
-        folder names `my-product-docs` and `redhat-docs-agent-tools`.
-
-1. **Open a file from your docs repo.** For example open
-    `modules/install/overview.adoc`, `assemblies/assembly-about.adoc`, or `README.md`
-    at the root of `my-product-docs`. The path depends on your project. The file
-    must be located under **your** documentation tree, not under
-    `redhat-docs-agent-tools/`.
-
-1. **Attach Agent Tools repo files in Agent mode.**
-
-    1. Switch to **Agent** mode. In the message box, type **`@`**.
-    1. Attach **`AGENTS.md`** from the **redhat-docs-agent-tools** root (if the
-        picker shows a prefix, choose the copy that lives next to `plugins/`, not a
-        file from your product docs).
-    1. Attach the skill file you need, for example
-        `plugins/docs-tools/skills/rh-ssg-formatting/SKILL.md`, from the
-        **redhat-docs-agent-tools** tree.
-    1. If the menu lists workspace folder names, select paths that start with
-        **`redhat-docs-agent-tools/`**. Attach your content file the same way (for
-        example `my-product-docs/modules/install/overview.adoc`) if it is not
-        already open in the editor context.
-
-1. **Enter a prompt with `plugin:skill` and your paths.**
-
-    1. Name the fully qualified skill and paths under **your** docs repo root, as
-        in the example block below. Use repo-relative paths (for example
-        `modules/install/overview.adoc`) so the assistant edits the correct file.
-    1. When you need a `plugin:skill` name, browse the [Cursor skill
-        index](../cursor-skills-index.md) or under `plugins/` in the clone.
-
-### Example prompt (AsciiDoc or Markdown topic)
-
-Use a pattern such as the following; replace paths and the skill with your actual
-file names and `plugin:skill` name:
+Replace paths and the skill name with your actual file names.
 
 ```text
 Context loaded: @AGENTS.md, @plugins/docs-tools/skills/rh-ssg-formatting/SKILL.md,
@@ -133,46 +67,26 @@ Task: Apply docs-tools:rh-ssg-formatting to modules/install/overview.adoc only.
 List concrete issues first, then propose minimal edits. Do not change other modules.
 ```
 
-### Expected result
-
-The assistant should respond with a short list of findings or
-questions, then proposed edits (or diffs) scoped to the paths you named—not a
-whole-repo rewrite unless you asked for one.
-
-If your documentation uses a different structure, keep the same idea: **load the
-skill and AGENTS.md from the Tools tree**, **point at one or more paths in your docs
-repo**, and **name the skill** as `plugin:skill` in the prompt.
-
-### Privacy
-
-Follow your team rules for putting product or customer content in the
-assistant. If policy limits what may leave your network, use offline or approved
-workflows; see [Privacy and
-responsibility](cursor-fundamentals.md#privacy-and-responsibility).
+Expect a short list of findings followed by proposed edits for the paths you named. Browse available skill names in the [Cursor skill index](../cursor-skills-index.md).
 
 ## Tips and troubleshooting
 
 ### Sidebar shows only one repository
 
-You wanted a multi-root workspace but only
-added one folder. Use **File** → **Add Folder to Workspace**, add
-`redhat-docs-agent-tools` (or your docs repo) as the second root, and save the
-workspace. See [Use a skill in your documentation
-repository](#use-a-skill-in-your-documentation-repository).
+Add the missing folder with **File > Add Folder to Workspace**, then save the workspace.
 
 ### Wrong `AGENTS.md` in the `@` picker
 
-In a multi-root workspace, pick the file
-under **`redhat-docs-agent-tools/`** next to `plugins/`, not a file from your
-product docs repo.
+In a multi-root workspace, choose `AGENTS.md` under **`redhat-docs-agent-tools/`** next to `plugins/`, not a copy from your product docs.
 
-For other issues (skill names, Agent checkpoints, usage limits, Debug mode), see
-[Common tips and
-troubleshooting](cursor-fundamentals.md#common-tips-and-troubleshooting).
+### Privacy
+
+Follow your team rules about putting product content in the assistant. If policy limits what may leave your network, use offline or approved workflows. See [Privacy and responsibility](cursor-fundamentals.md#privacy-and-responsibility).
+
+For other issues (skill names, Agent checkpoints, usage limits, Debug mode), see [Common tips and troubleshooting](cursor-fundamentals.md#common-tips-and-troubleshooting).
 
 ## See also
 
-- [Get Started with Cursor](index.md) — section overview and guide links
-- [Contributing with Cursor](../contribute/cursor-contributing-tools.md) — working
-  inside the Tools repository
+- [Cursor fundamentals](cursor-fundamentals.md) — Agent panel, modes, and `plugin:skill` naming
+- [Contributing with Cursor](../contribute/cursor-contributing-tools.md) — working inside the Tools repository
 - [Cursor workflows](../contribute/cursor-workflows.md) — parity with Claude Code

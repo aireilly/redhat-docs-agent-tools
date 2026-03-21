@@ -4,25 +4,22 @@ icon: lucide/rocket
 
 # Quick start
 
-The following steps use **Claude Code** slash commands. If you use **Cursor** with
-this repository, read [Get Started with Cursor](get-started/index.md)
-and [Cursor fundamentals](get-started/cursor-fundamentals.md) first. Cursor does
-not expose the same marketplace or slash-command surface.
+The steps below use the **Claude Code** `claude plugin` CLI. For Cursor, see [Get Started with Cursor](get-started/index.md).
 
 1. Add the marketplace:
 
     ```text
-    /plugin marketplace add https://github.com/redhat-documentation/redhat-docs-agent-tools.git
+    claude plugin marketplace add redhat-documentation/redhat-docs-agent-tools
     ```
 
-2. Install a plugin:
+1. Install a plugin:
 
     ```text
-    /plugin install hello-world@redhat-docs-agent-tools
+    claude plugin install hello-world@redhat-docs-agent-tools
     ```
 
-3. Use a command:
+1. Use a command:
 
     ```text
-    /hello-world:greet
+    hello-world:greet
     ```

@@ -6,22 +6,13 @@ This guide helps you contribute effectively and helps maintainers review efficie
 
 ## Cursor users
 
-This repository includes Cursor-oriented project instructions and rules so you can follow the same conventions as Claude Code contributors:
+Cursor users follow the same conventions as Claude Code contributors. Start with these resources:
 
-- **[AGENTS.md](AGENTS.md)** — Cursor counterpart to [CLAUDE.md](CLAUDE.md): skill naming, script paths from the workspace root, and contributing rules
-- **[docs/get-started/index.md](docs/get-started/index.md)** — Get Started with Cursor (section overview and entry point for Cursor guides).
-- **[docs/get-started/cursor-fundamentals.md](docs/get-started/cursor-fundamentals.md)** — Agent panel, AGENTS.md, `plugin:skill` names, shared terminology.
-- **[docs/get-started/cursor-product-documentation.md](docs/get-started/cursor-product-documentation.md)** — Use skills while editing product docs in another repository.
-- **[docs/contribute/cursor-contributing-tools.md](docs/contribute/cursor-contributing-tools.md)** — Contribute inside the Tools repository with Cursor.
-- **[docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md)** — How skills, commands, agents, and evals map (or do not map) to Cursor; how to test and submit changes
+- **[AGENTS.md](AGENTS.md)** — Cursor counterpart to [CLAUDE.md](CLAUDE.md) with skill naming, script paths, and contributing rules.
+- **[Get Started with Cursor](docs/get-started/index.md)** — Fundamentals, product documentation workflows, and contributing guides.
+- **[Cursor workflows](docs/contribute/cursor-workflows.md)** — How skills, commands, and evals map to Cursor.
 
-### Script paths
-
-Documentation for Claude Code often uses `${CLAUDE_PLUGIN_ROOT}` for scripts in other skills. In Cursor, use paths relative to the repository root (for example, `plugins/<plugin>/skills/<skill>/scripts/...`). See AGENTS.md for examples.
-
-### Evals
-
-The eval runner described in [Evaluating skills](docs/contribute/evaluating-skills.md) is a Claude Code tool. If you use Cursor, keep `evals/evals.json` accurate and explain in your pull request how reviewers can verify behavior manually.
+In Cursor, use paths relative to the repository root instead of `${CLAUDE_PLUGIN_ROOT}`. See AGENTS.md for examples. The eval runner described in [Evaluating skills](docs/contribute/evaluating-skills.md) is a Claude Code tool. If you use Cursor, keep `evals/evals.json` accurate and explain in your pull request how reviewers can verify behavior.
 
 ## Before you contribute
 
@@ -48,7 +39,7 @@ Duplicate capabilities fragment the user experience and increase the maintenance
 | Type | When to use | Location |
 | --- | --- | --- |
 | **Skill** | Reusable knowledge, checklists, style rules, or domain expertise that the agent applies automatically | `plugins/<plugin>/skills/<skill-name>/SKILL.md` |
-| **Command** | A user-invokable action triggered with `/plugin-name:command` | `plugins/<plugin>/commands/<command>.md` |
+| **Command** | A user-invokable action (`plugin-name:command` after install in Claude Code) | `plugins/<plugin>/commands/<command>.md` |
 | **Agent** | A specialized agent persona with a defined role and workflow | `plugins/<plugin>/agents/<agent>.md` |
 | **Reference** | Static reference material that skills or agents can consult | `plugins/<plugin>/reference/<ref>.md` |
 | **New plugin** | A genuinely new capability domain that doesn't fit any existing plugin | `plugins/<new-plugin>/` |
