@@ -14,17 +14,19 @@ Use this guide when your AsciiDoc or Markdown source lives in a **different** Gi
 1. Attach the **`SKILL.md`** you need and write a prompt with the `plugin:skill` name and your file paths (see [Example prompt](#example-prompt)).
 1. If something fails, see [Tips and troubleshooting](#tips-and-troubleshooting).
 
-## Prerequisites
+## Procedure
+
+### Prerequisites
 
 - Cursor is installed.
 - Git is installed and can access your documentation repository and GitHub.
 - You do **not** need `python3` or a local docs build to use skills on your product docs.
 
-## Set up the workspace
+### Set up the workspace
 
 Skills stay in the Agent Tools clone under `plugins/<plugin>/skills/`. Do not copy skill files into your docs repository.
 
-### Clone both repositories
+#### Clone both repositories
 
 Place both repositories in a shared parent directory.
 
@@ -40,7 +42,7 @@ git clone https://github.com/your-org/my-product-docs.git
 git clone https://github.com/redhat-documentation/redhat-docs-agent-tools.git
 ```
 
-### Open a multi-root workspace
+#### Open a multi-root workspace
 
 1. Use **File > Open Folder** and select your docs repository first.
 1. Use **File > Add Folder to Workspace** and add `redhat-docs-agent-tools`.
@@ -48,14 +50,14 @@ git clone https://github.com/redhat-documentation/redhat-docs-agent-tools.git
 
 Confirm the sidebar shows **two** top-level roots.
 
-### Attach files and write a prompt
+#### Attach files and write a prompt
 
 1. Open a file from your docs repository in the editor.
 1. In the Agent panel, type **`@`** and attach **`AGENTS.md`** from the **redhat-docs-agent-tools** root (next to `plugins/`, not from your docs tree).
 1. Attach the skill file you need (for example `plugins/docs-tools/skills/rh-ssg-formatting/SKILL.md`).
 1. Write your prompt using the `plugin:skill` name and repo-relative paths.
 
-## Example prompt
+### Example prompt
 
 Replace paths and the skill name with your actual file names.
 
@@ -67,7 +69,7 @@ Task: Apply docs-tools:rh-ssg-formatting to modules/install/overview.adoc only.
 List concrete issues first, then propose minimal edits. Do not change other modules.
 ```
 
-Expect a short list of findings followed by proposed edits for the paths you named. Browse available skill names in the [Cursor skill index](../cursor-skills-index.md).
+Expect to see a short list of findings followed by proposed edits for the files or contexts you named. Browse available skill names in the [Cursor skill index](../cursor-skills-index.md).
 
 ## Tips and troubleshooting
 
