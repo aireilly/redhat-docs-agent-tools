@@ -1,6 +1,6 @@
 # Red Hat Docs Agent Tools
 
-**Red Hat Docs Agent Tools** is a collection of plugins, skills, commands, and agent definitions for Red Hat documentation workflows. **Claude Code** installs plugins with the `claude plugin` CLI and runs namespaced commands such as `hello-world:greet`. **Cursor** uses the repository on disk with project rules and `@` context. See [Get started with Cursor](#get-started-with-cursor) below.
+**Red Hat Docs Agent Tools** is a collection of plugins, skills, commands, and agent definitions for Red Hat documentation workflows. **Claude Code** installs plugins with the `claude plugin` CLI and runs namespaced commands such as `hello-world:greet`. **Cursor** uses the repository on disk with project rules and `@` context.
 
 ## Quick start
 

@@ -4,13 +4,13 @@ icon: lucide/monitor
 
 # Cursor workflows
 
-The plugin format and marketplace in this repository target **Claude Code**. Cursor does not provide the same marketplace or slash-command surface, but you can author and review the same Markdown skills, commands, agents, and reference material.
+The plugin format and marketplace in this repository target **Claude Code**. Cursor does not provide the same marketplace, but you can author, use, and review the same Markdown skills, commands, agents, and reference material.
 
 ## How Cursor fits this repository
 
 1. **Project instructions** — Cursor loads [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) and rules under [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules), mirroring [CLAUDE.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/CLAUDE.md) conventions.
 1. **Skills** — Skill files live at `plugins/<plugin>/skills/` as plain Markdown. Point the agent at a path or use fully qualified names such as `docs-tools:jira-reader`.
-1. **Commands** — Claude Code exposes commands like `hello-world:greet`. Cursor has no slash-command system. Treat command files as prompts: open the Markdown and follow the **Implementation** and **Examples** sections.
+1. **Commands** — Claude Code exposes commands like `hello-world:greet`. Cursor has no equivalent command system. Instead, treat command files as prompts: open the Markdown file for the command and follow the **Implementation** and **Examples** sections.
 1. **Agents** — Agent definitions under `plugins/<plugin>/agents/` are Markdown personas. Use them as system instructions or project rules.
 1. **Installation** — Clone the repository. All plugin sources are available on disk under `plugins/`.
 

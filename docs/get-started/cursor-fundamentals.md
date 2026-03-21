@@ -2,17 +2,19 @@
 icon: lucide/layers
 ---
 
-# Cursor fundamentals for Agent Tools
+# Learn Cursor fundamentals for Agent Tools
 
 Cursor is a VS Code-based editor with built-in AI assistance. In the Agent panel, you chat with a model that can read files, propose edits, and run commands. Red Hat Docs Agent Tools gives the model project-specific skills, rules, and naming conventions so the model's output matches the guidelines.
 
 ## How the repository works with Cursor
 
-Skills live under `plugins/<plugin>/skills/` as plain Markdown. The project rules in [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) and [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules) tell the model how to reference those skills, run scripts, and follow contribution conventions.
+Skills live under `plugins/<plugin>/skills/` as plain Markdown files. The project rules in [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) and [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules) tell the model how to reference those skills, run scripts, and follow contribution conventions.
 
-Cursor does **not** provide a Claude Code-style marketplace. You work with the repository on disk and attach files with `@`. See [Cursor workflows](../contribute/cursor-workflows.md) for more about what differs from Claude Code.
+Cursor does **not** provide a Claude Code-style marketplace. You work with the repository on disk and attach files with `@`. See [Cursor workflows](../contribute/cursor-workflows.md) for more about what differs from Claude Code. You must use Git to keep the local version of the upstream Agent Tools repository up to date.
 
-## Choose a mode
+## Working in the Cursor UI
+
+### Choose a mode
 
 Open the **Agent** panel (**Cmd+I** on macOS, **Ctrl+I** on Windows and Linux). Pick a mode from the input area, then type your prompt.
 
@@ -31,7 +33,7 @@ Leave the **model** on **Auto** unless your team sets a policy. **Auto** balance
 
 ## Load project instructions
 
-The repository root contains [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md). That file summarizes skill naming, script paths, and contribution rules. Attach it to every new chat thread.
+The repository root of Red Hat Agent Tools contains the [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) file. This file summarizes skill naming, script paths, and contribution rules. You must attach it to every new chat thread.
 
 ### Attach AGENTS.md
 
@@ -44,7 +46,7 @@ If `@` does not show the file, type the full path as plain text (for example `@A
 
 ### Automatic rules
 
-Cursor applies files under [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules) without you doing anything. Those rules pair best with AGENTS.md when you want the model to follow the full project contract.
+Cursor applies the rules found in files under [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules) without you doing anything. Those rules pair best with AGENTS.md when you want the model to follow the full project contract.
 
 ### When to reload
 
@@ -71,7 +73,7 @@ Start a **new thread**, attach [AGENTS.md](https://github.com/redhat-documentati
 
 ### Agent changed files you did not intend
 
-Cursor offers **checkpoints** to roll back edits. See the [Cursor Agent](https://cursor.com/docs/agent/overview) overview. For permanent history, use **Git** to inspect diffs and revert.
+Cursor offers **checkpoints** to roll back edits. See the [Cursor Agent](https://cursor.com/docs/agent/overview) overview. For permanent history, use **Git** to inspect diffs and revert. You can also tell the Agent to revert changes to return to a known good state.
 
 ### Usage limits, model errors, or empty responses
 
