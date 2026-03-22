@@ -26,6 +26,82 @@ If access to JIRA or Git fails during writing:
 2. If that fails, reset to default: `set -a && source ~/.env && set +a` and retry
 3. If both fail: **STOP IMMEDIATELY**, report the exact error, list available env files, and instruct the user to fix credentials. Never guess or infer content.
 
+## Placement modes
+
+The workflow prompt specifies one of two placement modes. Follow the instructions for the specified mode.
+
+### UPDATE-IN-PLACE mode (default)
+
+When the prompt says **"Placement mode: UPDATE-IN-PLACE"**, write files directly into the repository at the correct locations for the repo's build framework. You MUST detect the framework and follow existing conventions before writing any files.
+
+#### Step 1: Detect the build framework
+
+Explore the repository to identify the documentation build system:
+
+- **Build configuration files** at the repo root and in docs directories (e.g., `antora.yml`, `mkdocs.yml`, `conf.py`, `docusaurus.config.js`, `config.toml`, `_config.yml`)
+- **Directory structure** — content roots, module/page directories, asset folders
+- **Build scripts and Makefile targets** — docs-related targets or scripts
+- **CI configuration** — docs build steps in `.github/workflows/`, `.gitlab-ci.yml`, `Jenkinsfile`
+
+Record the detected framework and key structural paths (content root, modules directory, nav file location).
+
+#### Step 2: Analyze repo conventions
+
+Study existing documentation to identify patterns:
+
+- **File naming**: kebab-case, snake_case, prefixed (`con-`, `proc-`, `ref-`), or unprefixed
+- **Directory layout**: flat, nested by topic, nested by module type
+- **Include patterns**: how existing assemblies reference modules (relative paths, attributes)
+- **Navigation structure**: nav file, YAML config section, topic map, directory-based auto-discovery
+- **Attributes**: common AsciiDoc attributes (`:context:`, `:product:`, `:version:`)
+- **ID conventions**: anchor ID patterns (e.g., `[id="module-name_{context}"]`)
+
+**IMPORTANT**: Always match existing conventions. If the repo uses `con-` prefixes, use them. If it uses unprefixed kebab-case, use that. Never impose a different convention.
+
+#### Step 3: Write files to repo locations
+
+For each module in the documentation plan:
+
+1. Determine the correct target path based on the detected framework and conventions
+2. Write the complete file directly to that path
+3. Update navigation/TOC files as needed, following existing patterns
+
+#### Step 4: Create manifest
+
+After writing all files, create a manifest at `.claude/docs/drafts/<jira-id>/_index.md` listing every file written and its repo location. This manifest is used by the technical reviewer and style reviewer to find the files.
+
+Example manifest for update-in-place mode:
+```markdown
+# Documentation Modules: RHAISTRAT-248
+
+**Ticket:** RHAISTRAT-248
+**Generated:** 2025-12-18
+**Placement mode:** UPDATE-IN-PLACE
+**Build framework:** Antora
+**Content root:** docs/modules/ROOT/
+
+## Files Written
+
+| Repo Path | Type | Description |
+|-----------|------|-------------|
+| docs/modules/ROOT/pages/understanding-feature.adoc | CONCEPT | Overview of the feature |
+| docs/modules/ROOT/pages/installing-feature.adoc | PROCEDURE | Steps to install |
+| docs/modules/ROOT/pages/feature-parameters.adoc | REFERENCE | Configuration parameters |
+| docs/modules/ROOT/pages/assembly_deploying-feature.adoc | ASSEMBLY | Deploying the feature |
+
+## Navigation Updates
+
+| File Modified | Change |
+|---------------|--------|
+| docs/modules/ROOT/nav.adoc | Added xref entries under "Configure" section |
+```
+
+### DRAFT mode
+
+When the prompt says **"Placement mode: DRAFT"**, write files to the `.claude/docs/drafts/<jira-id>/` staging area. Do not modify any existing repository files. Do not detect the build framework.
+
+Follow the output folder structures and workflows described in the "Draft mode output" section below.
+
 ## Jobs to Be Done (JTBD) framework
 
 Apply JTBD principles from the docs-planner agent. The key writing implications are:
@@ -53,7 +129,7 @@ Use outcome-driven titles with natural language:
 1. **Extract the JIRA ID** from the task context or plan filename:
    - Look for patterns like `JIRA-123`, `RHAISTRAT-248`, `OSDOCS-456`
    - Convert to lowercase for folder naming: `jira-123`, `rhaistrat-248`
-   - This ID determines the output folder structure
+   - This ID determines the manifest folder and (in draft mode) the output folder
 
 2. **Read the documentation plan** from `.claude/docs/plans/` to understand what modules to write
 
@@ -68,7 +144,9 @@ Use outcome-driven titles with natural language:
    - REFERENCE - Provides lookup data in tables or lists
    - ASSEMBLY - Combines modules into complete user stories
 
-5. **Write complete documentation files:**
+5. **Check the placement mode** from the workflow prompt and follow the corresponding instructions (UPDATE-IN-PLACE or DRAFT)
+
+6. **Write complete documentation files:**
 
    **For AsciiDoc (default):**
    - Use the appropriate AsciiDoc template for each module type
@@ -83,31 +161,16 @@ Use outcome-driven titles with natural language:
    - No AsciiDoc-specific markup (no `[role="_abstract"]`, no `:_mod-docs-content-type:`, no `ifdef::context`)
    - See the **MkDocs Markdown format** section below for templates and conventions
 
-6. **Save files to the JIRA-based folder structure** in `.claude/docs/drafts/<jira-id>/`:
-
-   **For AsciiDoc:**
-   - Modules go in: `.claude/docs/drafts/<jira-id>/modules/<module-name>.adoc`
-   - Assemblies go in: `.claude/docs/drafts/<jira-id>/<assembly-name>.adoc`
-   - Index goes in: `.claude/docs/drafts/<jira-id>/_index.md`
-   - Use descriptive filenames: `<module-name>.adoc`
-   - Do NOT use type prefixes (no `con-`, `proc-`, `ref-`)
-   - Create one file per module
-
-   **For MkDocs:**
-   - Pages go in: `.claude/docs/drafts/<jira-id>/docs/<page-name>.md`
-   - Nav fragment goes in: `.claude/docs/drafts/<jira-id>/mkdocs-nav.yml`
-   - Index goes in: `.claude/docs/drafts/<jira-id>/_index.md`
-   - Use descriptive filenames: `<page-name>.md`
-   - Create one file per page
-
 ## IMPORTANT: Output requirements
 
-You MUST write complete documentation files organized by JIRA ID. Each file must be:
+You MUST write complete documentation files. Each file must be:
 - A complete, standalone module or page
 - Ready for review (not a summary or outline)
-- Saved to the correct location based on file type
+- Saved to the correct location based on placement mode
 
-**AsciiDoc output folder structure (default):**
+### Draft mode output
+
+**AsciiDoc output folder structure:**
 ```
 .claude/docs/drafts/<jira-id>/
 ├── _index.md                           # Index of all modules
@@ -118,7 +181,7 @@ You MUST write complete documentation files organized by JIRA ID. Each file must
     └── <reference-name>.adoc
 ```
 
-**MkDocs output folder structure (`--mkdocs`):**
+**MkDocs output folder structure:**
 ```
 .claude/docs/drafts/<jira-id>/
 ├── _index.md                           # Index of all pages
@@ -129,40 +192,17 @@ You MUST write complete documentation files organized by JIRA ID. Each file must
     └── <reference-name>.md
 ```
 
-**Example for RHAISTRAT-248 (AsciiDoc):**
-```
-.claude/docs/drafts/rhaistrat-248/
-├── _index.md
-├── assembly_deploying-feature.adoc
-├── assembly_getting-started.adoc
-└── modules/
-    ├── understanding-ai-accelerators.adoc
-    ├── installing-device-drivers.adoc
-    └── configuration-parameters.adoc
-```
-
-**Example for RHAISTRAT-248 (MkDocs):**
-```
-.claude/docs/drafts/rhaistrat-248/
-├── _index.md
-├── mkdocs-nav.yml
-└── docs/
-    ├── understanding-ai-accelerators.md
-    ├── installing-device-drivers.md
-    └── configuration-parameters.md
-```
-
-**Example workflow (AsciiDoc):**
+**Example workflow (AsciiDoc, draft mode):**
 1. Extract JIRA ID from plan filename (e.g., `plan_rhaistrat_248_*.md` → `rhaistrat-248`)
 2. Read plan from `.claude/docs/plans/plan_*.md`
-3. Create drafts folder and set up symlinks to repo directories (`_attributes/`, `snippets/`, etc.)
+3. Create drafts folder: `mkdir -p .claude/docs/drafts/<jira-id>/modules`
 4. For each module in the plan:
    - Write the complete AsciiDoc content
    - Save to `.claude/docs/drafts/<jira-id>/modules/<module-name>.adoc`
 5. Write assembly files to `.claude/docs/drafts/<jira-id>/assembly_<name>.adoc`
 6. Create an index file at `.claude/docs/drafts/<jira-id>/_index.md`
 
-**Example workflow (MkDocs):**
+**Example workflow (MkDocs, draft mode):**
 1. Extract JIRA ID from plan filename (e.g., `plan_rhaistrat_248_*.md` → `rhaistrat-248`)
 2. Read plan from `.claude/docs/plans/plan_*.md`
 3. Create drafts folder: `mkdir -p .claude/docs/drafts/<jira-id>/docs`
@@ -176,7 +216,7 @@ You MUST write complete documentation files organized by JIRA ID. Each file must
 
 Before writing any documentation, read the appropriate reference for your output format:
 
-**For AsciiDoc (default):** Read @plugins/docs-tools/reference/asciidoc-reference.md — canonical templates for ASSEMBLY, CONCEPT, PROCEDURE, REFERENCE, and SNIPPET module types, plus AsciiDoc-specific writing conventions (code blocks, admonitions, short descriptions, user-replaced values, product attributes, symlink setup, and the quality checklist).
+**For AsciiDoc (default):** Read @plugins/docs-tools/reference/asciidoc-reference.md — canonical templates for ASSEMBLY, CONCEPT, PROCEDURE, REFERENCE, and SNIPPET module types, plus AsciiDoc-specific writing conventions (code blocks, admonitions, short descriptions, user-replaced values, product attributes, and the quality checklist).
 
 **For MkDocs Markdown (`--mkdocs`):** Read @plugins/docs-tools/reference/mkdocs-reference.md — page structure, YAML frontmatter conventions, Material for MkDocs-specific syntax (admonitions, content tabs, code blocks), navigation fragment format, and the quality checklist.
 
@@ -326,67 +366,19 @@ The `docs-tools:docs-review-modular-docs` (AsciiDoc only) and `docs-tools:docs-r
 
 Refer to the format-specific quality checklist in @plugins/docs-tools/reference/asciidoc-reference.md or @plugins/docs-tools/reference/mkdocs-reference.md before finalizing.
 
-## Output location
-
-**All documentation MUST be saved to `.claude/docs/drafts/<jira-id>/` organized by JIRA ticket ID.** See the folder structures in the "Output requirements" section above.
-
-For AsciiDoc output, set up symlinks to the repository's `_attributes/`, `snippets/`, and `assemblies/` directories as described in @plugins/docs-tools/reference/asciidoc-reference.md. Skip symlinks for MkDocs output.
-
-### JIRA ID extraction
+## JIRA ID extraction
 
 Extract the JIRA ID from:
 1. The plan filename: `plan_rhaistrat_248_20251218.md` → `rhaistrat-248`
 2. The task context or user request: "Write docs for RHAISTRAT-248" → `rhaistrat-248`
 3. Convert underscores to hyphens and use lowercase
 
-### File naming
+## File naming
 
 - Use descriptive, lowercase names with hyphens
-- Do NOT use type prefixes: NO `con-`, `proc-`, `ref-`
+- Do NOT use type prefixes (no `con-`, `proc-`, `ref-`) **unless the repo convention uses them** (in UPDATE-IN-PLACE mode, always match existing conventions)
 - Do NOT include dates in module filenames
 - **AsciiDoc**: Use `.adoc` extension. Assembly files use `assembly_` prefix: `assembly_deploying-feature.adoc`
 - **MkDocs**: Use `.md` extension. No assembly files — use `mkdocs-nav.yml` for navigation structure
-
-### Index file
-
-After writing all modules, create `.claude/docs/drafts/<jira-id>/_index.md` listing:
-- JIRA ticket reference
-- Directory structure
-- All modules with types and descriptions
-- Assembly files
-
-Example `_index.md`:
-```markdown
-# Documentation Modules: RHAISTRAT-248
-
-**Ticket:** RHAISTRAT-248
-**Generated:** 2025-12-18
-
-## Directory Structure
-
-\`\`\`
-rhaistrat-248/
-├── _index.md
-├── assembly_deploying-feature.adoc
-└── modules/
-    ├── understanding-feature.adoc
-    ├── installing-feature.adoc
-    └── feature-parameters.adoc
-\`\`\`
-
-## Modules
-
-| File | Type | Description |
-|------|------|-------------|
-| modules/understanding-feature.adoc | CONCEPT | Overview of the feature |
-| modules/installing-feature.adoc | PROCEDURE | Steps to install |
-| modules/feature-parameters.adoc | REFERENCE | Configuration parameters |
-
-## Assemblies
-
-| File | Title |
-|------|-------|
-| assembly_deploying-feature.adoc | Deploying the feature |
-```
 
 Style compliance (self-referential text, product-centric writing, terminology, etc.) is enforced by Vale rules and verified by the docs-reviewer agent. See the quality checklist in @plugins/docs-tools/reference/asciidoc-reference.md or @plugins/docs-tools/reference/mkdocs-reference.md for the complete pre-save verification steps.
