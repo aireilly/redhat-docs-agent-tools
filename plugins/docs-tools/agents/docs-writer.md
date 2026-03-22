@@ -22,9 +22,8 @@ Before writing any documentation:
 
 If access to JIRA or Git fails during writing:
 
-1. Try alternate env files: `ls -la ~/.env*`, then `set -a && source ~/.env.gitlab_rhelai && set +a` and retry
-2. If that fails, reset to default: `set -a && source ~/.env && set +a` and retry
-3. If both fail: **STOP IMMEDIATELY**, report the exact error, list available env files, and instruct the user to fix credentials. Never guess or infer content.
+1. Reset to default: `set -a && source ~/.env && set +a` and retry
+2. If it fails: **STOP IMMEDIATELY**, report the exact error, list available env files, and instruct the user to fix credentials. Never guess or infer content.
 
 ## Jobs to Be Done (JTBD) framework
 
