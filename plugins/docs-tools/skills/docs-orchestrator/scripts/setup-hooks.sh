@@ -20,17 +20,15 @@ if [ ! -f "$SETTINGS_FILE" ]; then
 fi
 
 # Install Stop hook (skip if already present)
-HAS_WORKFLOW_HOOK=$(jq '[(.hooks.Stop // []) | .[].hooks[]? | select(.command | contains("workflow-completion-check"))] | length' "$SETTINGS_FILE" 2>/dev/null || echo 0)
+HAS_WORKFLOW_HOOK=$(jq '[(.hooks.Stop // []) | .[] | select(.command? | contains("workflow-completion-check"))] | length' "$SETTINGS_FILE" 2>/dev/null || echo 0)
 
 if [ "$HAS_WORKFLOW_HOOK" -gt 0 ]; then
   echo "Workflow completion hook already installed."
 else
   jq '.hooks.Stop = (.hooks.Stop // []) + [{
-    "hooks": [{
-      "type": "command",
-      "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/workflow-completion-check.sh",
-      "timeout": 10
-    }]
+    "type": "command",
+    "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/workflow-completion-check.sh",
+    "timeout": 10
   }]' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
   echo "Installed workflow completion Stop hook."
 fi

@@ -17,9 +17,16 @@ if ! cd "${CLAUDE_PROJECT_DIR:-.}" 2>/dev/null; then
   exit 2
 fi
 
-# If the hook already triggered a retry, allow stop to prevent loops
-STOP_HOOK_ACTIVE=$(echo "$INPUT" | jq -r '.stop_hook_active // false')
-if [ "$STOP_HOOK_ACTIVE" = "true" ]; then
+# Anti-loop guard: if the hook has blocked stop too many times in a row,
+# allow stop to prevent infinite loops. Uses a counter file on disk.
+COUNTER_FILE=".claude/docs/.stop_hook_count"
+if [ -f "$COUNTER_FILE" ]; then
+  COUNT=$(cat "$COUNTER_FILE")
+else
+  COUNT=0
+fi
+if [ "$COUNT" -ge 5 ]; then
+  rm -f "$COUNTER_FILE"
   exit 0
 fi
 
@@ -59,6 +66,7 @@ for pfile in $PROGRESS_FILES; do
   done
 
   if [ -n "$NEXT_STEP" ]; then
+    echo "$((COUNT + 1))" > "$COUNTER_FILE"
     echo "Documentation workflow '$WORKFLOW_TYPE' for $TICKET is not complete. Next step: $NEXT_STEP. Continue the workflow." >&2
     exit 2
   fi
@@ -66,4 +74,6 @@ for pfile in $PROGRESS_FILES; do
   # All steps done — orchestrator will update the top-level status next
 done
 
+# No incomplete workflows found — reset counter and allow stop
+rm -f "$COUNTER_FILE"
 exit 0

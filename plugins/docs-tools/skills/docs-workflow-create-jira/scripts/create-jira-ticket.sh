@@ -103,7 +103,7 @@ if [[ -z "$NEW_ISSUE_KEY" || "$NEW_ISSUE_KEY" == "null" ]]; then
 fi
 
 # --- Link new ticket to parent (link type is "Document", not "Documents") ---
-curl -s -X POST \
+LINK_HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
   -u "${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}" \
   -H "Content-Type: application/json" \
   --data "{
@@ -111,15 +111,23 @@ curl -s -X POST \
     \"outwardIssue\": { \"key\": \"${TICKET}\" },
     \"inwardIssue\": { \"key\": \"${NEW_ISSUE_KEY}\" }
   }" \
-  "${JIRA_URL}/rest/api/2/issueLink"
+  "${JIRA_URL}/rest/api/2/issueLink")
+
+if [[ "$LINK_HTTP_CODE" -lt 200 || "$LINK_HTTP_CODE" -ge 300 ]]; then
+    echo "Warning: Failed to link ${NEW_ISSUE_KEY} to ${TICKET} (HTTP ${LINK_HTTP_CODE})" >&2
+fi
 
 # --- Attach plan file (private projects only) ---
 if [[ "$PROJECT_IS_PUBLIC" != "true" ]]; then
-    curl -s -X POST \
+    ATTACH_HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
       -u "${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}" \
       -H "X-Atlassian-Token: no-check" \
       -F "file=@${PLAN_FILE}" \
-      "${JIRA_URL}/rest/api/2/issue/${NEW_ISSUE_KEY}/attachments"
+      "${JIRA_URL}/rest/api/2/issue/${NEW_ISSUE_KEY}/attachments")
+
+    if [[ "$ATTACH_HTTP_CODE" -lt 200 || "$ATTACH_HTTP_CODE" -ge 300 ]]; then
+        echo "Warning: Failed to attach plan to ${NEW_ISSUE_KEY} (HTTP ${ATTACH_HTTP_CODE})" >&2
+    fi
 fi
 
 # --- Print the new ticket URL ---
