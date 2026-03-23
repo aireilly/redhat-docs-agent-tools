@@ -10,6 +10,8 @@
 #
 # Requires: jq
 
+set -u
+
 INPUT=$(cat)
 
 if ! cd "${CLAUDE_PROJECT_DIR:-.}" 2>/dev/null; then
@@ -31,12 +33,14 @@ if [ "$COUNT" -ge 5 ]; then
 fi
 
 # Look for progress files
-PROGRESS_FILES=$(ls .claude/docs/*/workflow/*.json 2>/dev/null)
-if [ -z "$PROGRESS_FILES" ]; then
+shopt -s nullglob
+PROGRESS_FILES=(.claude/docs/*/workflow/*.json)
+shopt -u nullglob
+if [ ${#PROGRESS_FILES[@]} -eq 0 ]; then
   exit 0
 fi
 
-for pfile in $PROGRESS_FILES; do
+for pfile in "${PROGRESS_FILES[@]}"; do
   WORKFLOW_STATUS=$(jq -r '.status' "$pfile" 2>/dev/null)
 
   # Skip workflows that aren't running
@@ -58,7 +62,7 @@ for pfile in $PROGRESS_FILES; do
   # Find the first incomplete step
   NEXT_STEP=""
   for step in "${STEP_ORDER[@]}"; do
-    STEP_STATUS=$(jq -r ".steps[\"$step\"].status // \"missing\"" "$pfile")
+    STEP_STATUS=$(jq -r --arg s "$step" '.steps[$s].status // "missing"' "$pfile")
     case "$STEP_STATUS" in
       completed|skipped) continue ;;
       *) NEXT_STEP="$step"; break ;;

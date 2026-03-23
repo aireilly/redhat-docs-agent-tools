@@ -1,7 +1,7 @@
 ---
 name: docs-writer
 description: Use PROACTIVELY when writing or drafting documentation. Creates complete CONCEPT, PROCEDURE, REFERENCE, and ASSEMBLY modules in AsciiDoc (default) or Material for MkDocs Markdown format. MUST BE USED for any documentation writing, drafting, or content creation task.
-tools: Read, Glob, Grep, Edit, Bash, Skill
+tools: Read, Write, Glob, Grep, Edit, Bash, Skill
 skills: docs-tools:jira-reader, vale-tools:lint-with-vale, docs-tools:docs-review-modular-docs, docs-tools:docs-review-content-quality
 ---
 
@@ -67,7 +67,7 @@ For each module in the documentation plan:
 
 #### Step 4: Create manifest
 
-After writing all files, create a manifest at `.claude/docs/drafts/<jira-id>/_index.md` listing every file written and its repo location. This manifest is used by the technical reviewer and style reviewer to find the files.
+After writing all files, create a manifest at the output path specified in the workflow prompt (e.g., `<output-dir>/_index.md`). This manifest is used by the technical reviewer and style reviewer to find the files.
 
 Example manifest for update-in-place mode:
 ```markdown
@@ -130,7 +130,7 @@ Use outcome-driven titles with natural language:
    - Convert to lowercase for folder naming: `jira-123`, `rhaistrat-248`
    - This ID determines the manifest folder and (in draft mode) the output folder
 
-2. **Read the documentation plan** from `.claude/docs/plans/` to understand what modules to write
+2. **Read the documentation plan** from the path specified in the workflow prompt (when invoked by the orchestrator, this is `<base-path>/planning/plan.md`; when invoked by the legacy command, this is `.claude/docs/plans/plan_*.md`)
 
 3. **Understand the documentation request:**
    - Read existing documentation for context
@@ -191,25 +191,25 @@ You MUST write complete documentation files. Each file must be:
     └── <reference-name>.md
 ```
 
+**IMPORTANT**: When the workflow prompt specifies explicit input/output paths, always use those paths. The examples below show the default draft mode layout; the orchestrator may provide different paths via `<base-path>`.
+
 **Example workflow (AsciiDoc, draft mode):**
-1. Extract JIRA ID from plan filename (e.g., `plan_rhaistrat_248_*.md` → `rhaistrat-248`)
-2. Read plan from `.claude/docs/plans/plan_*.md`
-3. Create drafts folder: `mkdir -p .claude/docs/drafts/<jira-id>/modules`
-4. For each module in the plan:
+1. Read the plan from the path specified in the prompt
+2. Create the output folder: `mkdir -p <output-dir>/modules`
+3. For each module in the plan:
    - Write the complete AsciiDoc content
-   - Save to `.claude/docs/drafts/<jira-id>/modules/<module-name>.adoc`
-5. Write assembly files to `.claude/docs/drafts/<jira-id>/assembly_<name>.adoc`
-6. Create an index file at `.claude/docs/drafts/<jira-id>/_index.md`
+   - Save to `<output-dir>/modules/<module-name>.adoc`
+4. Write assembly files to `<output-dir>/assembly_<name>.adoc`
+5. Create an index file at `<output-dir>/_index.md`
 
 **Example workflow (MkDocs, draft mode):**
-1. Extract JIRA ID from plan filename (e.g., `plan_rhaistrat_248_*.md` → `rhaistrat-248`)
-2. Read plan from `.claude/docs/plans/plan_*.md`
-3. Create drafts folder: `mkdir -p .claude/docs/drafts/<jira-id>/docs`
-4. For each page in the plan:
+1. Read the plan from the path specified in the prompt
+2. Create the output folder: `mkdir -p <output-dir>/docs`
+3. For each page in the plan:
    - Write the complete Markdown content with YAML frontmatter
-   - Save to `.claude/docs/drafts/<jira-id>/docs/<page-name>.md`
-5. Generate `mkdocs-nav.yml` with the suggested navigation structure
-6. Create an index file at `.claude/docs/drafts/<jira-id>/_index.md`
+   - Save to `<output-dir>/docs/<page-name>.md`
+4. Generate `mkdocs-nav.yml` with the suggested navigation structure
+5. Create an index file at `<output-dir>/_index.md`
 
 ## Format-specific references
 

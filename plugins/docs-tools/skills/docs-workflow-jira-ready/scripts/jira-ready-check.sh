@@ -61,7 +61,7 @@ fi
 # --- Validate environment ---
 if [[ -z "${JIRA_AUTH_TOKEN:-}" ]]; then
   # Try sourcing ~/.env
-  set -a && source ~/.env 2>/dev/null && set +a
+  set -a; source ~/.env 2>/dev/null || true; set +a
 fi
 
 if [[ -z "${JIRA_AUTH_TOKEN:-}" ]]; then
@@ -87,7 +87,7 @@ JIRA_OUTPUT=$(python3 "$JIRA_READER" --jql "$JQL" --max-results "$MAX_RESULTS" 2
 
 # Extract ticket keys from summary output
 # jira_reader.py returns a bare object (not array) when exactly 1 result is found
-ALL_TICKETS=$(echo "$JIRA_OUTPUT" | jq -r 'if type == "array" then .[].issue_key else .issue_key end // empty' 2>/dev/null)
+ALL_TICKETS=$(echo "$JIRA_OUTPUT" | jq -r '(if type == "array" then .[].issue_key else .issue_key end) // empty' 2>/dev/null)
 
 if [[ -z "$ALL_TICKETS" ]]; then
   # Output empty result

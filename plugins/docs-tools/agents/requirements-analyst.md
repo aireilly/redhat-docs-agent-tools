@@ -1,7 +1,7 @@
 ---
 name: requirements-analyst
 description: Use PROACTIVELY when analyzing JIRA tickets, PRs, or engineering specs for documentation requirements. Parses JIRA issues, PRs, Google Docs, and engineering specs to extract documentation requirements and map them to modular documentation modules. Uses web search to expand research with external sources. MUST BE USED for any requirements analysis or documentation scoping task.
-tools: Read, Glob, Grep, Edit, Bash, Skill, WebSearch
+tools: Read, Glob, Grep, Edit, Bash, Skill, WebSearch, WebFetch
 skills: docs-tools:jira-reader, docs-tools:article-extractor, docs-tools:redhat-docs-toc, docs-tools:docs-convert-gdoc-md
 ---
 

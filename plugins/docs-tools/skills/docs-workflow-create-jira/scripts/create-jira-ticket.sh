@@ -103,14 +103,14 @@ if [[ -z "$NEW_ISSUE_KEY" || "$NEW_ISSUE_KEY" == "null" ]]; then
 fi
 
 # --- Link new ticket to parent (link type is "Document", not "Documents") ---
+LINK_PAYLOAD=$(jq -n \
+  --arg ticket "$TICKET" \
+  --arg new_key "$NEW_ISSUE_KEY" \
+  '{ type: {name: "Document"}, outwardIssue: {key: $ticket}, inwardIssue: {key: $new_key} }')
 LINK_HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
   -u "${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}" \
   -H "Content-Type: application/json" \
-  --data "{
-    \"type\": { \"name\": \"Document\" },
-    \"outwardIssue\": { \"key\": \"${TICKET}\" },
-    \"inwardIssue\": { \"key\": \"${NEW_ISSUE_KEY}\" }
-  }" \
+  --data "$LINK_PAYLOAD" \
   "${JIRA_URL}/rest/api/2/issueLink")
 
 if [[ "$LINK_HTTP_CODE" -lt 200 || "$LINK_HTTP_CODE" -ge 300 ]]; then
