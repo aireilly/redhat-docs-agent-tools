@@ -110,13 +110,13 @@ reviews:
           MODERATE (60-84%): Flag with recommendation to differentiate
           LOW (<60%): Pass silently
 
-    tools:
-      shellcheck:
-        enabled: true
-      yamllint:
-        enabled: true
-      markdownlint:
-        enabled: true
+  tools:
+    shellcheck:
+      enabled: true
+    yamllint:
+      enabled: true
+    markdownlint:
+      enabled: true
 
 chat:
   auto_reply: true
