@@ -1,7 +1,7 @@
 ---
 description: Run a CQA 2.1 content quality assessment against a Red Hat modular documentation repository
 argument-hint: <docs-repo-path> [--scope repo|assembly|topic] [--mode assess|fix]
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, Skill
 ---
 
 ## Name

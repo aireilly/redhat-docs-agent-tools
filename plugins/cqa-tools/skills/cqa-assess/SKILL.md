@@ -1,7 +1,7 @@
 ---
 name: cqa-assess
 description: Use when starting or continuing a full CQA 2.1 content quality assessment. Guides through all three tabs (Pre-migration, Quality, Onboarding) parameter by parameter.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Skill
 ---
 
 # CQA 2.1 Content Quality Assessment
