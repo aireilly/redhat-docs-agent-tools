@@ -4,81 +4,94 @@ icon: lucide/layers
 
 # Learn Cursor fundamentals for Agent Tools
 
-Cursor is a VS Code-based editor with built-in AI assistance. In the Agent panel, you chat with a model that can read files, propose edits, and run commands. Red Hat Docs Agent Tools gives the model project-specific skills, rules, and naming conventions so the model's output matches the guidelines.
+Cursor is a VS Code-based editor with integrated agentic AI assistance
+
+In the Cursor UI, you attach the files and rules from Red Hat Docs Agent Tools repository to your chat prompt so that the selected agentic model can plan, edit, review, and suggest changes to your documentation using the skills and rules as defined in the Agent Tools files.
+
+The Agent Tools repository contains project-specific Markdown under `plugins/` and rules in [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) and [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules).
+
+## Skills and rules
+
+**Skills** in this repository are Markdown files under `plugins/<plugin>/skills/` (often named `SKILL.md`). They hold checklists, style guidance, and domain knowledge you want the model to follow for a given task (for example Red Hat supplementary style or modular-docs structure).
+
+In Cursor, you **use** a skill by attaching the file to the chat (for example with `@`) and by naming the fully qualified **`plugin:skill`** ID in your prompt (for example `docs-tools:rh-ssg-formatting`). You would use skills when you want repeatable, repo-aligned review or editing behavior without pasting long instructions every time.
+
+**Rules** here means two things that work together:
+
+- **[AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md)** at the repository root — project instructions you should attach so the model knows naming, script paths, and how this repository expects contributions to work.
+- **[`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules)** — Cursor-specific rule files the product can apply automatically so baseline expectations stay in force even when you only attach a single skill file.
+
+You would use rules so answers stay consistent with team conventions, point to the right scripts, and use **`plugin:skill`** names instead of vague or bare skill labels.
 
 ## How the repository works with Cursor
 
-Skills live under `plugins/<plugin>/skills/` as plain Markdown files. The project rules in [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) and [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules) tell the model how to reference those skills, run scripts, and follow contribution conventions.
+Skills are located under `plugins/<plugin>/skills/` as Markdown files. AGENTS.md and `.cursor/rules/` tell the model how to reference skills, run scripts, and follow contribution conventions.
 
-Cursor does **not** provide a Claude Code-style marketplace. You work with the repository on disk and attach files with `@`. See [Cursor workflows](../contribute/cursor-workflows.md) for more about what differs from Claude Code. You must use Git to keep the local version of the upstream Agent Tools repository up to date.
+Cursor does **not** provide a Claude Code-style marketplace. In Cursor, you work from the cloned repo on disk and add skill files to the chat with `@`. Keep the Agent Tools clone current with Git when you rely on upstream skills.
 
-## Working in the Cursor UI
+## Where to learn about the Cursor interface
 
-### Choose a mode
+You can learn more about how to use the Cursor UI (Agent panel, modes, **`@` mentions**, checkpoints, models, and billing) in the official Cursor documentation:
 
-Open the **Agent** panel (**Cmd+I** on macOS, **Ctrl+I** on Windows and Linux). Pick a mode from the input area, then type your prompt.
+- [Cursor documentation](https://cursor.com/docs) — main help hub
+- [Cursor Agent overview](https://cursor.com/docs/agent/overview) — tools, checkpoints, and related behavior
+- [Agent modes](https://cursor.com/docs/agent/modes) — Plan mode and other modes
+- [Ask mode](https://cursor.com/help/ai-features/ask-mode) — read-only exploration
+- [Models and pricing](https://cursor.com/docs/models) — model selection and plans
 
-| Mode | Purpose | When to use |
-| --- | --- | --- |
-| **Ask** | Read-only answers and file exploration | Learn the layout, read skills, confirm conventions |
-| **Plan** | Written plan before broad changes | Ambiguous scope, many files, or architectural choices |
-| **Agent** | Edit files and run commands | Everyday tasks you already understand |
-| **Debug** | Fix runtime failures with logs and reproduction | Scripts or tests that fail at run time (not Markdown-only edits) |
+ Choose **Agent** mode if you want a Cursor agent to carry out your instructions immediately and make changes without prompting.
 
-Use **Shift+Tab** to cycle modes. For more detail see the [Cursor documentation](https://cursor.com/docs).
+ Choose **Plan** mode if you want to ask Cursor to help you develop a plan for more complex work that you can approve before the agent makes any changes.
 
-### Choose a model
+ Choose **Ask** mode when you only need to explore options without having an agent make any changes.
 
-Leave the **model** on **Auto** unless your team sets a policy. **Auto** balances quality, speed, and cost. For details see [Models and pricing](https://cursor.com/docs/models).
+ Choose **Debug** for runtime code failures in scripts or tests, rather than for for content editing.
 
-## Load project instructions
+The available agentic models available varies. The default model option is **Auto**, which will dynamically choose an available model based on the complexity of the prompt you provide to Cursor.
 
-The repository root of Red Hat Agent Tools contains the [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) file. This file summarizes skill naming, script paths, and contribution rules. You must attach it to every new chat thread.
+## Load project instructions from AGENTS.md
 
-### Attach AGENTS.md
+[AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) at the repository root summarizes skill naming, script paths, and contribution rules. Attach it when you start a chat so that the agent's suggestions stay aligned with the defined rules and guardrails.
 
-1. Open the **Agent** panel and start a message.
-1. Type **`@`**, then start typing **`AGENTS`** and select **AGENTS.md** from the list.
-1. Confirm the file appears as an attachment in the compose box.
-1. Write your request on a new line.
-
-If `@` does not show the file, type the full path as plain text (for example `@AGENTS.md`), or open the file in the editor first and use the "add to chat" action.
+Follow the Cursor documentation for adding files to provide context in your prompt (for example **`@`** and file pickers). Confirm that the attachment lists **AGENTS.md** from the Agent Tools root. If the picker is unclear, open `AGENTS.md` in the editor and use the product’s action to include it in context.
 
 ### Automatic rules
 
-Cursor applies the rules found in files under [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules) without you doing anything. Those rules pair best with AGENTS.md when you want the model to follow the full project contract.
+Cursor can apply rules that exist under [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules) without manual steps. Those rules work best together in conjunction with the constraints defined in AGENTS.md.
 
-### When to reload
+### When to attach AGENTS.md again
 
-Re-attach AGENTS.md when you start a new thread, switch tasks, or notice the model ignoring naming or path conventions.
+Attach AGENTS.md again when you open a new thread, change tasks, or see the model ignore naming or path conventions.
 
 ## Terminology
 
-- **workspace** — The folder (or folders) Cursor has open as the project.
+- **workspace** — The folder or folders Cursor has open for the project.
+- **skill** — Markdown under `plugins/<plugin>/skills/` that encodes knowledge or checklists for a named capability. See [Skills and rules](#skills-and-rules).
+- **rules** — [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) and files under [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules) that constrain how the model should behave in this repository. See [Skills and rules](#skills-and-rules).
 - **`plugin:skill`** — A fully qualified skill name such as `docs-tools:jira-reader`. The repository requires that form everywhere.
-- **`@` mention** — Typing `@` in the input to attach a file so the model includes it in context.
-- **Agent panel** — The Cursor sidebar for chat and Agent tasks. An **agent file** under `plugins/<plugin>/agents/` is unrelated Markdown.
-- **model** — The AI model selected from the dropdown. **Max Mode** uses a larger context window.
+- **`@` mention** — The product’s way to attach a file or symbol so the model includes it in context.
+- **Agent panel** — The Cursor area for chat and agent tasks. An **agent file** under `plugins/<plugin>/agents/` is unrelated Markdown.
+- **model** — The AI model selected for a request. **Max Mode** uses a larger context window when your plan allows it.
 - **Claude Code** — A separate assistant product that shares the same plugin Markdown.
 
 ## Privacy and responsibility
 
-Do not paste secrets, credentials, or customer-only content into the chat. Follow your organization's policies for AI-assisted editing.
+Do not paste secrets, credentials, or customer-only content into the chat. Follow your organization’s policies for AI-assisted editing. For data handling, see the [Cursor documentation](https://cursor.com/docs).
 
 ## Common tips and troubleshooting
 
 ### The assistant suggests bare skill names or wrong script paths
 
-Start a **new thread**, attach [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) again, and ask for `plugin:skill` names and paths **relative to the repository root**.
+Start a new thread, attach [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) again, and ask for `plugin:skill` names and paths **relative to the repository root**.
 
 ### Agent changed files you did not intend
 
-Cursor offers **checkpoints** to roll back edits. See the [Cursor Agent](https://cursor.com/docs/agent/overview) overview. For permanent history, use **Git** to inspect diffs and revert. You can also tell the Agent to revert changes to return to a known good state.
+You can revert changes directly in the Cursor UI. You can also instruct Cursor to use Git to inspect diffs and revert changes, if needed. See the [Cursor Agent overview](https://cursor.com/docs/agent/overview) for information about how to create checkpoints to save the state of your project at a given point in time.
 
 ### Usage limits, model errors, or empty responses
 
-Open your Cursor account **usage** or **billing** view and confirm quota remains. Try **Auto** or another model. For product errors see the [Cursor documentation](https://cursor.com/docs).
+See your Cursor account usage or billing and the [Cursor documentation](https://cursor.com/docs) for product errors.
 
 ### Debug mode loops without fixing the issue
 
-Provide **exact** reproduction steps, expected versus actual output, and any log text. If the problem is only wording in Markdown, switch to **Agent** mode.
+Give exact reproduction steps, expected versus actual output, and any log text. For content editing issues, use **Agent** mode instead of **Debug**. See [Debug mode](https://cursor.com/docs/agent/debug-mode) in the Cursor documentation.
