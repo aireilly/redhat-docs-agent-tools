@@ -45,9 +45,9 @@ You can learn more about how to use the Cursor UI (Agent panel, modes, **`@` men
 
  Choose **Ask** mode when you only need to explore options without having an agent make any changes.
 
- Choose **Debug** for runtime code failures in scripts or tests, rather than for for content editing.
+ Choose **Debug** for runtime code failures in scripts or tests rather than for content editing tasks.
 
-The available agentic models available varies. The default model option is **Auto**, which will dynamically choose an available model based on the complexity of the prompt you provide to Cursor.
+The agentic models you can choose to use vary. The default model option is **Auto**, which dynamically chooses an available model based on the complexity of the prompt you provide to Cursor.
 
 ## Load project instructions from AGENTS.md
 
