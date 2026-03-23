@@ -1,6 +1,6 @@
 ---
 description: Run the multi-stage documentation workflow for a JIRA ticket. Orchestrates agents sequentially — requirements analysis, planning, writing, technical review, and style review
-argument-hint: [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--integrate]
+argument-hint: [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--draft]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task, WebSearch, WebFetch
 ---
 
@@ -10,11 +10,13 @@ docs-tools:docs-workflow
 
 ## Synopsis
 
-`/docs-tools:docs-workflow [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--integrate]`
+`/docs-tools:docs-workflow [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--draft]`
 
 ## Description
 
-Run the multi-stage documentation workflow for a JIRA ticket. This command orchestrates specialized agents sequentially — requirements analysis, planning, writing, technical review, style review, and optionally integration into the repo's build framework — to produce complete documentation in AsciiDoc (default) or Material for MkDocs Markdown format.
+Run the multi-stage documentation workflow for a JIRA ticket. This command orchestrates specialized agents sequentially — requirements analysis, planning, writing, technical review, and style review — to produce complete documentation in AsciiDoc (default) or Material for MkDocs Markdown format.
+
+By default, the workflow creates a clean branch from the upstream default branch and writes documentation directly into the repository at the correct locations for the repo's build framework. Use `--draft` to write to a `.claude/docs/` staging area on the current branch instead.
 
 ## Implementation
 
@@ -24,27 +26,44 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 |-------|-------|-------------|
 | 1. Requirements | requirements-analyst | Parses JIRA issues, PRs, and specs to extract documentation requirements |
 | 2. Planning | docs-planner | Creates documentation plans with JTBD framework and gap analysis |
-| 3. Writing | docs-writer | Writes complete documentation — AsciiDoc modules or MkDocs Markdown pages |
+| 3. Writing | docs-writer | Writes complete documentation directly in the repo (default) or to staging area (`--draft`) |
 | 4. Technical review | technical-reviewer | Reviews for technical accuracy — code examples, prerequisites, commands, failure paths |
 | 5. Style review | docs-reviewer | Reviews with Vale linting and style guide checks, edits files in place |
-| 6. Integrate | docs-integrator | Optional: integrates drafts into the repo's documentation build framework |
-| 7. Create JIRA | *(direct bash/curl)* | Optional: creates a docs JIRA ticket linked to the parent ticket |
+| 6. Create JIRA | *(direct bash/curl)* | Optional: creates a docs JIRA ticket linked to the parent ticket |
 
 ## Output Structure
 
-**AsciiDoc (default):**
+### Default mode (update-in-place)
 
-```
+Documentation files are written directly to the repository at locations determined by the detected build framework. A manifest is saved to track what was written:
+
+```text
 .claude/docs/
 ├── workflow/           # Workflow state files (JSON)
 ├── requirements/       # Stage 1 outputs
 ├── plans/              # Stage 2 outputs
-└── drafts/             # Stage 3–6 outputs (per-ticket folders)
+└── drafts/             # Manifest and review reports only
+    └── <ticket>/
+        ├── _index.md               # Manifest of files written and their repo locations
+        ├── _technical_review.md    # Stage 4 technical review report
+        └── _review_report.md      # Stage 5 review report
+```
+
+Documentation files themselves are placed at their correct repo locations (e.g., `docs/modules/ROOT/pages/`, `modules/`, `docs/`, etc.), and existing files are updated when required.
+
+### Draft mode (`--draft`)
+
+**AsciiDoc (default):**
+
+```text
+.claude/docs/
+├── workflow/           # Workflow state files (JSON)
+├── requirements/       # Stage 1 outputs
+├── plans/              # Stage 2 outputs
+└── drafts/             # Stage 3–5 outputs (per-ticket folders)
     └── <ticket>/
         ├── _index.md
         ├── _review_report.md       # Stage 5 review report
-        ├── _integration_plan.md    # Stage 6 integration plan (--integrate)
-        ├── _integration_report.md  # Stage 6 integration report (--integrate)
         ├── assembly_*.adoc
         └── modules/
             ├── <concept>.adoc
@@ -54,17 +73,15 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 
 **MkDocs Markdown (`--mkdocs`):**
 
-```
+```text
 .claude/docs/
 ├── workflow/           # Workflow state files (JSON)
 ├── requirements/       # Stage 1 outputs
 ├── plans/              # Stage 2 outputs
-└── drafts/             # Stage 3–6 outputs (per-ticket folders)
+└── drafts/             # Stage 3–5 outputs (per-ticket folders)
     └── <ticket>/
         ├── _index.md
         ├── _review_report.md       # Stage 5 review report
-        ├── _integration_plan.md    # Stage 6 integration plan (--integrate)
-        ├── _integration_report.md  # Stage 6 integration report (--integrate)
         ├── mkdocs-nav.yml          # Suggested nav tree fragment
         └── docs/
             ├── <concept>.md
@@ -83,7 +100,7 @@ Run the multi-stage documentation workflow for a JIRA ticket. This command orche
 
 - **--pr \<url\>**: GitHub PR or GitLab MR URL to include in requirements analysis. Can be specified multiple times across start/resume invocations.
 - **--mkdocs**: Output Material for MkDocs Markdown instead of AsciiDoc. Produces `.md` files with YAML frontmatter in a `docs/` subfolder, plus a `mkdocs-nav.yml` navigation fragment.
-- **--integrate**: Integrate generated documentation into the repository's build framework after the style review completes. Detects the repository's documentation build system and moves files to the correct locations. Runs in two phases: PLAN (propose changes, ask for confirmation) then EXECUTE (apply changes). Can be passed on `start` or `resume`.
+- **--draft**: Write documentation to the `.claude/docs/drafts/` staging area on the current branch instead of creating a new branch and writing directly to the repo. No build framework detection or file placement is performed.
 - **--create-jira \<PROJECT\>**: Create a documentation JIRA ticket in the specified project (e.g., `INFERENG`) after the review stage completes. The project key is mandatory — there is no default. The created ticket is linked to the parent ticket with a "Document" relationship. Can be passed on `start` or `resume`.
 
 ## Step-by-Step Instructions
@@ -96,18 +113,22 @@ Parse the action, ticket, and options from the command arguments.
 ACTION="${1:-start}"
 TICKET="${2:-}"
 
-# Parse --pr, --mkdocs, and --create-jira flags from remaining arguments
+# Parse --pr, --mkdocs, --draft, and --create-jira flags from remaining arguments
 PR_URLS=()
 CREATE_JIRA_PROJECT=""
 OUTPUT_FORMAT="adoc"
-INTEGRATE=false
+DRAFT=false
 shift 2 2>/dev/null
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --pr) PR_URLS+=("$2"); shift 2 ;;
+        --pr)
+            [[ -n "${2:-}" && "${2:0:1}" != "-" ]] || { echo "ERROR: --pr requires a URL"; exit 1; }
+            PR_URLS+=("$2"); shift 2 ;;
         --mkdocs) OUTPUT_FORMAT="mkdocs"; shift ;;
-        --create-jira) CREATE_JIRA_PROJECT="$2"; shift 2 ;;
-        --integrate) INTEGRATE=true; shift ;;
+        --create-jira)
+            [[ -n "${2:-}" && "${2:0:1}" != "-" ]] || { echo "ERROR: --create-jira requires a project key"; exit 1; }
+            CREATE_JIRA_PROJECT="$2"; shift 2 ;;
+        --draft) DRAFT=true; shift ;;
         *) shift ;;
     esac
 done
@@ -115,18 +136,20 @@ done
 # Validate ticket is provided
 if [[ -z "$TICKET" ]]; then
     echo "ERROR: Ticket identifier is required."
-    echo "Usage: /docs-tools:docs-workflow [start|resume|status] <TICKET> [--pr <url>] [--mkdocs] [--integrate] [--create-jira <PROJECT>]"
+    echo "Usage: /docs-tools:docs-workflow [start|resume|status] <TICKET> [--pr <url>] [--mkdocs] [--draft] [--create-jira <PROJECT>]"
     exit 1
 fi
 
 echo "Action: ${ACTION}"
 echo "Ticket: ${TICKET}"
 echo "Format: ${OUTPUT_FORMAT}"
+if [[ "$DRAFT" == "true" ]]; then
+    echo "Mode: draft (staging area)"
+else
+    echo "Mode: default (update-in-place on new branch)"
+fi
 if [[ ${#PR_URLS[@]} -gt 0 ]]; then
     echo "PR URLs: ${PR_URLS[*]}"
-fi
-if [[ "$INTEGRATE" == "true" ]]; then
-    echo "Integrate: enabled"
 fi
 if [[ -n "$CREATE_JIRA_PROJECT" ]]; then
     echo "Create JIRA in project: ${CREATE_JIRA_PROJECT}"
@@ -186,22 +209,59 @@ echo ""
 
 **If JIRA_AUTH_TOKEN is missing, STOP IMMEDIATELY.** Do not proceed without it. Display the error and available env files.
 
-#### JIRA Environment File Fallback
+### Step 2b: Create Work Branch (default mode only)
 
-If JIRA access fails later during requirements analysis, try alternate env files:
-
-1. Search for `~/.env*` files containing "jira"
-2. Source each alternate file and retry
-3. If all fail, reset to `~/.env` and retry
-4. If still failing, STOP and report the error
+**Skip this step entirely when `--draft` is set or when the action is not `start`.** Only create a branch on `start` in default (update-in-place) mode.
 
 ```bash
-# List alternate JIRA env files
-ls -la ~/.env*jira* ~/.env*.jira* 2>/dev/null
+if [[ "$ACTION" == "start" && "$DRAFT" != "true" ]]; then
+    JIRA_URL="https://redhat.atlassian.net"
 
-# Source an alternate env file
-set -a && source ~/.env.jira_internal && set +a
+    # Auto-detect remote and default branch (prefer upstream, then origin, then first listed)
+    if git remote | grep -qx "upstream"; then
+        REMOTE="upstream"
+    elif git remote | grep -qx "origin"; then
+        REMOTE="origin"
+    else
+        REMOTE=$(git remote | head -1)
+    fi
+    DEFAULT_BRANCH=$(git remote show "$REMOTE" 2>/dev/null | awk '/HEAD branch/ {print $NF}')
+
+    echo "Detected remote: ${REMOTE}, default branch: ${DEFAULT_BRANCH}"
+
+    # Fetch latest upstream
+    git fetch "$REMOTE" "$DEFAULT_BRANCH"
+
+    # Fetch JIRA summary to derive branch name
+    SUMMARY=$(curl -s \
+      -u "${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}" \
+      -H "Content-Type: application/json" \
+      "${JIRA_URL}/rest/api/2/issue/${TICKET}?fields=summary" | jq -r '.fields.summary')
+
+    if [[ -z "$SUMMARY" || "$SUMMARY" == "null" ]]; then
+        echo "ERROR: Could not fetch JIRA summary for ${TICKET}."
+        echo "Check JIRA_AUTH_TOKEN and JIRA_EMAIL."
+        exit 1
+    fi
+
+    # Slugify summary to ~3 words for branch name
+    SHORT_DESC=$(echo "$SUMMARY" | tr '[:upper:]' '[:lower:]' | \
+      sed 's/[^a-z0-9 ]//g' | awk '{for(i=1;i<=3&&i<=NF;i++) printf "%s-",$i}' | sed 's/-$//')
+    TICKET_LOWER=$(echo "$TICKET" | tr '[:upper:]' '[:lower:]')
+    BRANCH_NAME="${TICKET_LOWER}_${SHORT_DESC}"
+
+    echo "Creating branch: ${BRANCH_NAME}"
+    if git show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
+        git checkout "${BRANCH_NAME}"
+        echo "Switched to existing branch ${BRANCH_NAME}"
+    else
+        git checkout -b "$BRANCH_NAME" "$REMOTE/$DEFAULT_BRANCH"
+        echo "Branch ${BRANCH_NAME} created from ${REMOTE}/${DEFAULT_BRANCH}"
+    fi
+fi
 ```
+
+If the JIRA summary cannot be fetched, STOP — this also validates JIRA access before proceeding.
 
 ### Step 3: Initialize or Load State
 
@@ -222,7 +282,10 @@ mkdir -p "${CLAUDE_DOCS_DIR}/workflow" "${CLAUDE_DOCS_DIR}/requirements" "${CLAU
 
 #### For `start` action
 
-If a state file already exists, treat it as a resume. Otherwise, create a new state file:
+There are two cases:
+
+1. **State file exists**: The workflow is in progress. Treat it as a resume — load the existing state file and skip to Step 4.
+2. **No state file exists**: Create a new state file using the template below.
 
 ```bash
 NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -232,6 +295,11 @@ PR_URLS_JSON="[]"
 if [[ ${#PR_URLS[@]} -gt 0 ]]; then
     PR_URLS_JSON=$(printf '%s\n' "${PR_URLS[@]}" | jq -R . | jq -s .)
 fi
+
+# Safely encode values that may contain special characters for JSON
+SUMMARY_JSON=$(if [[ -n "${SUMMARY:-}" ]]; then printf '%s' "$SUMMARY" | jq -Rs .; else echo null; fi)
+BRANCH_NAME_JSON=$(if [[ -n "${BRANCH_NAME:-}" ]]; then printf '%s' "$BRANCH_NAME" | jq -Rs .; else echo null; fi)
+CREATE_JIRA_JSON=$(if [[ -n "$CREATE_JIRA_PROJECT" ]]; then printf '%s' "$CREATE_JIRA_PROJECT" | jq -Rs .; else echo null; fi)
 
 cat > "$STATE_FILE" << EOF
 {
@@ -243,11 +311,12 @@ cat > "$STATE_FILE" << EOF
   "options": {
     "pr_urls": ${PR_URLS_JSON},
     "format": "${OUTPUT_FORMAT}",
-    "integrate": ${INTEGRATE},
-    "create_jira_project": $(if [[ -n "$CREATE_JIRA_PROJECT" ]]; then printf '"%s"' "$CREATE_JIRA_PROJECT"; else echo null; fi)
+    "draft": ${DRAFT},
+    "create_jira_project": ${CREATE_JIRA_JSON}
   },
   "data": {
-    "jira_summary": null,
+    "jira_summary": ${SUMMARY_JSON},
+    "branch_name": ${BRANCH_NAME_JSON},
     "related_prs": []
   },
   "stages": {
@@ -256,7 +325,6 @@ cat > "$STATE_FILE" << EOF
     "writing": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
     "technical_review": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null, "iterations": 0},
     "review": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
-    "integrate": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null, "phase": null},
     "create_jira": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null}
   }
 }
@@ -283,14 +351,6 @@ for url in "${PR_URLS[@]}"; do
     mv "$TMP" "$STATE_FILE"
     echo "Added PR/MR URL: ${url}"
 done
-
-# Set integrate if provided on resume
-if [[ "$INTEGRATE" == "true" ]]; then
-    TMP=$(mktemp)
-    jq '.options.integrate = true' "$STATE_FILE" > "$TMP"
-    mv "$TMP" "$STATE_FILE"
-    echo "Set integrate: enabled"
-fi
 
 # Set create_jira_project if provided on resume
 if [[ -n "$CREATE_JIRA_PROJECT" ]]; then
@@ -320,21 +380,27 @@ echo ""
 STATUS=$(jq -r '.status' "$STATE_FILE")
 CURRENT=$(jq -r '.current_stage' "$STATE_FILE")
 PR_LIST=$(jq -r '.options.pr_urls // [] | join(", ")' "$STATE_FILE")
+DRAFT_MODE=$(jq -r '.options.draft // false' "$STATE_FILE")
+BRANCH=$(jq -r '.data.branch_name // ""' "$STATE_FILE")
 
 echo "Overall Status: ${STATUS}"
 echo "Current Stage:  ${CURRENT}"
+if [[ "$DRAFT_MODE" == "true" ]]; then
+    echo "Mode:           draft (staging area)"
+else
+    echo "Mode:           update-in-place"
+    if [[ -n "$BRANCH" && "$BRANCH" != "null" ]]; then
+        echo "Branch:         ${BRANCH}"
+    fi
+fi
 if [[ -n "$PR_LIST" ]]; then
     echo "PR/MR URLs:     ${PR_LIST}"
 fi
 echo ""
 echo "Stages:"
 
-INTEGRATE_OPT=$(jq -r '.options.integrate // false' "$STATE_FILE")
 CREATE_JIRA_PROJ=$(jq -r '.options.create_jira_project // ""' "$STATE_FILE")
 STAGES="requirements planning writing technical_review review"
-case "$INTEGRATE_OPT" in
-    "true") STAGES="$STAGES integrate" ;;
-esac
 case "$CREATE_JIRA_PROJ" in
     ""|"null") ;;
     *) STAGES="$STAGES create_jira" ;;
@@ -369,12 +435,8 @@ echo ""
 Find the first stage that is not completed. If all stages are completed, report that the workflow is done.
 
 ```bash
-INTEGRATE_OPT=$(jq -r '.options.integrate // false' "$STATE_FILE")
 CREATE_JIRA_PROJ=$(jq -r '.options.create_jira_project // ""' "$STATE_FILE")
 STAGES="requirements planning writing technical_review review"
-case "$INTEGRATE_OPT" in
-    "true") STAGES="$STAGES integrate" ;;
-esac
 case "$CREATE_JIRA_PROJ" in
     ""|"null") ;;
     *) STAGES="$STAGES create_jira" ;;
@@ -399,7 +461,7 @@ If all stages are completed, show the status summary and STOP.
 
 ### Step 5: Run Stages Sequentially
 
-Run each remaining stage in order: `requirements` → `planning` → `writing` → `technical_review` → `review` → `integrate` (if `--integrate` was specified) → `create_jira` (if `--create-jira` was specified).
+Run each remaining stage in order: `requirements` → `planning` → `writing` → `technical_review` → `review` → `create_jira` (if `--create-jira` was specified).
 
 For each stage:
 
@@ -541,13 +603,14 @@ After the agent completes, verify the output file exists.
 
 ### Stage 3: Writing (docs-writer)
 
-The writing stage output structure depends on the `--mkdocs` option.
+The writing stage behavior depends on whether `--draft` mode is active and the `--mkdocs` option.
 
 **Agent tool parameters:**
 
-Read the format from the state file:
+Read the format and draft mode from the state file:
 ```bash
 OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
+DRAFT_MODE=$(jq -r '.options.draft // false' "$STATE_FILE")
 ```
 
 - `subagent_type`: `docs-tools:docs-writer`
@@ -564,12 +627,18 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 TICKET_LOWERCASE=$(echo "$TICKET" | tr '[:upper:]' '[:lower:]')
 DRAFTS_DIR="${CLAUDE_DOCS_DIR}/drafts/${TICKET_LOWERCASE}"
 
-if [[ "$OUTPUT_FORMAT" == "mkdocs" ]]; then
-    DOCS_DIR="${DRAFTS_DIR}/docs"
-    mkdir -p "${DOCS_DIR}"
+if [[ "$DRAFT_MODE" == "true" ]]; then
+    # Draft mode: staging area
+    if [[ "$OUTPUT_FORMAT" == "mkdocs" ]]; then
+        DOCS_DIR="${DRAFTS_DIR}/docs"
+        mkdir -p "${DOCS_DIR}"
+    else
+        MODULES_DIR="${DRAFTS_DIR}/modules"
+        mkdir -p "${MODULES_DIR}"
+    fi
 else
-    MODULES_DIR="${DRAFTS_DIR}/modules"
-    mkdir -p "${MODULES_DIR}"
+    # Default mode: manifest directory only
+    mkdir -p "${DRAFTS_DIR}"
 fi
 OUTPUT_FILE="${DRAFTS_DIR}/_index.md"
 ```
@@ -580,13 +649,55 @@ OUTPUT_FILE="${DRAFTS_DIR}/_index.md"
 PREV_OUTPUT=$(jq -r '.stages.planning.output_file // ""' "$STATE_FILE")
 ```
 
-**Prompt (AsciiDoc — default):**
+**Prompt (Default mode — update-in-place, AsciiDoc):**
 
 > Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
 >
 > Read the plan from: `<PREV_OUTPUT>`
 >
 > **IMPORTANT**: Write COMPLETE .adoc files, not summaries or outlines.
+>
+> **Placement mode: UPDATE-IN-PLACE**
+>
+> Place files directly in the repository following existing conventions. Before writing any files:
+> 1. Detect the repository's documentation build framework (Antora, ccutil, Sphinx, etc.)
+> 2. Analyze existing file naming conventions, directory layout, include patterns, and nav/TOC structure
+> 3. Determine the correct target path for each module based on the detected framework and conventions
+>
+> Write modules and assemblies directly to their correct repo locations. Update navigation/TOC files as needed, following existing patterns.
+>
+> Create a manifest at `<DRAFTS_DIR>/_index.md` listing all files written and their repo locations.
+
+**Prompt (Default mode — update-in-place, MkDocs):**
+
+> Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
+>
+> Read the plan from: `<PREV_OUTPUT>`
+>
+> **IMPORTANT**: Write COMPLETE .md files with YAML frontmatter (title, description), not summaries or outlines. Use Material for MkDocs conventions: admonitions (`!!! note`, `!!! warning`), content tabs, code blocks with titles, and proper heading hierarchy starting at `# h1`.
+>
+> **Placement mode: UPDATE-IN-PLACE**
+>
+> Place files directly in the repository following existing conventions. Before writing any files:
+> 1. Detect the repository's documentation build framework (MkDocs, Docusaurus, Hugo, etc.)
+> 2. Analyze existing file naming conventions, directory layout, and nav structure
+> 3. Determine the correct target path for each page based on the detected framework and conventions
+>
+> Write pages directly to their correct repo locations. Update `mkdocs.yml` nav section or equivalent as needed, following existing patterns.
+>
+> Create a manifest at `<DRAFTS_DIR>/_index.md` listing all files written and their repo locations.
+
+**Prompt (Draft mode — staging area, AsciiDoc):**
+
+> Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
+>
+> Read the plan from: `<PREV_OUTPUT>`
+>
+> **IMPORTANT**: Write COMPLETE .adoc files, not summaries or outlines.
+>
+> **Placement mode: DRAFT (staging area)**
+>
+> Save files to the staging area. Do not modify any existing repository files.
 >
 > Output folder structure:
 > ```
@@ -603,13 +714,17 @@ PREV_OUTPUT=$(jq -r '.stages.planning.output_file // ""' "$STATE_FILE")
 > Save assemblies to: `<DRAFTS_DIR>/`
 > Create index at: `<DRAFTS_DIR>/_index.md`
 
-**Prompt (MkDocs — `--mkdocs`):**
+**Prompt (Draft mode — staging area, MkDocs):**
 
 > Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
 >
 > Read the plan from: `<PREV_OUTPUT>`
 >
 > **IMPORTANT**: Write COMPLETE .md files with YAML frontmatter (title, description), not summaries or outlines. Use Material for MkDocs conventions: admonitions (`!!! note`, `!!! warning`), content tabs, code blocks with titles, and proper heading hierarchy starting at `# h1`.
+>
+> **Placement mode: DRAFT (staging area)**
+>
+> Save files to the staging area. Do not modify any existing repository files.
 >
 > Output folder structure:
 > ```
@@ -642,9 +757,20 @@ The technical reviewer checks documentation for technical accuracy: code example
 TICKET_LOWERCASE=$(echo "$TICKET" | tr '[:upper:]' '[:lower:]')
 DRAFTS_DIR="${CLAUDE_DOCS_DIR}/drafts/${TICKET_LOWERCASE}"
 TECH_REVIEW_FILE="${DRAFTS_DIR}/_technical_review.md"
+DRAFT_MODE=$(jq -r '.options.draft // false' "$STATE_FILE")
 ```
 
-**Prompt:**
+**Prompt (default mode):**
+
+> Perform a technical review of the documentation for ticket `<TICKET>`.
+>
+> The documentation manifest is at: `<DRAFTS_DIR>/_index.md`
+>
+> Read the manifest to find the actual file locations in the repository, then review all listed .adoc and .md files. Follow your standard review methodology — apply the developer lens for procedures and the architect lens for concepts. Check code example integrity, prerequisite completeness, command accuracy, failure path coverage, and architectural coherence.
+>
+> Save your review report to: `<TECH_REVIEW_FILE>`
+
+**Prompt (draft mode):**
 
 > Perform a technical review of the documentation drafts for ticket `<TICKET>`.
 >
@@ -678,7 +804,7 @@ Launch the `docs-tools:docs-writer` agent with this prompt:
 >
 > Read the technical review report at: `<TECH_REVIEW_FILE>`
 >
-> Address all **Critical issues** and **Significant issues** listed in the report. Edit the draft files in place at `<DRAFTS_DIR>/`.
+> Address all **Critical issues** and **Significant issues** listed in the report. Edit the files in place.
 >
 > Do NOT address minor issues or style concerns — those are handled by the style review stage.
 
@@ -700,6 +826,7 @@ Launch the `docs-tools:docs-writer` agent with this prompt:
 TICKET_LOWERCASE=$(echo "$TICKET" | tr '[:upper:]' '[:lower:]')
 DRAFTS_DIR="${CLAUDE_DOCS_DIR}/drafts/${TICKET_LOWERCASE}"
 OUTPUT_FILE="${DRAFTS_DIR}/_review_report.md"
+DRAFT_MODE=$(jq -r '.options.draft // false' "$STATE_FILE")
 ```
 
 **Prompt:**
@@ -709,7 +836,35 @@ Read the format from the state file:
 OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 ```
 
-**If `OUTPUT_FORMAT` is `adoc` (default):**
+**If `OUTPUT_FORMAT` is `adoc` (default) — default mode:**
+
+> Review the AsciiDoc documentation for ticket `<TICKET>`.
+>
+> The documentation manifest is at: `<DRAFTS_DIR>/_index.md`
+>
+> Read the manifest to find the actual file locations in the repository, then review all listed .adoc files.
+>
+> **Edit files in place** at their repo locations. Do NOT create copies in a separate folder.
+>
+> For each .adoc file:
+> 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)
+> 2. Fix obvious errors where the fix is clear and unambiguous
+> 3. Run documentation review skills:
+>    - Red Hat docs: docs-tools:docs-review-modular-docs, docs-tools:docs-review-content-quality
+>    - IBM Style Guide: docs-tools:ibm-sg-audience-and-medium, docs-tools:ibm-sg-language-and-grammar, docs-tools:ibm-sg-punctuation, docs-tools:ibm-sg-numbers-and-measurement, docs-tools:ibm-sg-structure-and-format, docs-tools:ibm-sg-references, docs-tools:ibm-sg-technical-elements, docs-tools:ibm-sg-legal-information
+>    - Red Hat SSG: docs-tools:rh-ssg-grammar-and-language, docs-tools:rh-ssg-formatting, docs-tools:rh-ssg-structure, docs-tools:rh-ssg-technical-examples, docs-tools:rh-ssg-gui-and-links, docs-tools:rh-ssg-legal-and-support, docs-tools:rh-ssg-accessibility, docs-tools:rh-ssg-release-notes (if applicable)
+> 4. Skip ambiguous issues that require broader context
+>
+> Save the review report to: `<DRAFTS_DIR>/_review_report.md`
+>
+> The report must include:
+> - Summary of files reviewed
+> - Vale linting results (errors, warnings, suggestions)
+> - Issues found by each review skill (with file:line references)
+> - Fixes applied
+> - Remaining issues requiring manual review
+
+**If `OUTPUT_FORMAT` is `adoc` (default) — draft mode:**
 
 > Review the AsciiDoc documentation drafts for ticket `<TICKET>`.
 >
@@ -737,7 +892,35 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 > - Fixes applied
 > - Remaining issues requiring manual review
 
-**If `OUTPUT_FORMAT` is `mkdocs`:**
+**If `OUTPUT_FORMAT` is `mkdocs` — default mode:**
+
+> Review the Material for MkDocs Markdown documentation for ticket `<TICKET>`.
+>
+> The documentation manifest is at: `<DRAFTS_DIR>/_index.md`
+>
+> Read the manifest to find the actual file locations in the repository, then review all listed .md files.
+>
+> **Edit files in place** at their repo locations. Do NOT create copies in a separate folder.
+>
+> For each .md file:
+> 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)
+> 2. Fix obvious errors where the fix is clear and unambiguous
+> 3. Run documentation review skills:
+>    - Content quality: docs-tools:docs-review-content-quality
+>    - IBM Style Guide: docs-tools:ibm-sg-audience-and-medium, docs-tools:ibm-sg-language-and-grammar, docs-tools:ibm-sg-punctuation, docs-tools:ibm-sg-numbers-and-measurement, docs-tools:ibm-sg-structure-and-format, docs-tools:ibm-sg-references, docs-tools:ibm-sg-technical-elements, docs-tools:ibm-sg-legal-information
+>    - Red Hat SSG: docs-tools:rh-ssg-grammar-and-language, docs-tools:rh-ssg-formatting, docs-tools:rh-ssg-structure, docs-tools:rh-ssg-technical-examples, docs-tools:rh-ssg-gui-and-links, docs-tools:rh-ssg-legal-and-support, docs-tools:rh-ssg-accessibility
+> 4. Skip ambiguous issues that require broader context
+>
+> Save the review report to: `<DRAFTS_DIR>/_review_report.md`
+>
+> The report must include:
+> - Summary of files reviewed
+> - Vale linting results (errors, warnings, suggestions)
+> - Issues found by each review skill (with file:line references)
+> - Fixes applied
+> - Remaining issues requiring manual review
+
+**If `OUTPUT_FORMAT` is `mkdocs` — draft mode:**
 
 > Review the Material for MkDocs Markdown documentation drafts for ticket `<TICKET>`.
 >
@@ -766,125 +949,7 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 
 After the agent completes, verify the review report exists.
 
-### Stage 6: Integrate (docs-integrator — optional, phase-driven)
-
-This stage only runs when `--integrate` was provided. It uses a `phase` field in the state to drive a conditional dispatch — each phase does one action, updates state, then the orchestrator re-evaluates.
-
-**Check if stage should run:**
-
-```bash
-INTEGRATE_OPT=$(jq -r '.options.integrate // false' "$STATE_FILE")
-if [[ "$INTEGRATE_OPT" != "true" ]]; then
-    echo "Skipping integrate stage (--integrate not specified)"
-    # Skip this stage entirely — do NOT mark it in state
-fi
-```
-
-If `options.integrate` is not `true` in the state, skip this stage entirely.
-
-**Output paths:**
-
-```bash
-TICKET_LOWERCASE=$(echo "$TICKET" | tr '[:upper:]' '[:lower:]')
-DRAFTS_DIR="${CLAUDE_DOCS_DIR}/drafts/${TICKET_LOWERCASE}"
-INTEGRATION_PLAN_FILE="${DRAFTS_DIR}/_integration_plan.md"
-INTEGRATION_REPORT_FILE="${DRAFTS_DIR}/_integration_report.md"
-```
-
-**Phase dispatch** — read `stages.integrate.phase` from the state file and branch:
-
-```bash
-INTEGRATE_PHASE=$(jq -r '.stages.integrate.phase // "null"' "$STATE_FILE")
-```
-
-#### If phase is `null` (first entry)
-
-1. Mark the integrate stage as `in_progress` (use the standard state update command)
-2. Launch the docs-integrator agent with `Phase: PLAN`:
-
-**Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-integrator`
-- `description`: `Plan integration of documentation for <TICKET>`
-
-**Prompt:**
-
-> **Phase: PLAN**
->
-> Plan the integration of documentation drafts for ticket `<TICKET>`.
->
-> Drafts location: `<DRAFTS_DIR>/`
->
-> Save the integration plan to: `<INTEGRATION_PLAN_FILE>`
-
-3. Verify that `_integration_plan.md` exists
-4. Update state — set `stages.integrate.phase` to `"awaiting_confirmation"`:
-
-```bash
-TMP=$(mktemp)
-jq '.stages.integrate.phase = "awaiting_confirmation"' "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
-```
-
-5. **Fall through to the `awaiting_confirmation` branch below** — do NOT mark the stage as completed, do NOT proceed to the next stage
-
-#### If phase is `awaiting_confirmation`
-
-1. Read `_integration_plan.md`
-2. Present a summary to the user that includes:
-   - Detected build framework
-   - Number of files to copy/update
-   - The Operations table from the plan
-   - Any conflicts flagged
-3. Ask the user to confirm using the AskUserQuestion tool:
-
-> The integration plan proposes the changes listed above. Shall I proceed with the integration? (yes/no)
-
-4. **Wait for the user's response before continuing.**
-5. **If the user responds NO**: Update state — set `stages.integrate.phase` to `"declined"`:
-
-```bash
-TMP=$(mktemp)
-jq '.stages.integrate.phase = "declined"' "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
-```
-
-Fall through to the `declined` branch below.
-
-6. **If the user responds YES**: Update state — set `stages.integrate.phase` to `"confirmed"`:
-
-```bash
-TMP=$(mktemp)
-jq '.stages.integrate.phase = "confirmed"' "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
-```
-
-Fall through to the `confirmed` branch below.
-
-#### If phase is `confirmed`
-
-1. Launch the docs-integrator agent with `Phase: EXECUTE`:
-
-**Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-integrator`
-- `description`: `Execute integration of documentation for <TICKET>`
-
-**Prompt:**
-
-> **Phase: EXECUTE**
->
-> Execute the integration plan for ticket `<TICKET>`.
->
-> Drafts location: `<DRAFTS_DIR>/`
-> Integration plan: `<INTEGRATION_PLAN_FILE>`
->
-> Save the integration report to: `<INTEGRATION_REPORT_FILE>`
-
-2. Verify that `_integration_report.md` exists
-3. Mark the integrate stage as completed with the report file as output
-
-#### If phase is `declined`
-
-1. Mark the integrate stage as completed with the plan file as output
-2. Inform the user the plan is saved for manual reference
-
-### Stage 7: Create JIRA (optional — direct bash/curl)
+### Stage 6: Create JIRA (optional — direct bash/curl)
 
 This stage only runs when `--create-jira <PROJECT>` was provided. It does NOT use a Task agent — it uses direct Bash commands with the JIRA REST API.
 
@@ -1188,7 +1253,7 @@ mv "$TMP" "$STATE_FILE"
 
 ## Workflow Completion
 
-After all stages complete successfully (five core stages, plus the optional integrate stage if `--integrate` was specified and the optional create_jira stage if `--create-jira` was specified), update the overall workflow status:
+After all stages complete successfully (five core stages, plus the optional create_jira stage if `--create-jira` was specified), update the overall workflow status:
 
 ```bash
 TMP=$(mktemp)
@@ -1232,7 +1297,7 @@ If JIRA access fails and the workflow proceeded anyway, it would make assumption
 
 ## Usage Examples
 
-Start a new workflow:
+Start a new workflow (creates branch, writes directly to repo):
 ```bash
 /docs-tools:docs-workflow start RHAISTRAT-123
 ```
@@ -1245,6 +1310,11 @@ Start with a related PR/MR:
 Start with a GitLab MR:
 ```bash
 /docs-tools:docs-workflow start RHAISTRAT-123 --pr https://gitlab.com/org/repo/-/merge_requests/789
+```
+
+Start in draft mode (staging area, no branch):
+```bash
+/docs-tools:docs-workflow start RHAISTRAT-123 --draft
 ```
 
 Check workflow status:
@@ -1272,24 +1342,14 @@ Start with JIRA creation in INFERENG project:
 /docs-tools:docs-workflow start RHAISTRAT-123 --create-jira INFERENG
 ```
 
-Start with integration into the repo's build framework:
-```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --integrate
-```
-
-Start with integration and JIRA creation:
-```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --integrate --create-jira INFERENG
-```
-
-Add integration on resume:
-```bash
-/docs-tools:docs-workflow resume RHAISTRAT-123 --integrate
-```
-
 Add JIRA creation on resume (after review completes):
 ```bash
 /docs-tools:docs-workflow resume RHAISTRAT-123 --create-jira INFERENG
+```
+
+Draft mode with MkDocs:
+```bash
+/docs-tools:docs-workflow start RHAISTRAT-123 --draft --mkdocs
 ```
 
 ## Prerequisites
@@ -1307,11 +1367,12 @@ Add JIRA creation on resume (after review completes):
 - All outputs are organized by ticket ID for easy tracking
 - Multiple --pr URLs can be added across start/resume commands
 - **Access failures stop the workflow** — the workflow never guesses or infers content
-- The review stage edits files in place in the drafts folder rather than creating copies
+- By default, the workflow creates a clean branch from the upstream default and writes docs directly to the repo at the correct locations for the build framework
+- Use `--draft` to write to `.claude/docs/drafts/` staging area on the current branch instead — no build framework detection, no branch creation
+- The review stage edits files in place at their locations (repo or drafts) rather than creating copies
 - The `--create-jira` stage is optional — it only runs when the flag is provided with a project key
 - The `--create-jira` stage checks for existing "is documented by" links on the parent ticket before creating a duplicate ticket. If the "is documented by" link exists, a new ticket is not created. The link type name is `"Document"` (singular)
 - The created JIRA description contains three sections from the documentation plan (JTBD, workflow context, contacts), with the full docs plan attached for private projects only
 - For **public projects**, the detailed docs plan is NOT attached to the JIRA ticket. Project visibility is determined by making an unauthenticated curl request to the JIRA project endpoint — HTTP 200 means public, any other status means private
 - The JIRA description is converted from markdown to JIRA wiki markup before submission, and the JSON payload is built using Python and passed via `--data @file` to avoid shell interpolation issues with large descriptions
-- The `--integrate` stage is optional — it only runs when the flag is provided. It detects the repository's documentation build framework and integrates drafts into the correct locations. The stage is interactive: it produces an integration plan, asks the user to confirm, and only executes after confirmation. If the user declines, the plan is saved for manual reference and the workflow continues to the next stage
 - The `--mkdocs` flag switches output from AsciiDoc to Material for MkDocs Markdown. The same agents are used — the writing and review prompts adapt to produce `.md` files with MkDocs conventions. The review stage omits `docs-tools:docs-review-modular-docs` checks (AsciiDoc-specific) and uses `docs-tools:docs-review-content-quality` plus IBM/Red Hat style guide skills
