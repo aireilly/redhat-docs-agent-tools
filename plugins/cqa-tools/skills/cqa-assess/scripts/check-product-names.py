@@ -74,6 +74,24 @@ def collect_adoc_files(docs_dir, scan_dirs=None):
     return sorted(files, key=lambda x: x[1])
 
 
+def read_file_list(file_list_path, docs_dir):
+    """Read a file list from a file or stdin for guide-scoped scanning."""
+    if file_list_path == "-":
+        lines = sys.stdin.read().splitlines()
+    else:
+        with open(file_list_path, "r") as f:
+            lines = f.read().splitlines()
+    files = []
+    for line in lines:
+        line = line.strip()
+        if not line or not line.endswith(".adoc"):
+            continue
+        filepath = os.path.join(docs_dir, line)
+        if os.path.isfile(filepath):
+            files.append((filepath, line))
+    return sorted(files, key=lambda x: x[1])
+
+
 def parse_code_block_lines(lines):
     """Return a set of line indices inside code, literal, passthrough, or comment blocks.
 
@@ -399,6 +417,11 @@ def main():
               f"(default: {' '.join(DEFAULT_SCAN_DIRS)})"),
     )
     parser.add_argument(
+        "--file-list",
+        default=None,
+        help="File with paths to check (one per line, relative to docs_dir). Use '-' for stdin. Overrides --scan-dirs.",
+    )
+    parser.add_argument(
         "--config",
         help="Path to a JSON config file for customizing product names, "
              "exceptions, and skip patterns per repository",
@@ -444,7 +467,10 @@ def main():
     print(f"Excluding: {', '.join(SKIP_DIRS)}, {', '.join(SKIP_FILES)}")
     print()
 
-    files = collect_adoc_files(docs_dir, scan_dirs=args.scan_dirs)
+    if args.file_list:
+        files = read_file_list(args.file_list, docs_dir)
+    else:
+        files = collect_adoc_files(docs_dir, scan_dirs=args.scan_dirs)
     if not files:
         print("Error: no .adoc files found under "
               f"{', '.join(args.scan_dirs)}", file=sys.stderr)

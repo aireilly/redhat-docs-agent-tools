@@ -100,6 +100,24 @@ def collect_adoc_files(docs_dir, scan_dirs=None):
     return sorted(files, key=lambda x: x[1])
 
 
+def read_file_list(file_list_path, docs_dir):
+    """Read a file list from a file or stdin for guide-scoped scanning."""
+    if file_list_path == "-":
+        lines = sys.stdin.read().splitlines()
+    else:
+        with open(file_list_path, "r") as f:
+            lines = f.read().splitlines()
+    files = []
+    for line in lines:
+        line = line.strip()
+        if not line or not line.endswith(".adoc"):
+            continue
+        filepath = os.path.join(docs_dir, line)
+        if os.path.isfile(filepath):
+            files.append((filepath, line))
+    return sorted(files, key=lambda x: x[1])
+
+
 def parse_code_block_lines(lines):
     """Return a set of line indices inside code/literal blocks."""
     code_lines = set()
@@ -224,6 +242,11 @@ def main():
               f"(default: {' '.join(DEFAULT_SCAN_DIRS)})"),
     )
     parser.add_argument(
+        "--file-list",
+        default=None,
+        help="File with paths to check (one per line, relative to docs_dir). Use '-' for stdin. Overrides --scan-dirs.",
+    )
+    parser.add_argument(
         "--details",
         action="store_true",
         help="Show individual URL details for each domain",
@@ -241,7 +264,10 @@ def main():
     print(f"Directories: {', '.join(args.scan_dirs)}")
     print()
 
-    files = collect_adoc_files(docs_dir, scan_dirs=args.scan_dirs)
+    if args.file_list:
+        files = read_file_list(args.file_list, docs_dir)
+    else:
+        files = collect_adoc_files(docs_dir, scan_dirs=args.scan_dirs)
     all_urls = []
     for filepath, rel_path in files:
         all_urls.extend(extract_urls(filepath, rel_path))

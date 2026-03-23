@@ -136,7 +136,7 @@ Additional resources sections must include links to appropriate and useful conte
 #### Automation
 
 ```sh
-python3 ../cqa-assess/scripts/check-external-links.py "$DOCS_REPO"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-external-links.py "$DOCS_REPO"
 ```
 
 Extracts and categorizes all external URLs by domain type. Does not check link liveness but identifies domain distribution and placeholder URLs.

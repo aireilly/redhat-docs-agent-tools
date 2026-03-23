@@ -29,6 +29,12 @@ EXCLUSIONARY_TERMS = [
     ("whitelist", ["allowlist"], False),
     ("blacklist", ["blocklist", "denylist"], False),
     ("dummy", ["placeholder", "example", "sample"], False),
+    ("sanity check", ["test", "verify", "confidence check"], False),
+    ("sanity test", ["test", "verify", "confidence check"], False),
+    ("segregate", ["separate", "segment"], False),
+    ("segregation", ["separation", "segmentation"], False),
+    ("evangelist", ["advocate", "ambassador"], False),
+    ("evangelize", ["advocate", "promote"], False),
 ]
 
 # "master" requires special handling due to many legitimate uses
@@ -57,6 +63,24 @@ def collect_adoc_files(docs_dir, scan_dirs=None):
                     filepath = os.path.join(root, fname)
                     rel_path = os.path.relpath(filepath, docs_dir)
                     files.append((filepath, rel_path))
+    return sorted(files, key=lambda x: x[1])
+
+
+def read_file_list(file_list_path, docs_dir):
+    """Read a file list from a file or stdin for guide-scoped scanning."""
+    if file_list_path == "-":
+        lines = sys.stdin.read().splitlines()
+    else:
+        with open(file_list_path, "r") as f:
+            lines = f.read().splitlines()
+    files = []
+    for line in lines:
+        line = line.strip()
+        if not line or not line.endswith(".adoc"):
+            continue
+        filepath = os.path.join(docs_dir, line)
+        if os.path.isfile(filepath):
+            files.append((filepath, line))
     return sorted(files, key=lambda x: x[1])
 
 
@@ -247,6 +271,11 @@ def main():
         help=("Directories to scan relative to docs_dir "
               f"(default: {' '.join(DEFAULT_SCAN_DIRS)})"),
     )
+    parser.add_argument(
+        "--file-list",
+        default=None,
+        help="File with paths to check (one per line, relative to docs_dir). Use '-' for stdin. Overrides --scan-dirs.",
+    )
     args = parser.parse_args()
 
     docs_dir = os.path.abspath(args.docs_dir)
@@ -261,7 +290,10 @@ def main():
     print(f"Excluding: {', '.join(SKIP_DIRS)}")
     print()
 
-    files = collect_adoc_files(docs_dir, scan_dirs=args.scan_dirs)
+    if args.file_list:
+        files = read_file_list(args.file_list, docs_dir)
+    else:
+        files = collect_adoc_files(docs_dir, scan_dirs=args.scan_dirs)
     all_findings = []
     for filepath, rel_path in files:
         all_findings.extend(check_file(filepath, rel_path))

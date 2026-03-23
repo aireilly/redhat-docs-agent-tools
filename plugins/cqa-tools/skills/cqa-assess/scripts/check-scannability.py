@@ -81,6 +81,24 @@ def collect_adoc_files(docs_dir, scan_dirs=None):
     return sorted(files, key=lambda x: x[1])
 
 
+def read_file_list(file_list_path, docs_dir):
+    """Read a file list from a file or stdin for guide-scoped scanning."""
+    if file_list_path == "-":
+        lines = sys.stdin.read().splitlines()
+    else:
+        with open(file_list_path, "r") as f:
+            lines = f.read().splitlines()
+    files = []
+    for line in lines:
+        line = line.strip()
+        if not line or not line.endswith(".adoc"):
+            continue
+        filepath = os.path.join(docs_dir, line)
+        if os.path.isfile(filepath):
+            files.append((filepath, line))
+    return sorted(files, key=lambda x: x[1])
+
+
 def find_block_ranges(lines):
     """Return a set of line indices inside code/literal/passthrough blocks."""
     block_lines = set()
@@ -374,6 +392,11 @@ def main():
         default=DEFAULT_SCAN_DIRS,
         help="Directories to scan (default: %(default)s)",
     )
+    parser.add_argument(
+        "--file-list",
+        default=None,
+        help="File with paths to check (one per line, relative to docs_dir). Use '-' for stdin. Overrides --scan-dirs.",
+    )
     args = parser.parse_args()
 
     docs_dir = os.path.abspath(args.docs_dir)
@@ -390,7 +413,10 @@ def main():
           f"paragraph >{MAX_PARAGRAPH_SENTENCES} sentences")
     print()
 
-    files = collect_adoc_files(docs_dir, args.scan_dirs)
+    if args.file_list:
+        files = read_file_list(args.file_list, docs_dir)
+    else:
+        files = collect_adoc_files(docs_dir, args.scan_dirs)
     all_word_counts = []
     violations = []
     high_avg_files = []

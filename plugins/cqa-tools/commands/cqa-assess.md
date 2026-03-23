@@ -51,12 +51,12 @@ Run each skill in dependency order. Fixes in earlier steps prevent false positiv
 |------|-------|------------|
 | 1 | `cqa-tools:cqa-vale-check` | P1 |
 | 2 | `cqa-tools:cqa-modularization` | P2-P7 |
-| 3 | `cqa-tools:cqa-titles-descriptions` | P8-P11, Q11 |
+| 3 | `cqa-tools:cqa-titles-descriptions` | P8-P11 |
 | 4 | `cqa-tools:cqa-procedures` | P12, Q12-Q16 |
 | 5 | `cqa-tools:cqa-editorial` | P13-P14, Q1-Q5, Q18, Q20 |
 | 6 | `cqa-tools:cqa-links` | P15-P17, Q24-Q25 |
 | 7 | `cqa-tools:cqa-legal-branding` | P18-P19, Q17, Q23, O1-O5 |
-| 8 | `cqa-tools:cqa-user-focus` | Q6-Q10 |
+| 8 | `cqa-tools:cqa-user-focus` | Q6-Q11 |
 | 9 | `cqa-tools:cqa-tables-images` | Q19, Q21-Q22 |
 | 10 | `cqa-tools:cqa-onboarding` | O6-O10 |
 | 11 | `cqa-tools:cqa-report` | Final report |

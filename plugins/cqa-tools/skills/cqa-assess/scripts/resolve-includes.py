@@ -25,20 +25,7 @@ import re
 import sys
 from collections import OrderedDict
 
-# Regex to match AsciiDoc include directives.
-# Captures:
-#   group 1: optional ifdef/ifndef condition prefix (e.g., "ifdef::attr[]")
-#   group 2: the include path
-#   group 3: the attributes inside brackets (e.g., "leveloffset=+1")
-INCLUDE_RE = re.compile(
-    r'^'
-    r'(?:(ifdef|ifndef)::([^\[]*)\[(?:\])?\s*)?'  # optional conditional prefix
-    r'include::([^\[]+)'                           # include::PATH
-    r'\[([^\]]*)\]'                                # [ATTRS]
-    r'\s*$'
-)
-
-# Simpler patterns for separate detection
+# Patterns for detecting conditionals and includes
 CONDITIONAL_RE = re.compile(r'^(ifdef|ifndef)::([^\[]+)\[')
 INCLUDE_DIRECTIVE_RE = re.compile(r'include::([^\[]+)\[([^\]]*)\]')
 

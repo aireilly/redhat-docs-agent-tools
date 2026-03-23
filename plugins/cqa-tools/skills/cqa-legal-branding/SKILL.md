@@ -47,7 +47,7 @@ All product and platform names must use AsciiDoc attributes instead of hardcoded
 ### Automation
 
 ```bash
-python3 ../cqa-assess/scripts/check-product-names.py "$DOCS_REPO"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-product-names.py "$DOCS_REPO"
 ```
 
 Automatically skips code blocks, comments, attribute definitions, and known exceptions (UI labels, plugin names, link text). Reports violations with file:line and replacement suggestions.
@@ -106,7 +106,7 @@ Any feature declared as Technology Preview or Developer Preview must include a f
 ### Automation
 
 ```bash
-python3 ../cqa-assess/scripts/check-tp-disclaimers.py "$DOCS_REPO"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-tp-disclaimers.py "$DOCS_REPO"
 ```
 
 Finds all TP/DP mentions, classifies them (prose, table, link text, comment, code block), verifies snippet files exist with correct content, and checks that files mentioning TP/DP in prose include the appropriate disclaimer.
@@ -177,7 +177,7 @@ External links to non-Red Hat sites should have appropriate disclaimers indicati
 ### Automation
 
 ```bash
-python3 ../cqa-assess/scripts/check-external-links.py "$DOCS_REPO"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-external-links.py "$DOCS_REPO"
 # Add --details for per-URL breakdown by domain
 ```
 
@@ -215,14 +215,14 @@ Content must follow Red Hat's conscious language guidelines. Avoid terms with ex
 ### Automation
 
 ```bash
-python3 ../cqa-assess/scripts/check-conscious-language.py "$DOCS_REPO"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-conscious-language.py "$DOCS_REPO"
 ```
 
 Searches for exclusionary terms using whole-word matching. Automatically excludes code blocks, URLs (GitHub `/blob/master/`), filenames, comments, and attribute definitions. Groups results by violation vs exception.
 
 ### Check procedure
 
-**Tier 1 — "Do not use" (script-checked):**
+**Tier 1 — "Do not use" (all script-checked: `check-conscious-language.py` checks all 8 terms):**
 
 | Term | Replacement | Exception |
 |------|-------------|-----------|
@@ -292,9 +292,9 @@ The repository must include appropriate copyright and licensing information.
 ### Automation
 
 ```bash
-python3 ../cqa-assess/scripts/check-legal-notices.py "$DOCS_REPO"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-legal-notices.py "$DOCS_REPO"
 # Use --repo-root if the docs directory is a subdirectory of the repo:
-python3 ../cqa-assess/scripts/check-legal-notices.py "$DOCS_REPO/book-dir" --repo-root "$DOCS_REPO"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-legal-notices.py "$DOCS_REPO/book-dir" --repo-root "$DOCS_REPO"
 ```
 
 Checks LICENSE/LICENCE file existence (auto-detects repo root by walking up to `.git`), docinfo.xml presence in each `titles/*/` directory, and copyright year detection.
@@ -325,9 +325,9 @@ vale assemblies/ topics/ titles/administration_guide/master.adoc titles/user_gui
 python3 scripts/validate-refs.py
 
 # Run all legal/branding automation scripts
-python3 ../cqa-assess/scripts/check-product-names.py .
-python3 ../cqa-assess/scripts/check-conscious-language.py .
-python3 ../cqa-assess/scripts/check-tp-disclaimers.py .
-python3 ../cqa-assess/scripts/check-external-links.py .
-python3 ../cqa-assess/scripts/check-legal-notices.py .
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-product-names.py .
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-conscious-language.py .
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-tp-disclaimers.py .
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-external-links.py .
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-legal-notices.py .
 ```

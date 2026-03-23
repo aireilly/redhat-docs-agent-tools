@@ -227,10 +227,10 @@ Flag and replace:
 #### Automation
 
 ```sh
-python3 ../cqa-assess/scripts/check-simple-words.py "$DOCS_REPO"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-simple-words.py "$DOCS_REPO"
 ```
 
-Scans prose in `topics/` and `assemblies/` for all 10 complex word patterns. Excludes code blocks, comments, attributes, and table content. Reports each violation with file, line, matched word, replacement, and context. Exits 0 (pass) or 1 (issues found).
+Scans prose in `topics/` and `assemblies/` for 14 patterns: 10 complex words and 4 phrasal verbs ("make sure", "set up", "find out", "carry out"). Excludes code blocks, comments, attributes, and table content. Reports each violation with file, line, matched word, replacement, and context. Exits 0 (pass) or 1 (issues found).
 
 ### Q4: Readability
 
@@ -252,7 +252,7 @@ FK Grade = 0.39 * (words/sentences) + 11.8 * (syllables/words) - 15.59
 
 - The overall grade across all files must be <=12 to pass
 - Individual files above grade 12 due to technical terminology density (Kubernetes, OpenShift, authentication, configuration) are acceptable
-- Files with fewer than 3 sentences are excluded from per-file analysis (volatile FK scores)
+- Files with fewer than 10 sentences are excluded from per-file analysis (volatile FK scores)
 
 #### What affects the grade
 
@@ -263,7 +263,7 @@ FK Grade = 0.39 * (words/sentences) + 11.8 * (syllables/words) - 15.59
 #### Automation
 
 ```sh
-python3 ../cqa-assess/scripts/check-readability.py "$DOCS_REPO"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-readability.py "$DOCS_REPO"
 ```
 
 Computes Flesch-Kincaid Grade Level for prose in `topics/` and `assemblies/`. Resolves AsciiDoc attributes to their actual text for accurate syllable counting. Reports overall grade, per-file grades, and grade distribution. Exits 0 (overall <=12) or 1 (overall >12).
@@ -295,7 +295,7 @@ Flag and rewrite:
 #### Automation
 
 ```sh
-python3 ../cqa-assess/scripts/check-fluff.py "$DOCS_REPO"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-fluff.py "$DOCS_REPO"
 ```
 
 Scans prose in `topics/`, `assemblies/`, and `snippets/` for 11 fluff patterns. Excludes code blocks, comments, attributes, and table content. Reports each violation with file, line, matched text, fix guidance, and context. Exits 0 (pass) or 1 (issues found).
@@ -356,10 +356,10 @@ Scans prose in `topics/`, `assemblies/`, and `snippets/` for 11 fluff patterns. 
 #### Automation
 
 ```sh
-python3 ../cqa-assess/scripts/check-simple-words.py "$DOCS_REPO"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-simple-words.py "$DOCS_REPO"
 ```
 
-The simple words script checks for phrasal verbs ("make sure", "set up", "find out", "carry out") alongside complex words. For future tense, passive voice, and anthropomorphism, use grep-based searches or the `cqa-tools:cqa-editorial` skill methodology (contextual LLM analysis required to distinguish valid from invalid uses).
+The simple words script checks for phrasal verbs ("make sure", "set up", "find out", "carry out") alongside complex words (14 patterns total). For future tense, passive voice, and anthropomorphism, use grep-based searches or the `cqa-tools:cqa-editorial` skill methodology (contextual LLM analysis required to distinguish valid from invalid uses).
 
 ### Q20: Tone and conversational style
 
