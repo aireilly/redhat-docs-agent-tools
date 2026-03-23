@@ -8,7 +8,6 @@ allowed-tools: Read, Bash, Glob, Grep
 
 # JIRA Ready Check
 
-
 This skill is a **check-and-return** gate — it does not dispatch the orchestrator. The caller (cron script, CI workflow, or human) decides what to do with the returned ticket list.
 Unlike other step skills, this skill does **not** dispatch an agent. 
 

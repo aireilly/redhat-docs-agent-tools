@@ -140,7 +140,7 @@ if [[ $FILTERED_COUNT -gt 0 ]]; then
     else
       FILTERED_JSON+=","
     fi
-    FILTERED_JSON+="$(echo "$KEY" | jq -Rs .):$(echo "${FILTERED[$KEY]}" | jq -Rs .)"
+    FILTERED_JSON+="$(printf '%s' "$KEY" | jq -Rs .):$(printf '%s' "${FILTERED[$KEY]}" | jq -Rs .)"
   done
 fi
 FILTERED_JSON+="}"
