@@ -7,7 +7,7 @@ alwaysApply: true
 
 ## Skill references
 
-Always use fully qualified `plugin:skill` names (for example, `docs-tools:jira-reader`, `vale-tools:lint-with-vale`), not bare skill names.
+Always use fully qualified `plugin:skill` names (for example, `docs-tools:jira-reader`, `vale-tools:lint-with-vale`) in agent instructions, Skill invocations, inline text references, and cross-references between skills.
 
 ## Scripts
 

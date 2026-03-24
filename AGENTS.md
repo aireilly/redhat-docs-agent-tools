@@ -1,6 +1,6 @@
 # Red Hat Docs Agent Tools
 
-A collection of plugins, skills, and agent tools for Red Hat documentation workflows. This file gives Cursor agents the same project conventions as [CLAUDE.md](CLAUDE.md) (Claude Code). When instructions differ by tool, [docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md) describes Cursor-specific workflows.
+A collection of plugins, skills, and agent tools for Red Hat documentation workflows. This file defines the shared project conventions for all AI coding agents. For Claude Code-specific instructions, see [CLAUDE.md](CLAUDE.md). For additional Cursor workflows, see [docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md).
 
 ## Repository structure
 
@@ -22,7 +22,7 @@ plugins/<name>/
 
 ## Skill naming convention
 
-Always use fully qualified `plugin:skill` names when referencing skills anywhere — agent instructions, inline text references, and cross-references between skills:
+Always use fully qualified `plugin:skill` names in agent instructions, Skill invocations, inline text references, and cross-references between skills:
 
 - `docs-tools:jira-reader` (not `jira-reader`)
 - `docs-tools:rh-ssg-formatting` (not `rh-ssg-formatting`)
@@ -42,7 +42,7 @@ bash scripts/find_includes.sh "$file"
 
 ### From other commands and agents (cross-skill calls)
 
-Claude Code uses `${CLAUDE_PLUGIN_ROOT}`. In Cursor, use paths **relative to the repository root** (workspace) so commands work from the project directory:
+In **Cursor**, use paths relative to the repository root (workspace) so commands work from the project directory:
 
 ```bash
 python3 plugins/docs-tools/skills/git-pr-reader/scripts/git_pr_reader.py info <url> --json
@@ -51,6 +51,8 @@ bash plugins/dita-tools/skills/dita-includes/scripts/find_includes.sh "$file"
 ```
 
 Adjust the `plugins/<plugin>/skills/<skill>/scripts/...` segment to match the skill that owns the script.
+
+In **Claude Code**, use `${CLAUDE_PLUGIN_ROOT}` instead of the workspace-relative path. See [CLAUDE.md](CLAUDE.md) for examples.
 
 ### Knowledge-only skills
 
@@ -68,6 +70,7 @@ Do not use old slash-command syntax (for example, `/jira-reader --issue PROJ-123
 | --- | --- | --- |
 | `python3 scripts/...` | Calling a co-located script from within the same skill | `scripts/git_pr_reader.py`, `scripts/callouts.rb` |
 | Path from repo root under `plugins/.../scripts/` | Cross-skill or cross-command script calls in Cursor | Same scripts as above, with full path from workspace root |
+| `python3 ${CLAUDE_PLUGIN_ROOT}/...` | Cross-skill or cross-command script calls in Claude Code | `${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py` |
 | `Skill: plugin:skill` | Loading full skill knowledge — rules, checklists, domain expertise the model applies | `docs-tools:rh-ssg-formatting`, `docs-tools:ibm-sg-punctuation` |
 
 ## Contributing rules
@@ -83,5 +86,6 @@ Do not use old slash-command syntax (for example, `/jira-reader --issue PROJ-123
 
 ## Further reading
 
+- [CLAUDE.md](CLAUDE.md) — Claude Code-specific conventions
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Full contributor guide, including a section for Cursor users
 - [docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md) — Cursor workflows, testing, and limitations relative to Claude Code
