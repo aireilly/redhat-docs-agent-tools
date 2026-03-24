@@ -1,4 +1,5 @@
 ---
+name: greet
 description: "Print a greeting message"
 argument-hint: "[name]"
 ---
