@@ -293,11 +293,15 @@ class ProcedureVerifier
       # 1. Backtick-quoted paths: `/etc/chrony.conf` or `foo.yaml`
       if instruction =~ /`([^`]*#{SAVE_FILE_EXTENSIONS.source})`/i
         block[:save_as] = $1
-      # 2. Backtick-quoted absolute paths without recognized extension:
-      #    e.g., `~/playbook.yml`, `/etc/sysctl.d/99-custom`
+      # 2. Backtick-quoted absolute or home-relative paths (with or without extension):
+      #    e.g., `/etc/sysctl.d/99-custom`, `~/playbook.yml`
       elsif instruction =~ /`((?:\/|~\/)[^`]+)`/
         block[:save_as] = $1
-      # 3. Bare filenames — word chars, hyphens, dots ending with recognized extension
+      # 3. Backtick-quoted relative filenames without recognized extension:
+      #    e.g., `default`, `my-config`
+      elsif instruction =~ /`([\w][\w.-]*)`/
+        block[:save_as] = $1
+      # 4. Bare filenames — word chars, hyphens, dots ending with recognized extension
       elsif instruction =~ /\b([\w][\w.-]*#{SAVE_FILE_EXTENSIONS.source})\b/i
         block[:save_as] = $1
       end
@@ -375,9 +379,12 @@ class ProcedureVerifier
 
   # Ensure a path stays within the working directory (prevents traversal attacks)
   def safe_workdir_path(relative_path)
-    return nil if relative_path.start_with?('/') || relative_path.start_with?('~/')
+    return nil if relative_path.start_with?('/')
 
-    dest = File.expand_path(relative_path, @workdir)
+    # Map ~/... paths into the workdir instead of expanding to real $HOME
+    sandboxed = relative_path.sub(%r{^~/}, '')
+
+    dest = File.expand_path(sandboxed, @workdir)
     workdir_root = File.expand_path(@workdir) + File::SEPARATOR
     return nil unless dest.start_with?(workdir_root)
 
