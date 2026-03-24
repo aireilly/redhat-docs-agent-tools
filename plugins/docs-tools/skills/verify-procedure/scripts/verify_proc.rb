@@ -252,11 +252,12 @@ class ProcedureVerifier
     parts = []
     parts << counters[0].to_s if counters[0] > 0
     if depth >= 2 && counters[1] > 0
-      parts << ('a'..'z').to_a[counters[1] - 1]
+      alpha = ('a'..'z').to_a
+      parts << (counters[1] <= 26 ? alpha[counters[1] - 1] : "sub#{counters[1]}")
     end
     if depth >= 3 && counters[2] > 0
       roman = %w[i ii iii iv v vi vii viii ix x xi xii xiii xiv xv xvi xvii xviii xix xx xxi xxii xxiii xxiv xxv xxvi]
-      parts << roman[counters[2] - 1]
+      parts << (counters[2] <= 26 ? roman[counters[2] - 1] : "sub#{counters[2]}")
     end
     parts.join('.')
   end
