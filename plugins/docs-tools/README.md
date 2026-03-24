@@ -148,4 +148,104 @@ Use `--workflow <name>` to maintain different workflows for different purposes:
 /docs-tools:docs-orchestrator PROJ-123 --workflow full
 ```
 
+## Using the docs orchestrator in CI/CD
 
+The docs orchestrator can run in GitHub Actions or GitLab CI using [Claude Code in headless mode](https://docs.anthropic.com/en/docs/claude-code/headless-mode). This lets you automate documentation workflows — for example, generating draft docs from a JIRA ticket when a PR is opened, or running style and technical reviews on documentation changes.
+
+### Prerequisites
+
+Your CI environment needs:
+
+- **Claude Code** installed (`npm install -g @anthropic-ai/claude-code`)
+- **API key** set as `ANTHROPIC_API_KEY` secret
+- **JIRA token** set as `JIRA_AUTH_TOKEN` secret (and `JIRA_EMAIL` for Atlassian Cloud)
+- **Python 3** with required packages (see [Prerequisites](#prerequisites))
+- The docs-tools plugin installed or available in the runner
+
+### GitHub Actions example
+
+```yaml
+name: Docs Workflow
+on:
+  workflow_dispatch:
+    inputs:
+      ticket:
+        description: 'JIRA ticket ID (e.g., PROJ-123)'
+        required: true
+      workflow:
+        description: 'Workflow variant (default, quick, full)'
+        default: 'default'
+
+jobs:
+  docs-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          python3 -m pip install python-pptx PyGithub python-gitlab jira pyyaml ratelimit requests beautifulsoup4 html2text
+
+      - name: Run docs orchestrator
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          JIRA_AUTH_TOKEN: ${{ secrets.JIRA_AUTH_TOKEN }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          WORKFLOW_FLAG=""
+          if [ "${{ inputs.workflow }}" != "default" ]; then
+            WORKFLOW_FLAG="--workflow ${{ inputs.workflow }}"
+          fi
+          claude -p "/docs-tools:docs-orchestrator ${{ inputs.ticket }} --draft ${WORKFLOW_FLAG}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-output
+          path: .claude/docs/
+```
+
+### GitLab CI example
+
+```yaml
+docs-workflow:
+  stage: docs
+  image: node:20
+  variables:
+    TICKET: ""
+    WORKFLOW: "default"
+  rules:
+    - when: manual
+  before_script:
+    - npm install -g @anthropic-ai/claude-code
+    - apt-get update && apt-get install -y python3 python3-pip jq
+    - python3 -m pip install python-pptx PyGithub python-gitlab jira pyyaml ratelimit requests beautifulsoup4 html2text
+  script:
+    - |
+      WORKFLOW_FLAG=""
+      if [ "$WORKFLOW" != "default" ]; then
+        WORKFLOW_FLAG="--workflow $WORKFLOW"
+      fi
+      claude -p "/docs-tools:docs-orchestrator ${TICKET} --draft ${WORKFLOW_FLAG}"
+  artifacts:
+    paths:
+      - .claude/docs/
+    expire_in: 1 week
+```
+
+Set `ANTHROPIC_API_KEY`, `JIRA_AUTH_TOKEN`, `JIRA_EMAIL`, and any Git platform tokens as CI/CD variables (masked/protected).
+
+### Tips for CI usage
+
+- Use `--draft` to write output to `.claude/docs/` staging area instead of modifying repo files directly
+- Use `--workflow` to select a CI-specific workflow variant (e.g., a lighter review-only pipeline)
+- Collect the `.claude/docs/` directory as an artifact for downstream review or PR creation
+- The orchestrator writes a progress JSON file, so failed runs can be resumed in a subsequent job if the artifact is restored
+- For PR-triggered workflows, pass `--pr $CI_MERGE_REQUEST_URL` or `--pr $GITHUB_PR_URL` to include the PR context in requirements analysis
