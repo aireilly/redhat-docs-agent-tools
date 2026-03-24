@@ -23,18 +23,14 @@ bash scripts/validate_asciidoc.sh <file.adoc> [options]
 
 | Option | Description |
 |--------|-------------|
-| `-e, --existing` | Only process files that exist |
 | `-l, --list-only` | Only list files, don't run Vale |
 | `-h, --help` | Show help message |
 
 ### Examples
 
 ```bash
-# Validate an assembly and all includes
+# Validate an assembly and all includes (only existing files are processed)
 bash scripts/validate_asciidoc.sh master.adoc
-
-# Only validate existing files
-bash scripts/validate_asciidoc.sh master.adoc --existing
 
 # List files that would be validated
 bash scripts/validate_asciidoc.sh master.adoc --list-only

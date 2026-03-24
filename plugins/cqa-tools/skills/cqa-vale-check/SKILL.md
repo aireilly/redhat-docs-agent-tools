@@ -1,21 +1,23 @@
 ---
 name: cqa-vale-check
-description: Use when assessing CQA parameter P1 (Vale DITA check). Verifies prerequisites, sets up asciidoctor-dita-vale styles, runs Vale against all content, and fixes violations to achieve 0 errors and 0 warnings.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+description: Use when assessing CQA parameter P1 (Vale DITA check). Runs Vale with AsciiDocDITA rules (direct for repo scope, dita-tools:dita-validate-asciidoc for assembly/topic scope) and fixes violations to achieve 0 errors and 0 warnings.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Skill
 ---
 
 # CQA P1: Vale DITA Check
 
 ## Parameter
 
-**P1: Content passes Vale asciidoctor-dita-vale check with no errors or warnings.**
+**P1: Content passes Vale dita-tools:dita-validate-asciidoc check with no errors or warnings.**
 Level: Required. Target: Score 4 (0 errors, 0 warnings).
 
-## Step 1: Verify prerequisites
+## Step 1: Identify the docs repo
 
-### 1a. Vale CLI
+Ask the user for the path to their Red Hat modular documentation repository. This is the directory that contains `assemblies/`, `topics/` (or `modules/`), and `titles/` directories.
 
-Check that `vale` is installed and is v3.x or later:
+Store this as `DOCS_REPO` for all subsequent steps.
+
+Vale must be installed (v3.x+). For assembly/topic scope, the `dita-tools:dita-validate-asciidoc` skill checks this automatically. For repo-wide scope, verify manually:
 
 ```bash
 vale --version
@@ -23,106 +25,54 @@ vale --version
 
 If not installed, stop and tell the user to install Vale v3.x+. Do not install it for them.
 
-### 1b. Identify the docs repo
+## Step 2: Run Vale
 
-Ask the user for the path to their Red Hat modular documentation repository. This is the directory that contains `assemblies/`, `topics/` (or `modules/`), and `titles/` directories.
+Choose the approach based on scope.
 
-Store this as `DOCS_REPO` for all subsequent steps.
+### For repo-wide scope — direct Vale invocation
 
-### 1c. asciidoctor-dita-vale styles
+Run Vale directly against all AsciiDoc files in the repo. This catches every `.adoc` file, including orphan files not referenced by any assembly.
 
-Check if the styles directory exists as a sibling to the docs repo:
-
-```bash
-ls "$(dirname "$DOCS_REPO")/asciidoctor-dita-vale/styles"
-```
-
-If the directory does not exist, clone it automatically:
-
-```bash
-git clone https://github.com/jhradilek/asciidoctor-dita-vale "$(dirname "$DOCS_REPO")/asciidoctor-dita-vale"
-```
-
-Verify the clone succeeded:
-
-```bash
-ls "$(dirname "$DOCS_REPO")/asciidoctor-dita-vale/styles/AsciiDocDITA"
-```
-
-### 1d. `.vale.ini`
-
-Check if `.vale.ini` exists in the docs repo root:
-
-```bash
-ls "$DOCS_REPO/.vale.ini"
-```
-
-If `.vale.ini` does not exist, generate one. The `StylesPath` must point to the sibling `asciidoctor-dita-vale/styles` directory. The config must exclude snippet, common, and symlinked directories to prevent double-counting:
+First, ensure a `.vale.ini` exists in the docs repo root with AsciiDocDITA rules. If missing, create one:
 
 ```ini
-StylesPath = ../asciidoctor-dita-vale/styles
+StylesPath = .vale/styles
+
 MinAlertLevel = warning
+
+Packages = https://github.com/jhradilek/asciidoctor-dita-vale/releases/latest/download/AsciiDocDITA.zip
 
 [*.adoc]
 BasedOnStyles = AsciiDocDITA
-
-# Exclude snippet and common files (include fragments, not standalone modules)
-[**/snippets/*.adoc]
-BasedOnStyles =
-
-[**/common/*.adoc]
-BasedOnStyles =
-
-[snippets/*.adoc]
-BasedOnStyles =
-
-[common/*.adoc]
-BasedOnStyles =
-
-# Exclude symlinked directories inside assemblies/ and titles/ to prevent
-# double-counting when running vale on assemblies/ topics/ titles/ together.
-# Each assembly and title directory symlinks to topics/, snippets/, common/, images/.
-[assemblies/**/topics/**/*.adoc]
-BasedOnStyles =
-
-[assemblies/**/snippets/**/*.adoc]
-BasedOnStyles =
-
-[titles/**/topics/**/*.adoc]
-BasedOnStyles =
-
-[titles/**/assemblies/**/*.adoc]
-BasedOnStyles =
-
-[titles/**/snippets/**/*.adoc]
-BasedOnStyles =
-
-[titles/**/common/**/*.adoc]
-BasedOnStyles =
 ```
 
-If `.vale.ini` already exists, verify it has:
-- `StylesPath` pointing to a valid directory containing `AsciiDocDITA/`
-- `BasedOnStyles = AsciiDocDITA` under `[*.adoc]`
-- Exclusion patterns for snippets, common, and symlinked directories
-
-If any of these are missing, warn the user and offer to fix the config.
-
-## Step 2: Run Vale
-
-Run Vale from the docs repo root against assemblies, topics (or modules), and master files:
+Then sync and run:
 
 ```bash
 cd "$DOCS_REPO"
-# Adjust directory names to match your repo structure (topics/ or modules/)
-vale assemblies/ topics/ titles/administration_guide/master.adoc titles/user_guide/master.adoc
+vale sync
+find . -name '*.adoc' -not -type l | xargs vale
 ```
 
-If the result is `0 errors, 0 warnings` — score **4** and skip to Step 6.
+### For assembly scope — dita-validate-asciidoc
+
+Invoke the `dita-tools:dita-validate-asciidoc` skill, which discovers all included files and runs Vale with content-type-aware ShortDescription filtering:
+
+```
+Skill: dita-tools:dita-validate-asciidoc, args: "$DOCS_REPO/assemblies/admin/assembly_installing.adoc"
+```
+
+### For single-topic scope — dita-validate-asciidoc
+
+```
+Skill: dita-tools:dita-validate-asciidoc, args: "$DOCS_REPO/topics/con-overview.adoc"
+```
+
+If the result is `0 errors, 0 warnings` (or no output for dita-validate-asciidoc) — score **4** and skip to Step 6.
 
 ## Step 3: Categorize warnings
 
-Group Vale output by rule name. Common rules and their fixes:
+Group the output by rule name. Common rules and their fixes:
 
 | Rule | Meaning | Fix |
 |------|---------|-----|
@@ -177,11 +127,19 @@ For each RelatedLinks warning:
 
 ## Step 5: Verify
 
-Run Vale again. The result MUST be `0 errors, 0 warnings` before scoring.
+Re-run the same method used in Step 2. The result MUST be clean before scoring.
+
+### For repo-wide scope — direct Vale invocation
 
 ```bash
 cd "$DOCS_REPO"
-vale assemblies/ topics/ titles/administration_guide/master.adoc titles/user_guide/master.adoc
+find . -name '*.adoc' -not -type l | xargs vale
+```
+
+### For assembly or topic scope — dita-validate-asciidoc
+
+```
+Skill: dita-tools:dita-validate-asciidoc, args: "$ASSEMBLY_OR_TOPIC"
 ```
 
 If warnings remain, return to Step 3. Do not score until the output is clean.
@@ -199,8 +157,7 @@ Record the score, the exact Vale output (file count, error count, warning count)
 
 ## Common mistakes
 
-- Suppressing warnings in `.vale.ini` instead of fixing content
+- Suppressing warnings in Vale config instead of fixing content
 - Moving links to Additional resources but leaving a bold pseudo-heading after it (causes RelatedLinks warnings)
 - Forgetting to convert bold pseudo-headings to `==` headings in concept files
 - Running Vale on symlinked directories and getting inflated counts
-- Not verifying `.vale.ini` exclusion patterns before running Vale

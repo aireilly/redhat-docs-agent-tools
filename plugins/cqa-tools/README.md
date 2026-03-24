@@ -29,6 +29,8 @@ Assess, fix, and score Red Hat modular documentation against all 54 CQA 2.1 para
     brew install vale
     ```
 
+- Install [`dita-tools` plugin](https://github.com/redhat-documentation/redhat-docs-agent-tools)
+
 ## Usage
 
 ```bash

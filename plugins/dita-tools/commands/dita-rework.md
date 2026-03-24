@@ -122,7 +122,7 @@ Use the `dita-tools:dita-validate-asciidoc` skill to run Vale with AsciiDocDITA 
 
 ```bash
 # Run dita-validate-asciidoc to get all AsciiDocDITA issues
-bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh "${ASSEMBLY_ABS}" --existing > /tmp/dita-rework-vale-before-all.txt
+bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh "${ASSEMBLY_ABS}" > /tmp/dita-rework-vale-before-all.txt
 
 # Separate actionable issues from informational issues
 grep -v -E "AsciiDocDITA\.(ConditionalCode|AttributeReference|IncludeDirective|TagDirective)" /tmp/dita-rework-vale-before-all.txt > /tmp/dita-rework-vale-before.txt || true
@@ -355,7 +355,7 @@ EXIT_CODE=$?
   6. Re-run `dita-validate-asciidoc` to ensure the fixes did not introduce new Vale issues:
 
      ```bash
-     bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh "${ASSEMBLY_ABS}" --existing > /tmp/dita-rework-vale-recheck.txt
+     bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh "${ASSEMBLY_ABS}" > /tmp/dita-rework-vale-recheck.txt
 
      RECHECK_COUNT=$(grep -v -E "AsciiDocDITA\.(ConditionalCode|AttributeReference|IncludeDirective|TagDirective)" /tmp/dita-rework-vale-recheck.txt | wc -l)
      echo "Vale issues after asciidoctor fix: ${RECHECK_COUNT}"
@@ -375,7 +375,7 @@ Run `dita-validate-asciidoc` again and compare with the baseline to validate the
 
 ```bash
 # Run dita-validate-asciidoc to get all AsciiDocDITA issues
-bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh "${ASSEMBLY_ABS}" --existing > /tmp/dita-rework-vale-after-all.txt
+bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh "${ASSEMBLY_ABS}" > /tmp/dita-rework-vale-after-all.txt
 
 # Separate actionable issues from informational issues
 grep -v -E "AsciiDocDITA\.(ConditionalCode|AttributeReference|IncludeDirective|TagDirective)" /tmp/dita-rework-vale-after-all.txt > /tmp/dita-rework-vale-after.txt || true
@@ -445,10 +445,18 @@ grep -oE "AsciiDocDITA\.[A-Za-z]+" /tmp/dita-rework-vale-after-info.txt | sort |
 
 ### Step 7: Push Branch
 
-Push the branch to the remote:
+Discover the remote and confirm with the user before pushing:
 
 ```bash
-# Push the branch
+# Show available remotes
+git remote -v
+```
+
+Ask the user: **"Ready to push branch `${BRANCH_NAME}` to `origin`? (yes/no)"**
+
+Only after the user confirms, run:
+
+```bash
 git push -u origin "${BRANCH_NAME}"
 ```
 
@@ -704,7 +712,7 @@ Use the `dita-tools:dita-validate-asciidoc` skill to run Vale with AsciiDocDITA 
 
 ```bash
 # Run dita-validate-asciidoc to get all AsciiDocDITA issues
-bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh "${1}" --existing > /tmp/dita-rewrite-vale-baseline.txt
+bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh "${1}" > /tmp/dita-rewrite-vale-baseline.txt
 
 # Separate actionable from informational issues
 grep -v -E "AsciiDocDITA\.(ConditionalCode|AttributeReference|IncludeDirective|TagDirective)" /tmp/dita-rewrite-vale-baseline.txt > /tmp/dita-rewrite-vale-actionable.txt || true
@@ -768,7 +776,7 @@ Use the `dita-tools:dita-validate-asciidoc` skill to run Vale again and compare 
 
 ```bash
 # Run dita-validate-asciidoc to get final AsciiDocDITA issues
-bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh "${1}" --existing > /tmp/dita-rewrite-vale-final.txt
+bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh "${1}" > /tmp/dita-rewrite-vale-final.txt
 
 # Separate actionable issues
 grep -v -E "AsciiDocDITA\.(ConditionalCode|AttributeReference|IncludeDirective|TagDirective)" /tmp/dita-rewrite-vale-final.txt > /tmp/dita-rewrite-vale-final-actionable.txt || true
@@ -910,7 +918,16 @@ Replace `<input_path>` with the original input path argument.
 
 ## Rewrite Phase 4: Push Branch and Report
 
-Unless `--no-commit` or `--dry-run` is set:
+Unless `--no-commit` or `--dry-run` is set, discover the remote and confirm with the user before pushing:
+
+```bash
+# Show available remotes
+git remote -v
+```
+
+Ask the user: **"Ready to push branch `$BRANCH_NAME` to `origin`? (yes/no)"**
+
+Only after the user confirms, run:
 
 ```bash
 git push -u origin "$BRANCH_NAME"

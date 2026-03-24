@@ -1,6 +1,6 @@
 {
   "name": "cqa-tools",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "CQA 2.1 Content Quality Assessment toolkit for Red Hat modular documentation. Assess, fix, and score 54 parameters across Pre-migration, Quality, and Onboarding tabs.",
   "author": {
     "name": "Red Hat Documentation Team",

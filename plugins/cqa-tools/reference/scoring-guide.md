@@ -40,7 +40,7 @@ Each parameter assessment must include:
 
 | # | Parameter | Level | Skill |
 |---|-----------|-------|-------|
-| P1 | Vale asciidoctor-dita-vale check | Required | `cqa-vale-check` |
+| P1 | Vale asciidoctor-dita-vale check | Required | `cqa-vale-check` (delegates to `dita-tools:dita-validate-asciidoc`) |
 | P2 | Assembly structure (intro + includes only) | Required | `cqa-modularization` |
 | P3 | Content is modularized | Required | `cqa-modularization` |
 | P4 | Modules use official templates | Required | `cqa-modularization` |

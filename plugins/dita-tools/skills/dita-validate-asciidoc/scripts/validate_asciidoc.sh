@@ -5,7 +5,6 @@
 # Usage: validate_asciidoc.sh <file.adoc> [options]
 #
 # Options:
-#   -e, --existing    Only process files that exist
 #   -l, --list-only   Only list files, don't run Vale
 #   -h, --help        Show this help message
 #
@@ -21,7 +20,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DITA_INCLUDES_SCRIPT="$SCRIPT_DIR/../../dita-includes/scripts/find_includes.sh"
 
-EXISTING_ONLY=false
 LIST_ONLY=false
 
 usage() {
@@ -31,7 +29,6 @@ Usage: $(basename "$0") <file.adoc> [options]
 Run Vale AsciiDocDITA checks on an AsciiDoc assembly and all included files.
 
 Options:
-  -e, --existing    Only process files that exist
   -l, --list-only   Only list files, don't run Vale
   -h, --help        Show this help message
 
@@ -93,10 +90,6 @@ INPUT_FILE=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -e|--existing)
-            EXISTING_ONLY=true
-            shift
-            ;;
         -l|--list-only)
             LIST_ONLY=true
             shift
@@ -132,12 +125,8 @@ if [[ ! -f "$DITA_INCLUDES_SCRIPT" ]]; then
     error "dita-includes script not found: $DITA_INCLUDES_SCRIPT"
 fi
 
-# Get list of files using dita-includes
-if [[ "$EXISTING_ONLY" == "true" ]]; then
-    FILES=$(bash "$DITA_INCLUDES_SCRIPT" "$INPUT_FILE" --existing)
-else
-    FILES=$(bash "$DITA_INCLUDES_SCRIPT" "$INPUT_FILE")
-fi
+# Get list of files using dita-includes (only existing files)
+FILES=$(bash "$DITA_INCLUDES_SCRIPT" "$INPUT_FILE" --existing)
 
 # List-only mode
 if [[ "$LIST_ONLY" == "true" ]]; then
