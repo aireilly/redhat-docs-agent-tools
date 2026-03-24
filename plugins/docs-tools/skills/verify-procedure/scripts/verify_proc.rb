@@ -283,11 +283,15 @@ class ProcedureVerifier
   #
   # The instruction doesn't need to mention "YAML" — any backtick-quoted or
   # bare filename with a recognized extension is matched.
-  SAVE_FILE_EXTENSIONS = /\.(?:ya?ml|json|conf|cfg|sh|txt|toml|ini|properties)/i
+  SAVE_FILE_EXTENSIONS = /\.(?:ya?ml|json|conf|cfg|sh|txt|toml|ini|properties|py|rb)/i
+
+  # Patterns in the instruction text that indicate "save this content as a file"
+  # rather than "execute this command".
+  SAVE_INSTRUCTION_PATTERN = /\b(?:creat|sav|writ|add|stor|nam)\w*\b.*\b(?:file|script|content)\b/i
 
   def link_yaml_to_files(blocks)
     blocks.each do |block|
-      next unless %w[yaml json config].include?(block[:type])
+      next unless %w[yaml json config bash python ruby].include?(block[:type])
 
       instruction = block[:instruction]
 
@@ -350,6 +354,23 @@ class ProcedureVerifier
     if has_placeholders?(content)
       puts "[SKIP] Contains placeholders requiring user input"
       puts "Content preview: #{content[0..100]}..."
+      return
+    end
+
+    # If a bash/script block has a save_as target and the instruction
+    # indicates file creation, save the content instead of executing it.
+    if block[:save_as] && %w[bash python ruby].include?(type) &&
+       instruction =~ SAVE_INSTRUCTION_PATTERN
+      save_as = block[:save_as]
+      dest = safe_workdir_path(save_as)
+      if dest.nil?
+        puts "[INFO] Path #{save_as} — content recorded but not written to filesystem."
+      else
+        File.write(dest, content)
+        File.chmod(0755, dest) if type == 'bash'
+        puts "[INFO] Saved #{type} script to #{dest} (not executed)"
+      end
+      @results << { step: label, status: :passed, output: "Saved as #{save_as}" }
       return
     end
 
