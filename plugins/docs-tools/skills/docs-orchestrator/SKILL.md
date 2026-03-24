@@ -102,6 +102,8 @@ The ticket ID is converted to **lowercase** for directory names (e.g., `PROJ-123
     requirements.md
   planning/
     plan.md
+  prepare-branch/
+    branch-info.md
   writing/
     _index.md
     assembly_*.adoc (or docs/*.md for mkdocs)
@@ -197,6 +199,7 @@ Build the args string for the step skill:
 1. **Always**: `<ticket> --base-path <base_path>` — the ticket ID and the base output path
 2. **From orchestrator context**: Step-specific args from parsed CLI flags:
    - `requirements`: `[--pr <url>]...`
+   - `prepare-branch`: `[--draft]`
    - `writing`: `--format <adoc|mkdocs> [--draft]`
    - `style-review`: `--format <adoc|mkdocs>`
    - `create-jira`: `--project <PROJECT>`

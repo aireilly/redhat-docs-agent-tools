@@ -14,10 +14,15 @@ workflow:
       description: Create documentation plan
       inputs: [requirements]
 
+    - name: prepare-branch
+      skill: docs-tools:docs-workflow-prepare-branch
+      description: Create a fresh branch from latest upstream default branch
+      inputs: [planning]
+
     - name: writing
       skill: docs-tools:docs-workflow-writing
       description: Write documentation
-      inputs: [planning]
+      inputs: [planning, prepare-branch]
 
     - name: technical-review
       skill: docs-tools:docs-workflow-tech-review
