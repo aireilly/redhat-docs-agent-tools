@@ -186,7 +186,7 @@ class ProcedureVerifier
       if line =~ /^\[source,(terminal|bash|yaml|shell|json|ini|toml|text|python|ruby)(?:,(.*?))?\]\s*$/
         source_type = $1
         source_attrs = $2 || ''
-        has_subs = source_attrs.include?('subs=')
+        has_subs = source_attrs =~ /subs=.*attributes/
 
         # Check if this is an example output block (preceded by "Example output" or similar)
         is_example = false
