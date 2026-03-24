@@ -82,7 +82,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/check-readability.py "$D
 
 Each script exits `0` (pass) or `1` (issues found). Python 3.9+ stdlib only.
 
-## Usage examples
+## Usage Examples
 
 ```bash
 # Full repo assessment (assess only)
@@ -98,7 +98,7 @@ Each script exits `0` (pass) or `1` (issues found). Python 3.9+ stdlib only.
 /cqa-tools:cqa-assess /path/to/docs-repo --scope topic
 ```
 
-## Important rules
+## Notes
 
 - **Respect the user's chosen mode.** In assess mode, never modify files. In fix mode, fix everything before scoring.
 - **Respect the user's chosen scope.** Only assess files within the scope.

@@ -40,7 +40,7 @@
       "name": "cqa-tools",
       "source": "./plugins/cqa-tools",
       "description": "CQA 2.1 Content Quality Assessment toolkit for Red Hat modular documentation. Assess, fix, and score 54 parameters across Pre-migration, Quality, and Onboarding tabs.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "category": "documentation",
       "tags": ["cqa", "dita", "documentation", "quality", "assessment", "modular-docs", "vale"]
     }
