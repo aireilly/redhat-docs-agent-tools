@@ -632,9 +632,8 @@ class ProcedureVerifier
   # Handles both K8s resources (oc/kubectl) and RHEL system changes (systemctl, dnf).
   def track_resource(command, stdout)
     # K8s: "oc create -f file.yaml" or "oc apply -f file.yaml"
-    if command =~ /\b(oc|kubectl)\s+(create|apply)\s+-f\s+(\S+)/
-      tool = $1
-      file = $3
+    # Scan all matches — a single command may apply multiple manifests.
+    command.scan(/\b(oc|kubectl)\s+(?:create|apply)\s+-f\s+(\S+)/) do |tool, file|
       filepath = File.join(@workdir, file)
       if File.exist?(filepath)
         @created_resources << { tool: tool, file: filepath }
@@ -642,19 +641,19 @@ class ProcedureVerifier
     end
 
     # K8s: inline resource creation from stdout like "namespace/openshift-ptp created"
-    if stdout =~ %r{^(\S+/\S+)\s+created}
-      @created_resources << { resource: $1 }
+    # Parse each line — a single apply can create multiple resources.
+    stdout.scan(%r{^(\S+/\S+)\s+created}m) do |resource,|
+      @created_resources << { resource: resource }
     end
 
     # RHEL: systemctl enable/start — track for disable/stop on cleanup
-    if command =~ /\bsystemctl\s+(enable\s+--now|enable|start)\s+(\S+)/
-      @created_resources << { service: $2, action: $1 }
+    command.scan(/\bsystemctl\s+(enable\s+--now|enable|start)\s+(\S+)/) do |action, service|
+      @created_resources << { service: service, action: action }
     end
 
     # RHEL: dnf/yum install — track for removal on cleanup
-    if command =~ /\b(dnf|yum)\s+install\s+(?:-y\s+)?(.+)/
-      pkg_manager = $1
-      packages = $2.strip.split(/\s+/).reject { |p| p.start_with?('-') }
+    command.scan(/\b(dnf|yum)\s+install\s+(?:-y\s+)?(.+)/) do |pkg_manager, pkg_list|
+      packages = pkg_list.strip.split(/\s+/).reject { |p| p.start_with?('-') }
       @created_resources << { packages: packages, pkg_manager: pkg_manager } unless packages.empty?
     end
   end
