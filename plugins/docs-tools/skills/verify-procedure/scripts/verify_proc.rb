@@ -416,8 +416,10 @@ class ProcedureVerifier
 
   def validate_yaml(content, label, save_as = nil)
     begin
-      # Lint the YAML for syntax errors
-      YAML.safe_load(content)
+      # Lint the YAML for syntax errors.
+      # Use safe_load_stream to handle multi-document YAML (multiple ---
+      # separated docs), which is common in Kubernetes manifests.
+      YAML.safe_load_stream(content)
       puts "[VALID] YAML syntax for Step #{label} is correct."
       @results << { step: label, status: :passed, output: "YAML syntax valid" }
 
