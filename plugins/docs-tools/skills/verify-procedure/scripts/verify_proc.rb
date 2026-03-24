@@ -682,14 +682,35 @@ class ProcedureVerifier
           puts "[WARN] Cleanup failed: #{stderr.strip}"
         end
       elsif res[:service]
-        # RHEL: stop and disable services that were started/enabled
-        puts "Stopping service: #{res[:service]}"
-        _, stop_stderr, stop_status = Open3.capture3('sudo', 'systemctl', 'stop', res[:service].to_s)
-        _, disable_stderr, disable_status = Open3.capture3('sudo', 'systemctl', 'disable', res[:service].to_s)
-        if stop_status.success? && disable_status.success?
-          puts "[CLEANED] Service #{res[:service]} stopped and disabled."
+        # RHEL: revert only the action that was actually performed
+        service = res[:service].to_s
+        action = res[:action].to_s
+        errors = []
+
+        case action
+        when 'enable --now'
+          # Was both enabled and started — revert both
+          _, err, s = Open3.capture3('sudo', 'systemctl', 'stop', service)
+          errors << err unless s.success?
+          _, err, s = Open3.capture3('sudo', 'systemctl', 'disable', service)
+          errors << err unless s.success?
+          verb = 'stopped and disabled'
+        when 'enable'
+          # Only enabled — just disable, don't stop
+          _, err, s = Open3.capture3('sudo', 'systemctl', 'disable', service)
+          errors << err unless s.success?
+          verb = 'disabled'
+        when 'start'
+          # Only started — just stop, don't change enablement
+          _, err, s = Open3.capture3('sudo', 'systemctl', 'stop', service)
+          errors << err unless s.success?
+          verb = 'stopped'
+        end
+
+        if errors.empty?
+          puts "[CLEANED] Service #{service} #{verb}."
         else
-          puts "[WARN] Service cleanup failed: #{[stop_stderr, disable_stderr].reject(&:empty?).join(' | ')}"
+          puts "[WARN] Service cleanup failed: #{errors.reject(&:empty?).join(' | ')}"
         end
       elsif res[:packages]
         # RHEL: remove packages using the same package manager that installed them
