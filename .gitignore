@@ -5,6 +5,7 @@ site/
 .vale/
 __pycache__/
 *.pyc
+.env
 .work/
 *-workspace/
 
