@@ -1,205 +1,218 @@
 ---
 name: verify-procedure
-description: Execute and test AsciiDoc procedures on a live system. Runs every command and validates every YAML block against a real cluster, VM, or host. Requires an active connection to the target system. For static review without a live system, use the docs-tools:technical-reviewer agent instead.
+description: Execute, test, and verify AsciiDoc procedures on a live OpenShift or Kubernetes cluster. Runs every command and validates every YAML block against a real cluster. Use this skill whenever the user asks to verify a procedure, test documentation steps, run through a guided exercise, prove a procedure works, check if steps are correct on a live system, or do a dry run of a doc. Requires an active oc/kubectl connection. For static review without a live system, use docs-tools:technical-reviewer instead.
 author: Red Hat Documentation Team
-allowed-tools: Bash, Read, Edit, Glob
+allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
 # Procedure Verification Skill
 
-This skill executes documented procedures against a live system to prove they work end-to-end. It is the "guided exercise tester" — it runs every command, applies every YAML block, and reports what passes and what breaks.
+You execute documented OpenShift/Kubernetes procedures against a live cluster to prove they work end-to-end. **You** are the parser and judgment layer. The bash script `scripts/verify_proc.sh` is a thin executor — it only runs commands, validates YAML, and saves files.
 
-**This is not a review tool.** For reviewing documentation quality, prerequisites, and structure without a live system, use the `docs-tools:technical-reviewer` agent.
+**This is not a review tool.** For reviewing documentation quality without a live system, use `docs-tools:technical-reviewer`.
 
-## Prerequisites
+## Architecture: what you do vs. what the script does
 
-You must be connected to the target system before invoking this skill:
+| You (Claude) | Script (`verify_proc.sh`) |
+|---|---|
+| Read and parse the `.adoc` file | `init` — create workdir, detect oc/kubectl |
+| Resolve `include::` directives by reading included files | `check-connection` — verify cluster login |
+| Handle `ifdef::`/`ifndef::` conditionals intelligently | `execute <label> <command>` — run a command |
+| Extract source blocks (understand nesting, listing blocks, callouts) | `validate-yaml <label> [file]` — YAML syntax + dry-run |
+| Classify each block: execute, validate, save-to-file, skip (example output), skip (placeholders) | `validate-json <label>` — JSON syntax check |
+| Strip prompt symbols from commands (`$`, `#`, `[root@host ~]#`) | `save-file <label> <path>` — write content to workdir |
+| Detect backslash-continued lines and join them | `cleanup` — delete resources + workdir |
+| Identify placeholders that need user substitution | `summary` — print pass/fail totals |
+| Number steps hierarchically (1, 1.a, 1.b, 2.a.i) | |
+| Flag suspicious patterns and undocumented assumptions | |
+| Resolve AsciiDoc attributes (`{product-version}`, etc.) | |
 
-- **OpenShift/Kubernetes**: `oc login` or valid `~/.kube/config`
-- **RHEL/Linux**: Local access or SSH session to the target host
-- **Ansible**: `ansible --version` succeeds and inventory is accessible
+## Workflow
 
-At invocation, the skill runs a connectivity check (e.g., `oc whoami`). If the check fails, the skill exits and directs the user to log in first or use `docs-tools:technical-reviewer` for offline review.
+### Step 0: Connectivity check
 
-## How it works
+Before anything else, run:
 
-1. **Parse**: Read the `.adoc` file and extract all source blocks (`[source,terminal]`, `[source,bash]`, `[source,yaml]`, `[source,json]`, `[source,ini]`, `[source,toml]`, `[source,text]`, `[source,python]`, `[source,ruby]`), associating each with its numbered step.
-2. **Execute**: Run the `verify_proc.rb` script against the file:
-   ```bash
-   ruby scripts/verify_proc.rb <file.adoc>
-   ruby scripts/verify_proc.rb --cleanup <file.adoc>
-   ```
-3. **Report**: Present the script output and flag any additional observations.
-
-## What the Ruby script does
-
-The `scripts/verify_proc.rb` script is a procedure runner that processes an AsciiDoc file sequentially:
-
-### Working directory
-
-Creates a temporary working directory (`/tmp/verify-proc-*`) for each run. All YAML files referenced in the procedure are saved here, and all bash commands execute with this as their working directory. This ensures:
-- Relative file paths in commands (e.g., `oc create -f foo.yaml`) resolve correctly
-- The user's working directory is not polluted with temporary files
-- Each run is isolated from previous runs
-
-### Step extraction with hierarchical numbering
-
-- Parses AsciiDoc numbered steps (`. Step text`, `.. Substep`, `... Sub-substep`) and tracks depth
-- Associates each source block with its parent step
-- Uses hierarchical step labels: `1`, `1.a`, `1.b`, `2.a.i` instead of flat sequential numbers
-- This makes it easy to correlate script output with the actual procedure structure
-
-### Save-YAML-to-file linking
-
-Detects steps that instruct the user to save content to a file. The step text doesn't need to contain the word "YAML" — any backtick-quoted or bare filename with a recognized extension is matched. Real-world phrasing varies widely across Red Hat docs:
-
-```text
-OCP examples:
-.. Save the following YAML in the `foo.yaml` file:
-.. Create a file named load-sctp-module.yaml that contains...
-.. Save the following YAML manifest as integration-source-aws-ddb.yaml :
-.. Create a route definition called hello-openshift-route.yaml :
-
-RHEL examples:
-.. Edit the `/etc/chrony.conf` configuration file:
-.. Create a playbook file, for example ~/playbook.yml, with the following content:
-.. Create a YAML file named sap-netweaver.yml with the following content:
-.. Create a configuration file named `default` and add it to the `pxelinux.cfg/` directory:
+```bash
+bash scripts/verify_proc.sh init
+bash scripts/verify_proc.sh check-connection
 ```
 
-Steps without a filename are not matched (no false positives):
+If the connection check fails, stop and tell the user to run `oc login` first, or suggest using `docs-tools:technical-reviewer` for offline review.
 
-```text
-.. Apply the following YAML for a specific backing store:
-.. Create a config map in the Velero namespace...
-.. Use the following example YAML file to create the deployment:
+### Step 1: Parse the AsciiDoc file
+
+Read the `.adoc` file with the Read tool. As you parse, do the following:
+
+#### Handle include:: directives
+When you encounter `include::path/to/file.adoc[leveloffset=...]`, read that file too and incorporate its content at the correct position. Resolve relative paths from the directory of the including file.
+
+#### Handle ifdef/ifndef conditionals
+Read the conditional and make a judgment call:
+- If the attribute is defined in the document or `_attributes.adoc`, evaluate it
+- If not, note which branch you're taking and warn the user
+- Do NOT silently skip content or mis-number steps
+
+#### Extract source blocks
+Identify `[source,TYPE]` blocks where TYPE is: `terminal`, `bash`, `shell`, `yaml`, `json`. Look for the `----` delimiters. Handle:
+- **Nested blocks**: A source block inside an example block or sidebar — extract correctly
+- **Listing blocks without [source]**: These are `----` delimited blocks without a source annotation — skip them (they're display-only)
+- **Callout annotations**: Lines ending with `<1>`, `<2>`, etc. inside source blocks — strip these before execution
+
+#### Resolve AsciiDoc attributes
+If a block has `subs="attributes+"` or the document uses `{attribute-name}` references:
+1. Look for `:attribute-name: value` in the document header
+2. Check for `_attributes.adoc` in the same directory or parent
+3. For `{product-version}`, fall back to `oc version` on the cluster
+
+#### Classify each block
+
+For each extracted source block, classify it as one of:
+
+| Classification | Criteria | Action |
+|---|---|---|
+| **execute** | `[source,terminal]`, `[source,bash]`, `[source,shell]` block that contains actual commands | Strip prompts, join continued lines, send to `execute` |
+| **validate-yaml** | `[source,yaml]` block | Pipe to `validate-yaml` |
+| **validate-json** | `[source,json]` block | Pipe to `validate-json` |
+| **save-to-file** | Step text says "save", "create a file named", "create a ... file" + mentions a filename | Pipe to `save-file` or `validate-yaml` with filename arg |
+| **skip-example** | Block preceded by "Example output", "sample output", "expected output", "output resembles", "similar to the following" | Skip, report as `[SKIP]` |
+| **skip-placeholder** | Block contains `<multi_word_placeholder>`, `${VAR}`, `CHANGEME`, `REPLACE`, or `<your-...>` patterns | Skip, report with explanation |
+
+#### Number steps hierarchically
+Track AsciiDoc numbered list markers:
+- `. Step text` → depth 1 (major step: 1, 2, 3)
+- `.. Substep` → depth 2 (1.a, 1.b, 2.a)
+- `... Sub-substep` → depth 3 (1.a.i, 1.a.ii)
+
+Associate each source block with its nearest preceding step.
+
+### Step 2: Execute the procedure
+
+Process blocks sequentially. For each block, based on its classification:
+
+**execute** — Strip prompts and run:
+```bash
+bash scripts/verify_proc.sh execute "1.a" "oc get pods -n openshift-operators"
 ```
 
-Absolute paths (e.g., `/etc/chrony.conf`) are validated for syntax but never written to the filesystem — the script should not modify system files during verification.
+Prompt stripping rules (you apply these before sending to the script):
+- `$ command` → `command`
+- `# command` → `command`
+- `[root@host ~]# command` → `command`
+- `[user@host dir]$ command` → `command`
+- `~]# command` → `command`
 
-Supported extensions: `.yaml`, `.yml`, `.json`, `.conf`, `.cfg`, `.sh`, `.txt`, `.toml`, `.ini`, `.properties`
+Join backslash-continued lines into a single command.
 
-When a filename is detected:
-1. The content is validated for syntax (YAML or JSON)
-2. The content is written to `<workdir>/<filename>`
-3. Subsequent commands like `oc create -f foo.yaml` find the file and execute successfully
+**validate-yaml** — Pipe the content via heredoc (handles quotes and special chars safely):
+```bash
+bash scripts/verify_proc.sh validate-yaml "1.a" <<'YAML'
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-ptp
+YAML
+```
 
-### Conditional directive warnings
+If the step instructs saving to a file, pass the filename:
+```bash
+bash scripts/verify_proc.sh validate-yaml "1.a" "my-resource.yaml" <<'YAML'
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-ptp
+YAML
+```
 
-The parser cannot evaluate `ifdef::`/`ifndef::` conditionals. When these directives are encountered, the script emits a warning with the line number so the user knows that step numbering inside the conditional block may be inaccurate. This is a deliberate choice — silently producing wrong step associations is worse than a visible warning.
+**validate-json** — Pipe the content via heredoc:
+```bash
+bash scripts/verify_proc.sh validate-json "2" <<'JSON'
+{"apiVersion": "v1", "kind": "ConfigMap"}
+JSON
+```
 
-### Smart skipping
+**save-to-file** — For non-YAML/JSON content that should be saved:
+```bash
+bash scripts/verify_proc.sh save-file "3.a" "config.conf" <<'CONTENT'
+[defaults]
+remote_user = ansible
+CONTENT
+```
 
-- **Example output blocks**: Detects blocks preceded by "Example output", "sample output", "expected output", or "output is shown" and skips them
-- **Placeholder blocks**: Detects `<multi_word_placeholder>` patterns, `${VAR}` syntax, `CHANGEME`, or `REPLACE` markers and skips those steps
+**skip** — Just report it in your output, no script call needed.
 
-### AsciiDoc attribute resolution
+### Step 3: Observations
 
-When a source block has `subs="attributes+"`, the script resolves `{attr-name}` references before validation or execution. Attributes are loaded from two sources, in priority order:
+After all blocks are processed, run:
+```bash
+bash scripts/verify_proc.sh summary
+```
 
-1. **The document itself** — `:attr-name: value` lines in the `.adoc` file
-2. **An `_attributes.adoc` file** — looked up in the same directory as the file, then one level up
+Then add your own observations:
+- Steps that reference resources not created by earlier steps
+- Missing `wait` or polling between create and verify steps
+- Prerequisites that aren't documented
+- Namespace assumptions
+- Commands that would fail without prior `oc login` or specific permissions
 
-This approach works across Red Hat docs repos regardless of which attribute names they use. No attribute names are hardcoded.
+### Step 4: Cleanup (if requested)
 
-As a special case, `{product-version}` falls back to live cluster detection via `oc version` if no document-level definition is found.
+Only run cleanup when the user asks or when invoked with cleanup intent:
+```bash
+bash scripts/verify_proc.sh cleanup
+```
 
-### YAML validation
+## Handling assemblies and partial cluster state
 
-- Parses every `[source,yaml]` block with Ruby's YAML parser for syntax errors
-- If the YAML contains `apiVersion:` (Kubernetes resource), runs `oc apply --dry-run=client` or `kubectl apply --dry-run=client` (auto-detects which CLI is available)
-- Reports `[VALID]` or `[FAILURE]` with the specific error
+### Assemblies (multi-file procedures)
+OpenShift docs use assemblies that `include::` multiple procedure modules. When verifying an assembly:
+- Verify the full assembly end-to-end, not individual modules in isolation
+- Resolve all `include::` directives to build the complete procedure before starting execution
+- If the user points you at a single module (not an assembly), verify just that module but warn that it may depend on context from a parent assembly
 
-### JSON validation
+### Partial cluster state
+Procedures often assume prior setup (an operator installed, a namespace existing, a previous procedure completed). When a command fails because of missing prerequisites:
+- Report the failure clearly: "Step 2 failed — namespace `openshift-ptp` does not exist. This procedure likely assumes the namespace was created by a prior procedure or prerequisite."
+- Continue with remaining steps — later steps may still provide useful validation
+- In your observations, list all assumed prerequisites you discovered during execution
 
-- Parses `[source,json]` blocks with Ruby's JSON parser for syntax errors
-- Reports `[VALID]` or `[FAILURE]`
+## What you should flag (judgment calls only Claude can make)
 
-### Config and script validation
-
-- `[source,ini]`, `[source,toml]`, `[source,text]` blocks are recorded and saved to the working directory (for relative paths) or validated without writing (for absolute paths like `/etc/chrony.conf`)
-- `[source,python]` blocks are syntax-checked via `python3 -c "compile(...)"`
-- `[source,ruby]` blocks are syntax-checked via `ruby -c`
-- Absolute paths in step instructions (common in RHEL procedures) are validated but never written to the filesystem
-
-### Bash execution
-
-- Strips prompt symbols from command lines, handling conventions across products:
-  - OCP/K8s: `$ oc get pods`
-  - RHEL root: `# dnf install`, `[root@host ~]# systemctl`, `~]# subscription-manager`
-  - Mixed: `$ sudo dnf install`
-- Joins backslash-continued lines
-- Executes each command via `Open3.capture3` in the working directory
-- For verification steps (containing words like "verify", "check", "confirm"), displays the command output
-- On failure, logs the error but continues to the next step
-
-### Best practices check
-
-- Checks for a `.Prerequisites` section (or equivalent heading/anchor) in the document
-- Warns if no prerequisites section is found, since its absence is a stronger signal of undocumented assumptions than scanning for specific commands
-
-### Resource tracking and cleanup
-
-The script tracks resources created during verification across products:
-- **K8s/OCP**: Records `oc create -f` / `oc apply -f` commands and captures resource identifiers from stdout (e.g., `namespace/openshift-ptp created`)
-- **RHEL**: Tracks `systemctl enable/start` services and `dnf/yum install` packages
-
-When invoked with `--cleanup`:
-- Deletes K8s resources in reverse order using `--ignore-not-found`
-- Stops and disables tracked services via `systemctl`
-- Removes installed packages via `dnf remove`
-- Removes the temporary working directory
-
-Without `--cleanup`, the working directory and resources are retained so the user can inspect them.
-
-### Summary
-
-- Reports total executable steps, pass count, and fail count
-- Uses hierarchical step labels matching the procedure structure
-- Lists each failed step with its error message
-- Flags if no verification step exists in the procedure
+- "Step 4 references namespace `openshift-ptp` but no earlier step creates it — is it expected to exist?"
+- "Step 2 creates a resource and step 3 immediately queries it — may need a wait/retry"
+- "The `oc adm` command in step 5 requires cluster-admin — not mentioned in prerequisites"
+- "Step 3.b has `<your-registry-url>` — this is a placeholder, cannot execute"
+- "The YAML in step 2 uses `apiVersion: v1beta1` which may be deprecated on this cluster version"
+- "`ifdef::openshift-enterprise[]` — I'm including this block assuming an OpenShift Enterprise context"
 
 ## Output format
 
-The script produces structured terminal output:
+Present results as you go, using this format:
 
-```text
---- Starting Procedure Validation: <file.adoc> ---
-[INFO] Working directory: /tmp/verify-proc-abc123
-
-[Step 1] Create a namespace for the PTP Operator.
-
-[Step 1.a] Save the following YAML in the `ptp-namespace.yaml` file:
-[VALID] YAML syntax for Step 1.a is correct.
-[INFO] Saved YAML to /tmp/verify-proc-abc123/ptp-namespace.yaml
-[VALID] Resource logic (dry-run via oc) passed for Step 1.a.
-
-[Step 1.b] Create the `Namespace` CR:
-Executing: oc create -f ptp-namespace.yaml
-[SUCCESS] Step 1.b executed.
-
-[Step 4] To verify that the Operator is installed, enter the following command:
-Executing: oc get csv -n openshift-ptp -o custom-columns=...
-[SUCCESS] Step 4 executed.
-Output: Name                         Phase
-ptp-operator.v4.21.0-...     Succeeded
--> Verification successfully performed.
-
-[Step 4] To verify that the Operator is installed, enter the following command:
-[SKIP] Example output - not executed
-
-============================================================
-FINAL SUMMARY
-============================================================
-Total executable steps: 7
-Passed: 7
-Failed: 0
-============================================================
-✓ All steps PASSED
-============================================================
-
-[INFO] Working directory retained at: /tmp/verify-proc-abc123
-[INFO] Run with --cleanup to auto-delete resources and working directory after verification.
 ```
+--- Procedure Verification: <filename> ---
+Workdir: /tmp/verify-proc-XXXXXX
+CLI: oc | Cluster: https://api.cluster.example.com:6443
 
-After the script output, add observations about any patterns noticed during execution (timing issues, missing waits, ordering problems).
+[Step 1] Install the PTP Operator
+  [Step 1.a] Save the following YAML as ptp-namespace.yaml:
+    YAML syntax: PASS
+    Saved to: /tmp/verify-proc-XXXXXX/ptp-namespace.yaml
+    Dry-run: PASS
+  [Step 1.b] Create the Namespace CR:
+    Executing: oc create -f ptp-namespace.yaml
+    Result: PASS
+
+[Step 4] Verify the Operator is installed:
+    Executing: oc get csv -n openshift-ptp
+    Result: PASS
+    Output: ptp-operator.v4.21.0  Succeeded
+
+--- Observations ---
+- Step 3 applies a SubscriptionConfig but doesn't wait for the operator to become ready
+  before step 4 checks the CSV. Consider adding: oc wait --for=condition=...
+- No .Prerequisites section found — verify that prerequisites are documented
+
+--- Summary ---
+Total: 7 | Passed: 7 | Failed: 0
+```
