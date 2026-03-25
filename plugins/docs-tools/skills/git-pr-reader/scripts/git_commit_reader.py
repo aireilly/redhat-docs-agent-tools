@@ -424,7 +424,9 @@ def cmd_list(args) -> int:
             c["relevant_files_changed"] = rel_count
             total_files += all_count
             relevant_files += rel_count
-        except Exception:
+        except Exception as exc:
+            print(f"Warning: failed to fetch files for {c['sha'][:7]}: {exc}", file=sys.stderr)
+            c["files_changed"] = c.get("files_changed", 0)
             c["relevant_files_changed"] = c.get("files_changed", 0)
 
     # Drop commits with no relevant files after filtering

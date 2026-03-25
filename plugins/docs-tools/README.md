@@ -378,3 +378,5 @@ jobs:
 ### Marker files
 
 The commit-driven workflow tracks which commits have been processed using marker files at `.claude/docs/.commit-markers/<repo-slug>.json`. The orchestrator updates the marker on workflow completion, so failed workflows don't skip commits on retry.
+
+> **Tip**: In CI/CD pipelines, persist the `.commit-markers/` directory between runs using your platform's cache mechanism (GitHub Actions `actions/cache`, GitLab CI `cache:` directive) or by committing marker updates back to the repo. Without persistence, each run treats all recent commits as new.

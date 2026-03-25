@@ -126,12 +126,12 @@ Save the analysis to the output path specified in the prompt.
 ```markdown
 # Commit Analysis
 
-<!-- DOC_IMPACT: HIGH | MEDIUM | LOW | NONE -->
+<!-- DOC_IMPACT: HIGH | MEDIUM | LOW | None -->
 
 **Repository**: <url>
 **Branch**: <branch>
 **Commits analyzed**: <count>
-**Overall doc impact**: HIGH | MEDIUM | LOW | NONE
+**Overall doc impact**: HIGH | MEDIUM | LOW | None
 
 ## Change Summary
 
