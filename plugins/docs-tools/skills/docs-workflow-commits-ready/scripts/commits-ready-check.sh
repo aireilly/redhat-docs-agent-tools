@@ -21,7 +21,7 @@ set -euo pipefail
 
 # --- Defaults ---
 REPO=""
-BRANCH="main"
+BRANCH=""
 BASE_PATH=".claude/docs"
 SINCE_SHA=""
 MAX_COMMITS=50
@@ -85,7 +85,10 @@ if [[ -z "$SINCE_SHA" ]]; then
 fi
 
 # --- Query commits ---
-READER_ARGS="list $REPO --branch $BRANCH --max $MAX_COMMITS --no-merges --drop-empty --json"
+READER_ARGS="list $REPO --max $MAX_COMMITS --no-merges --drop-empty --json"
+if [[ -n "$BRANCH" ]]; then
+  READER_ARGS="$READER_ARGS --branch $BRANCH"
+fi
 if [[ -n "$SINCE_SHA" ]]; then
   READER_ARGS="$READER_ARGS --since $SINCE_SHA"
 fi

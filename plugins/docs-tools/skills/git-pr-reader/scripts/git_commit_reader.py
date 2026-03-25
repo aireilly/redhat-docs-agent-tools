@@ -147,6 +147,11 @@ class GitHubCommitReader:
 
         self._repo = self._github.get_repo(self.owner_repo)
 
+    @property
+    def default_branch(self) -> str:
+        """Return the repository's default branch name."""
+        return self._repo.default_branch
+
     def list_commits(
         self,
         branch: str = "main",
@@ -272,6 +277,11 @@ class GitLabCommitReader:
 
         self._project = self._gitlab.projects.get(self.owner_repo)
 
+    @property
+    def default_branch(self) -> str:
+        """Return the repository's default branch name."""
+        return self._project.default_branch
+
     def list_commits(
         self,
         branch: str = "main",
@@ -392,8 +402,11 @@ def cmd_list(args) -> int:
     reader = create_reader(args.repo_url)
     filters = load_filters()
 
+    # Auto-detect default branch if not specified
+    branch = args.branch or reader.default_branch
+
     commits = reader.list_commits(
-        branch=args.branch,
+        branch=branch,
         since_sha=args.since,
         max_commits=args.max,
         no_merges=args.no_merges,
@@ -423,7 +436,7 @@ def cmd_list(args) -> int:
 
     output = {
         "repository": args.repo_url,
-        "branch": args.branch,
+        "branch": branch,
         "since": args.since,
         "total": len(commits),
         "commits": commits,
@@ -439,7 +452,7 @@ def cmd_list(args) -> int:
         print(json.dumps(output, indent=2, default=str))
     else:
         print(f"Repository: {args.repo_url}")
-        print(f"Branch: {args.branch}")
+        print(f"Branch: {branch}")
         print(f"Commits since {args.since or 'beginning'}: {len(commits)}")
         print(f"Files: {relevant_files} relevant / {total_files} total")
         print()
@@ -609,7 +622,7 @@ Examples:
     list_parser = subparsers.add_parser("list", help="List commits on a branch since a SHA")
     list_parser.add_argument("repo_url", help="Repository URL (GitHub or GitLab)")
     list_parser.add_argument("--since", help="List commits after this SHA")
-    list_parser.add_argument("--branch", default="main", help="Branch name (default: main)")
+    list_parser.add_argument("--branch", default=None, help="Branch name (default: auto-detect from repository)")
     list_parser.add_argument("--max", type=int, default=50, help="Max commits to return (default: 50)")
     list_parser.add_argument("--no-merges", action="store_true", help="Exclude merge commits")
     list_parser.add_argument("--drop-empty", action="store_true", help="Exclude commits with zero relevant files after filtering")

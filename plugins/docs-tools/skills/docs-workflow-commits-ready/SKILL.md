@@ -21,7 +21,7 @@ Gate skill for automated commit-driven docs-orchestrator runs. Checks a code rep
 ## Arguments
 
 - `--repo <url>` — Code repository URL (required). Supports GitHub and GitLab.
-- `--branch <name>` — Branch to check (default: `main`)
+- `--branch <name>` — Branch to check (default: auto-detected from repository)
 - `--base-path <path>` — Directory to check for existing progress/marker files (default: `.claude/docs`)
 - `--since <sha>` — Override: check commits since this SHA instead of the stored marker
 - `--max-commits <n>` — Maximum number of commits to return (default: 50)
