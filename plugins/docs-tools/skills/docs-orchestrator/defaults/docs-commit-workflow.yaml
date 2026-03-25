@@ -45,4 +45,4 @@ workflow:
       skill: docs-tools:docs-workflow-create-pr
       description: Create PR/MR with documentation changes
       when: create_pr
-      inputs: [style-review, prepare-branch]
+      inputs: [technical-review, style-review, prepare-branch]

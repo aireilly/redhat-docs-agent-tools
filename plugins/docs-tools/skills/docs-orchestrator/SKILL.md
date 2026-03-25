@@ -41,6 +41,12 @@ bash scripts/setup-hooks.sh
 - `--commits <repo-url> <sha1,sha2,...>` — Commit-driven mode. The first value is the code repository URL, the second is a comma-separated list of commit SHAs. When present, uses `docs-commit-workflow.yaml` as default workflow (unless `--workflow` overrides). The identifier is auto-generated from the repo and SHAs if not provided as `$1`: `<repo-short-name>/<first-7chars>-<last-7chars>`
 - `--create-pr` — Enable the PR/MR creation step. Maps to `when: create_pr` condition in the workflow YAML
 
+### Flag conflict check
+
+After parsing, validate flag combinations:
+
+- If both `--draft` and `--create-pr` are set → **STOP** with error: "`--draft` and `--create-pr` are mutually exclusive. Draft mode writes to a staging area without creating a branch; `--create-pr` requires a branch to push. Remove one flag."
+
 ## Load the step list
 
 ### 1. Determine the YAML file
