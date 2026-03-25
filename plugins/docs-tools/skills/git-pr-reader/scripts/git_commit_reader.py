@@ -164,7 +164,6 @@ class GitHubCommitReader:
         commits_iter = self._repo.get_commits(**kwargs)
 
         results = []
-        found_since = since_sha is None
         collected = 0
 
         for commit in commits_iter:
@@ -186,7 +185,7 @@ class GitHubCommitReader:
                 "author": commit.commit.author.name if commit.commit.author else "unknown",
                 "date": commit.commit.author.date.isoformat() if commit.commit.author else None,
                 "parents": [p.sha for p in commit.parents],
-                "files_changed": commit.stats.total if commit.stats else 0,
+                "files_changed": 0,  # Populated by enrichment loop
                 "additions": commit.stats.additions if commit.stats else 0,
                 "deletions": commit.stats.deletions if commit.stats else 0,
             })
@@ -222,7 +221,7 @@ class GitHubCommitReader:
         return "\n".join(parts)
 
     def get_range_files(
-        self, from_sha: str, to_sha: str, branch: str = "main"
+        self, from_sha: str, to_sha: str, _branch: str = "main"
     ) -> List[Dict[str, Any]]:
         """Get all files changed across a commit range."""
         comparison = self._repo.compare(from_sha, to_sha)
@@ -349,7 +348,7 @@ class GitLabCommitReader:
         return "\n".join(parts)
 
     def get_range_files(
-        self, from_sha: str, to_sha: str, branch: str = "main"
+        self, from_sha: str, to_sha: str, _branch: str = "main"
     ) -> List[Dict[str, Any]]:
         """Get all files changed across a commit range."""
         comparison = self._project.repository_compare(from_sha, to_sha)
@@ -426,8 +425,7 @@ def cmd_list(args) -> int:
             relevant_files += rel_count
         except Exception as exc:
             print(f"Warning: failed to fetch files for {c['sha'][:7]}: {exc}", file=sys.stderr)
-            c["files_changed"] = c.get("files_changed", 0)
-            c["relevant_files_changed"] = c.get("files_changed", 0)
+            # Leave relevant_files_changed unset; --drop-empty defaults to keeping commit
 
     # Drop commits with no relevant files after filtering
     dropped_empty = 0

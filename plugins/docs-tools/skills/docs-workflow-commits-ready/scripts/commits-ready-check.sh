@@ -25,8 +25,6 @@ BRANCH=""
 BASE_PATH=".claude/docs"
 SINCE_SHA=""
 MAX_COMMITS=50
-DRY_RUN=false
-
 # Resolve git_commit_reader.py relative to this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMMIT_READER="${SCRIPT_DIR}/../../git-pr-reader/scripts/git_commit_reader.py"
@@ -50,7 +48,7 @@ while [[ $# -gt 0 ]]; do
       [[ -n "${2:-}" ]] || { echo '{"error": "--max-commits requires a number"}'; exit 1; }
       MAX_COMMITS="$2"; shift 2 ;;
     --dry-run)
-      DRY_RUN=true; shift ;;
+      shift ;;  # Accepted for compatibility; gate is always read-only
     *)
       echo "{\"error\": \"Unknown argument: $1\"}"; exit 1 ;;
   esac
@@ -124,7 +122,6 @@ if [[ "$TOTAL" -eq 0 || "$TOTAL" == "null" ]]; then
 fi
 
 # --- Extract commit SHAs ---
-ALL_SHAS=$(echo "$COMMIT_OUTPUT" | jq -r '.commits[].sha')
 FIRST_SHA=$(echo "$COMMIT_OUTPUT" | jq -r '.commits[0].sha')
 LAST_SHA=$(echo "$COMMIT_OUTPUT" | jq -r '.commits[-1].sha')
 
@@ -141,9 +138,6 @@ else
 fi
 
 # --- Filter out already-processed batches ---
-FILTERED_COUNT=0
-declare -A FILTERED_MAP
-
 # Check if a progress file already exists for this identifier
 IDENTIFIER_LOWER=$(echo "$IDENTIFIER" | tr '[:upper:]' '[:lower:]')
 if compgen -G "${BASE_PATH}/${IDENTIFIER_LOWER}/workflow/*.json" >/dev/null 2>&1; then
