@@ -47,10 +47,12 @@ The script:
 
 1. **Reads branch info** from the prepare-branch step output to get the source branch name
 2. **Reads plan and requirements** for the PR/MR description body
-3. **Auto-detects platform** (GitHub/GitLab) from the git remote URL (`upstream`, falling back to `origin`)
-4. **Detects default branch** of the remote for the PR/MR target
-5. **Creates the PR/MR** via the GitHub/GitLab API
-6. **Writes output** to `<base-path>/create-pr/pr-info.md`
+3. **Commits changes** — stages all working tree changes and commits with message `docs: <identifier>`
+4. **Pushes the branch** to the remote (tries `upstream`, falls back to `origin`)
+5. **Auto-detects platform** (GitHub/GitLab) from the git remote URL
+6. **Detects default branch** of the remote for the PR/MR target
+7. **Creates the PR/MR** via the GitHub/GitLab API
+8. **Writes output** to `<base-path>/create-pr/pr-info.md`
 
 ### Verification
 
