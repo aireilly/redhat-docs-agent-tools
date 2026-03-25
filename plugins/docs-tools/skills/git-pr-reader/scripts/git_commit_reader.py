@@ -295,7 +295,7 @@ class GitLabCommitReader:
             "per_page": max_commits,
         }
 
-        commits = self._project.commits.list(**kwargs)
+        commits = self._project.commits.list(**kwargs, get_all=False)
 
         results = []
         for commit in commits:

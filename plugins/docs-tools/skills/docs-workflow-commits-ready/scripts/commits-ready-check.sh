@@ -93,18 +93,22 @@ if [[ -n "$SINCE_SHA" ]]; then
   READER_ARGS="$READER_ARGS --since $SINCE_SHA"
 fi
 
-COMMIT_OUTPUT=$(python3 "$COMMIT_READER" $READER_ARGS 2>&1) || {
-  echo "{\"error\": \"git_commit_reader.py failed\", \"detail\": $(echo "$COMMIT_OUTPUT" | jq -Rs .)}"
+COMMIT_STDERR=$(mktemp)
+COMMIT_OUTPUT=$(python3 "$COMMIT_READER" $READER_ARGS 2>"$COMMIT_STDERR") || {
+  echo "{\"error\": \"git_commit_reader.py failed\", \"detail\": $(cat "$COMMIT_STDERR" | jq -Rs .)}"
+  rm -f "$COMMIT_STDERR"
   exit 1
 }
+rm -f "$COMMIT_STDERR"
 
-# --- Extract commit count ---
+# --- Extract resolved branch and commit count ---
+RESOLVED_BRANCH=$(echo "$COMMIT_OUTPUT" | jq -r '.branch')
 TOTAL=$(echo "$COMMIT_OUTPUT" | jq -r '.total')
 
 if [[ "$TOTAL" -eq 0 || "$TOTAL" == "null" ]]; then
   jq -n \
     --arg repo "$REPO" \
-    --arg branch "$BRANCH" \
+    --arg branch "$RESOLVED_BRANCH" \
     --arg marker "$SINCE_SHA" \
     '{
       repository: $repo,
@@ -146,7 +150,7 @@ if compgen -G "${BASE_PATH}/${IDENTIFIER_LOWER}/workflow/*.json" >/dev/null 2>&1
   # The entire batch has already been processed
   jq -n \
     --arg repo "$REPO" \
-    --arg branch "$BRANCH" \
+    --arg branch "$RESOLVED_BRANCH" \
     --arg marker "$SINCE_SHA" \
     --arg id "$IDENTIFIER" \
     '{
@@ -170,7 +174,7 @@ FILTERED_STATS=$(echo "$COMMIT_OUTPUT" | jq '.filtered_stats')
 
 jq -n \
   --arg repo "$REPO" \
-  --arg branch "$BRANCH" \
+  --arg branch "$RESOLVED_BRANCH" \
   --arg marker "${SINCE_SHA:-}" \
   --argjson total "$TOTAL" \
   --arg id "$IDENTIFIER" \
