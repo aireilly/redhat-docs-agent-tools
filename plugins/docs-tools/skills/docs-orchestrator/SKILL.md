@@ -1,7 +1,7 @@
 ---
 name: docs-orchestrator
-description: Documentation workflow orchestrator. Reads the step list from .claude/docs-workflow.yaml (or the plugin default). Runs steps sequentially, manages progress state, handles iteration and confirmation gates. Claude is the orchestrator — the YAML is a step list, not a workflow engine.
-argument-hint: <ticket> [--workflow <name>] [--pr <url>]... [--mkdocs] [--draft] [--create-jira <PROJECT>]
+description: Documentation workflow orchestrator. Reads the step list from .claude/docs-workflow.yaml (or the plugin default). Runs steps sequentially, manages progress state, handles iteration and confirmation gates. Claude is the orchestrator — the YAML is a step list, not a workflow engine. Supports both JIRA-driven and commit-driven workflows.
+argument-hint: <ticket> [--workflow <name>] [--pr <url>]... [--mkdocs] [--draft] [--create-jira <PROJECT>] [--commits <repo-url> <sha1,sha2,...>] [--create-pr]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, AskUserQuestion, WebSearch, WebFetch
 ---
 
@@ -22,8 +22,8 @@ if [[ -z "${JIRA_AUTH_TOKEN:-}" ]]; then
 fi
 ```
 
-1. If `JIRA_AUTH_TOKEN` is still unset → **STOP** and ask the user to set it in `~/.env`
-2. Warn (don't stop) if `GITHUB_TOKEN` or `GITLAB_TOKEN` are unset
+1. If `JIRA_AUTH_TOKEN` is still unset → **STOP** and ask the user to set it in `~/.env` (skip this check in commit-driven mode — `JIRA_AUTH_TOKEN` is only needed when JIRA tickets are referenced)
+2. Warn (don't stop) if `GITHUB_TOKEN` or `GITLAB_TOKEN` are unset (these are required in commit-driven mode)
 3. Install hooks (safe to re-run):
 
 ```bash
@@ -32,20 +32,29 @@ bash scripts/setup-hooks.sh
 
 ## Parse arguments
 
-- `$1` — JIRA ticket ID (required). If missing, STOP and ask the user.
+- `$1` — Identifier (required). Either a JIRA ticket ID (e.g., `PROJ-123`) or a commit-derived identifier (e.g., `my-service/a1b2c3d-e4f5g6h`). If missing, STOP and ask the user.
 - `--workflow <name>` — Use `.claude/docs-<name>.yaml` instead of `docs-workflow.yaml`
 - `--pr <url>` — PR/MR URLs (repeatable, accumulated into a list)
 - `--mkdocs` — Use Material for MkDocs format instead of AsciiDoc
 - `--draft` — Write documentation to a staging area instead of directly into the repo. When set, the writing step uses DRAFT placement mode (no framework detection, no branch creation). Without this flag, UPDATE-IN-PLACE is the default
 - `--create-jira <PROJECT>` — Create a linked JIRA ticket in the specified project
+- `--commits <repo-url> <sha1,sha2,...>` — Commit-driven mode. The first value is the code repository URL, the second is a comma-separated list of commit SHAs. When present, uses `docs-commit-workflow.yaml` as default workflow (unless `--workflow` overrides). The identifier is auto-generated from the repo and SHAs if not provided as `$1`: `<repo-short-name>/<first-7chars>-<last-7chars>`
+- `--create-pr` — Enable the PR/MR creation step. Maps to `when: create_pr` condition in the workflow YAML
+
+### Flag conflict check
+
+After parsing, validate flag combinations:
+
+- If both `--draft` and `--create-pr` are set → **STOP** with error: "`--draft` and `--create-pr` are mutually exclusive. Draft mode writes to a staging area without creating a branch; `--create-pr` requires a branch to push. Remove one flag."
 
 ## Load the step list
 
 ### 1. Determine the YAML file
 
 - If `--workflow <name>` was specified → `.claude/docs-<name>.yaml`
+- If `--commits` was specified (and no `--workflow`) → `.claude/docs-commit-workflow.yaml`
 - Otherwise → `.claude/docs-workflow.yaml`
-- If neither exists → use the plugin default at `skills/docs-orchestrator/defaults/docs-workflow.yaml`
+- If the selected file does not exist → use the plugin default at `skills/docs-orchestrator/defaults/docs-workflow.yaml` (JIRA mode) or `skills/docs-orchestrator/defaults/docs-commit-workflow.yaml` (commit mode)
 
 ### 2. Read the YAML
 
@@ -54,6 +63,7 @@ Read the YAML file and extract the ordered step list. Each step has: `name`, `sk
 ### 3. Evaluate `when` conditions
 
 - `when: create_jira_project` → run this step only if `--create-jira` was passed
+- `when: create_pr` → run this step only if `--create-pr` was passed
 - Steps with no `when` always run
 - Steps that don't meet their `when` condition are marked `skipped` in the progress file
 
@@ -131,8 +141,9 @@ The `workflow_type` field and filename prefix match the YAML's `workflow.name`. 
 ```json
 {
   "workflow_type": "<workflow.name from YAML>",
-  "ticket": "<TICKET>",
-  "base_path": ".claude/docs/<ticket>",
+  "ticket": "<IDENTIFIER>",
+  "source_type": "jira",
+  "base_path": ".claude/docs/<identifier>",
   "status": "in_progress",
   "created_at": "<ISO 8601>",
   "updated_at": "<ISO 8601>",
@@ -140,6 +151,7 @@ The `workflow_type` field and filename prefix match the YAML's `workflow.name`. 
     "format": "adoc",
     "draft": false,
     "create_jira_project": null,
+    "create_pr": false,
     "pr_urls": []
   },
   "step_order": ["requirements", "planning", "writing", ...],
@@ -151,6 +163,26 @@ The `workflow_type` field and filename prefix match the YAML's `workflow.name`. 
   }
 }
 ```
+
+For commit-driven workflows, include `source_type` and `source`:
+
+```json
+{
+  "workflow_type": "docs-commit-workflow",
+  "ticket": "my-service/a1b2c3d-e4f5g6h",
+  "source_type": "commits",
+  "source": {
+    "repository": "https://github.com/org/repo",
+    "commits": ["sha1", "sha2", "sha3"],
+    "branch": "main"
+  },
+  "options": {
+    "create_pr": true
+  }
+}
+```
+
+For JIRA-driven workflows, `source_type` defaults to `"jira"` (backward compatible — existing progress files without this field are treated as JIRA).
 
 The `output` field records the step's output folder path (e.g., `.claude/docs/proj-123/writing/`) once completed.
 
@@ -196,13 +228,16 @@ Run steps in the order defined by the YAML. For each step:
 
 Build the args string for the step skill:
 
-1. **Always**: `<ticket> --base-path <base_path>` — the ticket ID and the base output path
+1. **Always**: `<identifier> --base-path <base_path>` — the identifier and the base output path
 2. **From orchestrator context**: Step-specific args from parsed CLI flags:
-   - `requirements`: `[--pr <url>]...`
+   - `commit-analysis` (commit mode): `--repo <repo-url> --commits <sha1,sha2,...>`
+   - `requirements` (JIRA mode): `[--pr <url>]...`
+   - `requirements` (commit mode): `--commit-analysis <base_path>/commit-analysis/analysis.md`
    - `prepare-branch`: `[--draft]`
    - `writing`: `--format <adoc|mkdocs> [--draft]`
    - `style-review`: `--format <adoc|mkdocs>`
    - `create-jira`: `--project <PROJECT>`
+   - `create-pr`: no additional args (reads branch info and plan from base path)
 
 Step skills derive their own output folder and input folders from `--base-path` and step name conventions. No per-input flag wiring needed.
 
@@ -217,6 +252,17 @@ Skill: <step.skill>, args: "<constructed args>"
 1. Verify the output folder exists (for steps that produce files). If the expected output folder is missing, mark the step as `failed` in the progress file and **STOP**
 2. Update the step's status to `"completed"` with the output folder path in the progress file
 3. Update the progress file's `updated_at` timestamp
+
+## Short-circuit on None impact (commit-driven only)
+
+After the `commit-analysis` step completes, read the output file and check for `<!-- DOC_IMPACT: None -->`. If found:
+
+1. Mark all remaining steps as `skipped` in the progress file
+2. Set the workflow status to `completed`
+3. Update the commit marker file (see "Commit marker update" below)
+4. Report: "No documentation impact detected. Workflow complete."
+
+This short-circuits before the heavier requirements step runs, saving time and cost when commits have no doc impact.
 
 ## Technical review iteration
 
@@ -240,10 +286,32 @@ The technical review step runs in a loop until confidence is acceptable or three
 After all steps complete (or are skipped):
 
 1. Update the progress file: `status → "completed"`
-2. Display a summary:
+2. If commit-driven, update the commit marker (see "Commit marker update" below)
+3. Display a summary:
    - List all output folders with paths
    - Note any warnings (tech review didn't reach `HIGH`, etc.)
    - Show JIRA URL if a ticket was created
+   - Show PR/MR URL if a PR was created
+
+## Commit marker update (commit-driven only)
+
+On workflow completion (both None-impact short-circuit and full completion), update the commit marker file so the gate skill (`docs-workflow-commits-ready`) knows which commits have been processed.
+
+**Marker file location**: `<base-path>/../.commit-markers/<repo-slug>.json`
+
+The repo slug is derived from the repository URL: strip protocol, remove `.git` suffix, replace non-alphanumeric characters with hyphens, lowercase. For example: `https://github.com/org/repo` → `github-com-org-repo`.
+
+**Marker content**:
+
+```json
+{
+  "repository": "<repo-url>",
+  "last_processed_sha": "<last-sha-from-batch>",
+  "last_processed_at": "<ISO 8601>"
+}
+```
+
+Create the `.commit-markers/` directory if it does not exist. Use the last SHA from the commit batch (the most recent commit) as the marker value.
 
 ## Resume behavior
 

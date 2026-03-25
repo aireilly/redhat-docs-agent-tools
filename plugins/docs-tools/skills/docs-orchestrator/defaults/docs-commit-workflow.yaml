@@ -1,0 +1,48 @@
+workflow:
+  name: docs-commit-workflow
+  description: >-
+    Commit-driven documentation workflow. Analyzes code commits for
+    documentation impact, plans, writes, reviews, and optionally creates a PR/MR.
+
+  # All step outputs go to: .claude/docs/<identifier>/<step-name>/
+  # Each step reads its inputs from upstream step folders by convention.
+  steps:
+    - name: commit-analysis
+      skill: docs-tools:docs-workflow-commit-analysis
+      description: Analyze commits for documentation impact
+
+    - name: requirements
+      skill: docs-tools:docs-workflow-requirements
+      description: Extract documentation requirements from change analysis
+      inputs: [commit-analysis]
+
+    - name: planning
+      skill: docs-tools:docs-workflow-planning
+      description: Create documentation plan
+      inputs: [requirements]
+
+    - name: prepare-branch
+      skill: docs-tools:docs-workflow-prepare-branch
+      description: Create a fresh branch from latest upstream default branch
+      inputs: [planning]
+
+    - name: writing
+      skill: docs-tools:docs-workflow-writing
+      description: Write documentation
+      inputs: [planning, prepare-branch]
+
+    - name: technical-review
+      skill: docs-tools:docs-workflow-tech-review
+      description: Technical accuracy review
+      inputs: [writing]
+
+    - name: style-review
+      skill: docs-tools:docs-workflow-style-review
+      description: Style guide compliance review
+      inputs: [writing]
+
+    - name: create-pr
+      skill: docs-tools:docs-workflow-create-pr
+      description: Create PR/MR with documentation changes
+      when: create_pr
+      inputs: [technical-review, style-review, prepare-branch]

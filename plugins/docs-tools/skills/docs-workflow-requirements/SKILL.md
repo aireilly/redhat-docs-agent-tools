@@ -11,9 +11,10 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 
 ## Arguments
 
-- `$1` — JIRA ticket ID (required)
+- `$1` — Identifier: JIRA ticket ID or commit-derived identifier (required)
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 - `--pr <url>` — PR/MR URL to include in analysis (repeatable)
+- `--commit-analysis <path>` — Path to commit analysis output (e.g., `<base-path>/commit-analysis/analysis.md`)
 
 ## Output
 
@@ -25,7 +26,7 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 
 ### 1. Parse arguments
 
-Extract the ticket ID, `--base-path`, and any `--pr` URLs from the args string.
+Extract the identifier, `--base-path`, any `--pr` URLs, and optional `--commit-analysis` path from the args string.
 
 Set the output path:
 
@@ -43,7 +44,7 @@ Dispatch the `docs-tools:requirements-analyst` agent with the following prompt.
 - `subagent_type`: `docs-tools:requirements-analyst`
 - `description`: `Analyze requirements for <TICKET>`
 
-**Prompt:**
+**Prompt (JIRA mode — no `--commit-analysis`):**
 
 > Analyze documentation requirements for JIRA ticket `<TICKET>`.
 >
@@ -56,6 +57,18 @@ Dispatch the `docs-tools:requirements-analyst` agent with the following prompt.
 > Follow your standard analysis methodology (JIRA fetch, ticket graph traversal, PR/MR analysis, web search expansion). Format the output as structured markdown for the next stage.
 
 The PR URL bullet list is conditional — include those bullets only if PR URLs were provided. If no `--pr` URLs exist, omit the bullet list but keep the rest of the prompt.
+
+**Prompt (commit mode — `--commit-analysis` provided):**
+
+> Analyze documentation requirements based on the commit analysis.
+>
+> Read the commit analysis from `<COMMIT_ANALYSIS_PATH>` and use it as your primary source for requirements extraction. The analysis contains change signals (new APIs, config changes, breaking changes) extracted from code commits.
+>
+> If the commit analysis references JIRA ticket IDs or PR numbers, fetch those for additional context.
+>
+> Save your complete analysis to: `<OUTPUT_FILE>`
+>
+> Follow your standard analysis methodology, using the commit analysis as your primary source instead of a JIRA ticket. Format the output as structured markdown for the next stage.
 
 ### 3. Verify output
 

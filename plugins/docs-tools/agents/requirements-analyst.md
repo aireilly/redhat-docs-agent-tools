@@ -117,6 +117,17 @@ The `--graph` flag discovers custom field IDs, fetches the parent, children, sib
 - Check for documentation labels or comments
 - Record PR URLs with titles (e.g., `https://github.com/org/repo/pull/456`)
 
+**From commit analysis:**
+
+When a commit analysis file is provided, read it as a primary source. The analysis contains change signals (new APIs, config changes, breaking changes) extracted from code commits by the commit-analyst agent. Use these signals as input for requirements extraction, the same way you use JIRA tickets and PRs.
+
+If the commit analysis references JIRA ticket IDs or PR numbers, fetch those for additional context using the jira-reader and git-pr-reader scripts above.
+
+```bash
+# Read the commit analysis output
+cat <commit-analysis-path>
+```
+
 **From specifications:**
 - Read design documents
 - Review API specifications

@@ -7,7 +7,8 @@
 set -e
 
 SETTINGS_FILE=".claude/settings.json"
-HOOKS_SRC="${CLAUDE_PLUGIN_ROOT}/skills/docs-orchestrator/hooks"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HOOKS_SRC="${SCRIPT_DIR}/../hooks"
 
 # Copy hook script into the project
 mkdir -p .claude/hooks
