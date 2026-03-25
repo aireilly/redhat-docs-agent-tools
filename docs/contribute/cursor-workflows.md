@@ -4,10 +4,8 @@ icon: lucide/monitor
 
 # Cursor workflows
 
-<!-- markdownlint-disable MD013 -->
-
 The plugin format and marketplace in this repository target **Claude Code**. Cursor does not provide
-the same marketplace, but you can author, use, and review the same Markdown skills, commands,
+a marketplace, but you can still author, use, and review the same skills, commands,
 agents, and reference material.
 
 For what **skills** and **rules** mean in Cursor and why to use them, see [Skills and
@@ -18,7 +16,7 @@ rules](../get-started/cursor-fundamentals.md#skills-and-rules) in **Cursor funda
 1. **Project instructions** — Cursor loads [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) and rules under [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules), mirroring [CLAUDE.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/CLAUDE.md) conventions.
 1. **Skills** — Skills are located at `plugins/<plugin>/skills/` as plain Markdown files. You can point the Cursor agent to a path that contains skills, you can refer to skills using fully qualified names such as `docs-tools:jira-reader`, or you can use an `@` command to attach the skill to a prompt.
 1. **Commands** — In Claude Code, you can run commands like `hello-world:greet`. Cursor has no equivalent
-   command system. **Skills** are the usual first step in Cursor rather than a command. To use the Claude Code commands from this repository in Cursor, open the command file and copy/paste the content into your prompt.
+   command system. Attaching **skills** to a prompt is the usual first step in Cursor rather than invoking a command. However, you can use the Claude Code commands from this repository in Cursor by opening the command file and copy/pasting the content into your prompt.
 1. **Agents** — Agent definitions in the Markdown files under `plugins/<plugin>/agents/` are personas to apply to your prompt or project. You can use the personas as system instructions or project rules to guide the types of responses the agent will provide to your prompt.
 
 ## Contributing from Cursor
@@ -32,7 +30,3 @@ Cross-skill scripts in Claude Code documentation use `${CLAUDE_PLUGIN_ROOT}`. In
 ### Testing and evals
 
 [Evaluating skills](evaluating-skills.md) describes eval JSON and the Claude Code `skill-creator` flow. Cursor does not ship that runner. Add or update `evals/evals.json` where applicable and describe in your pull request how reviewers can verify behavior. Treat eval definitions as checklists when you cannot run the Claude Code tool.
-
-## Differences between Claude Code and Cursor
-
-Cursor does not include a plugin marketplace, a `plugin:command` execution model, or a built-in eval runner. Skills and reference Markdown remain the main shared surface for both tools.

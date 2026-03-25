@@ -74,9 +74,9 @@ Bump the version in `plugin.json` when making changes:
 
 The following files are auto-generated and should not be edited manually:
 
-- `plugins.md`
 - `docs/plugins.md`
-- `docs/install/index.md`
+- `docs/plugins/` (per-plugin catalog pages)
+- `docs/install/` (install documentation)
 
 These are regenerated on every merge to main via CI.
 

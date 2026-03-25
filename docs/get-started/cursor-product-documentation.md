@@ -84,19 +84,9 @@ Task: Apply docs-tools:rh-ssg-formatting to modules/install/overview.adoc only.
 List concrete issues first, then propose minimal edits. Do not change other modules.
 ```
 
-Expect a the Cursor agent to provide its findings followed by proposed edits for the paths you named. To find skill names and descriptions, browse **`plugins/<plugin>/skills/`** in the Agent Tools clone, or open the **Browse plugins** section on the [published site](https://redhat-documentation.github.io/redhat-docs-agent-tools/) **Overview** or run `make update` locally and read **`docs/plugins.md`**.
+Expect the Cursor agent to provide its findings followed by proposed edits for the paths you named. To find skill names and descriptions, browse **`plugins/<plugin>/skills/`** in the Agent Tools clone, or open the **Browse plugins** section on the [published site](https://redhat-documentation.github.io/redhat-docs-agent-tools/) **Overview** or run `make update` locally and read **`docs/plugins.md`**.
 
-## Tips and troubleshooting
-
-### Sidebar shows only one repository
-
-Add the second folder to the workspace and save the workspace file. See [Multi-root workspaces](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces) in the Visual Studio Code documentation.
-
-### Wrong `AGENTS.md` in the file picker
-
-In a multi-root workspace, choose `AGENTS.md` under **`redhat-docs-agent-tools/`** next to `plugins/`, not a copy from your product docs.
-
-### Privacy
+## Privacy
 
 Follow your team rules about putting product content in the assistant. If policy limits what may leave your network, use offline or approved workflows. See [Privacy and responsibility](cursor-fundamentals.md#privacy-and-responsibility).
 
