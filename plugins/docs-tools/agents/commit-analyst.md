@@ -54,6 +54,8 @@ For small batches (1-3 commits), also fetch individual diffs for per-commit sign
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_commit_reader.py diff <repo-url> <sha> --json
 ```
 
+**Note**: Commits with zero relevant files (after `git_filters.yaml` filtering) are already excluded before you receive them. All commits in your input have at least one relevant file.
+
 ### 2. Parse commit messages
 
 For each commit, extract:

@@ -45,9 +45,11 @@ bash scripts/commits-ready-check.sh \
 The script:
 
 1. Reads the marker file at `<base-path>/.commit-markers/<repo-slug>.json` for the last processed SHA
-2. Calls `git_commit_reader.py list` for commits since the marker
+2. Calls `git_commit_reader.py list` for commits since the marker, with `--drop-empty` to exclude commits where all changed files are filtered out by `git_filters.yaml` (tests, CI, lock files, etc.)
 3. Checks whether a workflow progress file already exists for the batch
 4. Outputs a JSON payload with the batch identifier, commit SHAs, and summary stats
+
+If all commits in the batch are dropped by `--drop-empty`, `ready` is `false`.
 
 ### Output format
 

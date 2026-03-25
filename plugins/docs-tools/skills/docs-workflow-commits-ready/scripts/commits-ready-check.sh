@@ -85,7 +85,7 @@ if [[ -z "$SINCE_SHA" ]]; then
 fi
 
 # --- Query commits ---
-READER_ARGS="list $REPO --branch $BRANCH --max $MAX_COMMITS --no-merges --json"
+READER_ARGS="list $REPO --branch $BRANCH --max $MAX_COMMITS --no-merges --drop-empty --json"
 if [[ -n "$SINCE_SHA" ]]; then
   READER_ARGS="$READER_ARGS --since $SINCE_SHA"
 fi

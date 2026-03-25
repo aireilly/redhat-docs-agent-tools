@@ -414,6 +414,13 @@ def cmd_list(args) -> int:
         except Exception:
             c["relevant_files_changed"] = c.get("files_changed", 0)
 
+    # Drop commits with no relevant files after filtering
+    dropped_empty = 0
+    if getattr(args, "drop_empty", False):
+        dropped = [c for c in commits if c.get("relevant_files_changed", 1) == 0]
+        dropped_empty = len(dropped)
+        commits = [c for c in commits if c.get("relevant_files_changed", 1) > 0]
+
     output = {
         "repository": args.repo_url,
         "branch": args.branch,
@@ -425,6 +432,7 @@ def cmd_list(args) -> int:
             "relevant_files": relevant_files,
             "excluded_files": total_files - relevant_files,
         },
+        "dropped_empty": dropped_empty,
     }
 
     if args.json:
@@ -604,6 +612,7 @@ Examples:
     list_parser.add_argument("--branch", default="main", help="Branch name (default: main)")
     list_parser.add_argument("--max", type=int, default=50, help="Max commits to return (default: 50)")
     list_parser.add_argument("--no-merges", action="store_true", help="Exclude merge commits")
+    list_parser.add_argument("--drop-empty", action="store_true", help="Exclude commits with zero relevant files after filtering")
     list_parser.add_argument("--json", action="store_true", help="Output as JSON")
 
     # -- diff subcommand
