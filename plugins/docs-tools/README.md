@@ -283,3 +283,98 @@ Set `ANTHROPIC_API_KEY`, `JIRA_AUTH_TOKEN`, `JIRA_EMAIL`, and any Git platform t
 - Collect the `.claude/docs/` directory as an artifact for downstream review or PR creation
 - The orchestrator writes a progress JSON file, so failed runs can be resumed in a subsequent job if the artifact is restored
 - For PR-triggered workflows, pass `--pr $CI_MERGE_REQUEST_URL` or `--pr $GITHUB_PR_URL` to include the PR context in requirements analysis
+
+## Commit-driven workflow
+
+The docs orchestrator also supports triggering documentation workflows based on new commits to a code repository. This is useful when the docs repo is separate from the code repo and you want to automatically detect code changes that need documentation updates.
+
+### How it works
+
+1. **Gate check**: The `docs-tools:docs-workflow-commits-ready` skill polls a code repository for new commits since the last processed marker
+2. **Commit analysis**: The `commit-analyst` agent scrapes commit diffs, extracts change signals (new APIs, config changes, breaking changes), and grades documentation impact
+3. **Short-circuit**: If no doc impact is detected (`DOC_IMPACT: None`), the workflow completes immediately — no requirements analysis or writing
+4. **Full pipeline**: If doc impact exists, the workflow continues through requirements, planning, writing, and reviews
+5. **PR creation** (optional): When `--create-pr` is passed, a PR/MR is created in the docs repo with the documentation changes
+
+### Manual usage
+
+```bash
+# Analyze specific commits
+/docs-tools:docs-orchestrator my-service/a1b2c3d-e4f5g6h \
+    --commits https://github.com/org/code-repo sha1,sha2,sha3
+
+# With automatic PR creation
+/docs-tools:docs-orchestrator my-service/a1b2c3d-e4f5g6h \
+    --commits https://github.com/org/code-repo sha1,sha2,sha3 \
+    --create-pr
+```
+
+### CI/CD integration (scheduled poll)
+
+The commit-driven workflow uses a two-phase CI pattern similar to the JIRA workflow:
+
+1. **Phase 1 — Commits ready check**: Poll the code repo for new commits since the last marker
+2. **Phase 2 — Orchestrator**: If commits are ready, run the full workflow with `--create-pr`
+
+#### GitLab CI example
+
+```yaml
+docs-commit-check:
+  stage: docs
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  script:
+    - |
+      RESULT=$(claude -p "Skill: docs-tools:docs-workflow-commits-ready, \
+        args: \"--repo https://github.com/org/code-repo --branch main\"")
+      READY=$(echo "$RESULT" | jq -r '.ready')
+      if [ "$READY" != "true" ]; then
+        echo "No doc-impacting commits found."
+        exit 0
+      fi
+      IDENTIFIER=$(echo "$RESULT" | jq -r '.batch.identifier')
+      COMMITS=$(echo "$RESULT" | jq -r '.batch.commits | join(",")')
+      claude -p "Skill: docs-tools:docs-orchestrator, \
+        args: \"$IDENTIFIER --commits https://github.com/org/code-repo $COMMITS --create-pr\""
+```
+
+#### GitHub Actions example
+
+```yaml
+name: Docs from Commits
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+
+jobs:
+  docs-from-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          python3 -m pip install PyGithub python-gitlab jira pyyaml ratelimit requests beautifulsoup4 html2text
+
+      - name: Check and process commits
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RESULT=$(claude -p "Skill: docs-tools:docs-workflow-commits-ready, \
+            args: \"--repo https://github.com/org/code-repo --branch main\"")
+          READY=$(echo "$RESULT" | jq -r '.ready')
+          if [ "$READY" != "true" ]; then
+            echo "No doc-impacting commits found."
+            exit 0
+          fi
+          IDENTIFIER=$(echo "$RESULT" | jq -r '.batch.identifier')
+          COMMITS=$(echo "$RESULT" | jq -r '.batch.commits | join(",")')
+          claude -p "Skill: docs-tools:docs-orchestrator, \
+            args: \"$IDENTIFIER --commits https://github.com/org/code-repo $COMMITS --create-pr\""
+```
+
+### Marker files
+
+The commit-driven workflow tracks which commits have been processed using marker files at `.claude/docs/.commit-markers/<repo-slug>.json`. The orchestrator updates the marker on workflow completion, so failed workflows don't skip commits on retry.
