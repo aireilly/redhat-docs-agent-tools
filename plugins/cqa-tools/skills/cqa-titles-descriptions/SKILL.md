@@ -159,10 +159,10 @@ Reference:
 
 | Module type | Required form | Examples |
 |-------------|--------------|----------|
-| PROCEDURE | Gerund phrase (verb + -ing) | "Configuring OAuth", "Installing Dev Spaces" |
+| PROCEDURE | Imperative phrase (verb) | "Configure OAuth", "Install Dev Spaces" |
 | CONCEPT | Noun phrase (NOT gerund) | "Architecture overview", "Server components" |
 | REFERENCE | Noun phrase | "Supported platforms", "CheCluster fields" |
-| ASSEMBLY (task-based) | Gerund phrase | "Configuring server components" |
+| ASSEMBLY (task-based) | Imperative phrase | "Configure server components" |
 | ASSEMBLY (non-procedural) | Noun phrase | "Architecture overview" |
 
 An assembly is task-based if it contains procedure modules.

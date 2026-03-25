@@ -207,7 +207,7 @@ Assembly introductions must consider the target audience and apply to a specific
 2. **Audience identification**: The introduction should identify or imply the target persona/audience. Admin Guide assemblies target cluster administrators and platform engineers. User Guide assemblies target developers. This can be implicit through guide placement.
 3. **WHAT + WHY**: The introduction must state both WHAT the user will do and WHY it matters (the benefit or purpose). Introductions stating only WHAT without WHY are adequate but not ideal.
 4. **Concise scope**: The introduction should be 1-3 sentences providing context for the assembly. Avoid embedding concept-level detail, reference material (field descriptions, option lists), or procedural content in the introduction. If the introduction exceeds ~5 lines of rendered content, it likely contains material that belongs in a topic module.
-5. **Title alignment**: The assembly title form must match its content — gerund phrase for task-based assemblies (containing procedures), noun phrase for non-procedural assemblies.
+5. **Title alignment**: The assembly title form must match its content — imperative phrase for task-based assemblies (containing procedures), noun phrase for non-procedural assemblies.
 6. **No self-referential language**: Do not use "This section describes...", "This chapter contains...", or "The following modules cover...".
 7. **No rendered text between includes**: DITA maps do not accept rendered text between module includes. All text must appear in the introductory section before the first `include::`.
 8. **Additional resources DITA compliance**: If the assembly has an Additional resources section, it must contain only links — no non-link text.

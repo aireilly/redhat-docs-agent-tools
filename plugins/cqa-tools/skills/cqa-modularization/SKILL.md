@@ -154,13 +154,13 @@ Titles must be brief, complete, and descriptive. Assess three dimensions:
 
 | Module type | Required form | Examples |
 |-------------|--------------|----------|
-| PROCEDURE | Gerund phrase (verb + -ing) | "Configuring OAuth", "Installing Dev Spaces" |
+| PROCEDURE | Imperative phrase (verb) | "Configure OAuth", "Install Dev Spaces" |
 | CONCEPT | Noun phrase (NOT gerund) | "Architecture overview", "Server components" |
 | REFERENCE | Noun phrase | "Supported platforms", "CheCluster fields" |
-| ASSEMBLY (task-based) | Gerund phrase | "Configuring server components" |
+| ASSEMBLY (task-based) | Imperative phrase | "Configure server components" |
 | ASSEMBLY (non-procedural) | Noun phrase | "Red Hat Process Automation Manager API reference" |
 
-An assembly is task-based if it contains procedure modules. Flag any procedure title not starting with a gerund, concept/reference titles using gerunds, or task-based assembly titles using noun phrases.
+An assembly is task-based if it contains procedure modules. Flag any procedure title not in imperative form, concept/reference titles using imperatives or gerunds, or task-based assembly titles using noun phrases.
 
 **Check 5b: Title length**
 
@@ -438,7 +438,7 @@ Flag any assembly missing any element. Flag any `include::` missing `[leveloffse
 ### Check 2: Assembly title convention
 
 Per the modular docs guide:
-- **Task-based assemblies** (containing procedure modules): title must use a gerund phrase ("Configuring...", "Installing...", "Managing...")
+- **Task-based assemblies** (containing procedure modules): title must use an imperative phrase ("Configure...", "Install...", "Manage...")
 - **Non-procedural assemblies** (reference-heavy, conceptual): title should use a noun phrase ("Supported platforms", "Architecture overview")
 
 For each assembly, check whether the title form matches its content. A task-based assembly with a noun-phrase title is a violation.

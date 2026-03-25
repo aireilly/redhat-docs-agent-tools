@@ -83,7 +83,7 @@ Group the output by rule name. Common rules and their fixes:
 | `RelatedLinks` | Non-link content inside `.Additional resources` | Ensure only links appear. Use proper `==` headings (not bold pseudo-headings) after `.Additional resources` to close the section. |
 | `TaskStep` | Content after `.Procedure` is not ordered list | Convert `*` to `. ` |
 | `TaskSection` | `==` subsections in a PROCEDURE | Remove subsection headings or split into multiple procedures |
-| `TaskTitle` | Procedure title not gerund | Rename to gerund phrase |
+| `TaskTitle` | Procedure title not imperative | Rename to imperative phrase |
 | `BlockTitle` | Unsupported block title in wrong module type | Remove `.Procedure` from concepts, etc. |
 | `ExampleBlock` | Nested `====` delimiters | Restructure to avoid nesting example blocks |
 
