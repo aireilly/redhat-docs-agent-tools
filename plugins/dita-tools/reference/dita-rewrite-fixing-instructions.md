@@ -291,6 +291,9 @@ Take the following steps to care for floppy disks:
    - If several block titles represent a list: convert to unordered or description list (except `.Procedure`)
    - If block title should be a subheading: convert to `==` subheading or suggest splitting
    - If block title is a heading for a code block: reword into normal text using the "Following Rule"
+   - If the block title is `.Example output` (or similar output-describing title):
+     - If preceding text already introduces the output: remove the title
+     - If removing the title would leave the output unexplained: add a lead-in sentence such as "The following is example output:" before the code block
 
 **IMPORTANT:**
 - Never add more than one example block per file
@@ -330,6 +333,27 @@ The following example shows the command:
 
 ----
 $ ls f*
+----
+```
+
+**Example - Example output title to lead-in sentence:**
+
+Before:
+```asciidoc
+.Example output
+----
+NAME       STATUS   AGE
+my-pod     Running  5m
+----
+```
+
+After:
+```asciidoc
+The following is example output:
+
+----
+NAME       STATUS   AGE
+my-pod     Running  5m
 ----
 ```
 
@@ -644,8 +668,11 @@ To calculate the correct path:
 ### CalloutList
 
 **AI action plan**
-1. **For value callouts**: Replace callout markers (e.g., `<1>`) with user-replaceable placeholders (`<value>`), then convert callout list to a bulleted list explaining each value
-2. **For code section callouts**: Remove callouts and convert to a bulleted list explaining each section
+
+**CRITICAL**: You MUST remove ALL callout markers (e.g., `<1>`, `<2>`) from the code block. Every single callout marker must be removed — partial removal is incorrect.
+
+1. **For value callouts**: Replace callout markers with user-replaceable placeholders (`<value>`), then convert callout list to a bulleted list explaining each value
+2. **For code section callouts**: Remove callouts entirely and convert to a bulleted list explaining each section
 
 **Example - Value callouts to bullet list (multi-line):**
 

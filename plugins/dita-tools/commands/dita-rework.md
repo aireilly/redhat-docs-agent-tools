@@ -739,7 +739,7 @@ For each file in the processing list, apply fixes using the **dita-asciidoc-rewr
 
 1. **Read the file** to understand current content and structure
 2. **Review Vale issues** for this specific file from the baseline
-3. **Apply fixes** following the AI Action plans in the skill for each issue type:
+3. **Apply fixes ONLY for Vale-detected issues** — do not proactively fix issues that Vale did not report. For each Vale issue, follow the AI Action plan in the skill for that issue type:
    - EntityReference, AttributeReference, AuthorLine
    - DocumentId, DocumentTitle, ShortDescription
    - ExampleBlock, TaskExample, NestedSection
