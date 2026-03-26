@@ -48,7 +48,7 @@ for pfile in "${PROGRESS_FILES[@]}"; do
     continue
   fi
 
-  TICKET=$(jq -r '.ticket' "$pfile")
+  ID=$(jq -r '.id // .ticket' "$pfile")
   WORKFLOW_TYPE=$(jq -r '.workflow_type' "$pfile")
 
   # Get step order from the progress file
@@ -71,7 +71,7 @@ for pfile in "${PROGRESS_FILES[@]}"; do
 
   if [ -n "$NEXT_STEP" ]; then
     echo "$((COUNT + 1))" > "$COUNTER_FILE"
-    echo "Documentation workflow '$WORKFLOW_TYPE' for $TICKET is not complete. Next step: $NEXT_STEP. Continue the workflow." >&2
+    echo "Documentation workflow '$WORKFLOW_TYPE' for $ID is not complete. Next step: $NEXT_STEP. Continue the workflow." >&2
     exit 2
   fi
 
