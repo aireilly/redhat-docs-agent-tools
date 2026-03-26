@@ -24,11 +24,11 @@ By default, the workflow creates a clean branch from the upstream default branch
 
 | Stage | Agent | Description |
 |-------|-------|-------------|
-| 1. Requirements | requirements-analyst | Parses JIRA issues, PRs, and specs to extract documentation requirements |
-| 2. Planning | docs-planner-jtbd | Creates documentation plans with JTBD framework and gap analysis |
-| 3. Writing | docs-writer-jtbd | Writes complete documentation directly in the repo (default) or to staging area (`--draft`) |
-| 4. Technical review | technical-reviewer | Reviews for technical accuracy — code examples, prerequisites, commands, failure paths |
-| 5. Style review | docs-reviewer | Reviews with Vale linting and style guide checks, edits files in place |
+| 1. Requirements | `docs-tools:requirements-analyst` | Parses JIRA issues, PRs, and specs to extract documentation requirements |
+| 2. Planning | `docs-tools:docs-planner-jtbd` | Creates documentation plans with JTBD framework and gap analysis |
+| 3. Writing | `docs-tools:docs-writer-jtbd` | Writes complete documentation directly in the repo (default) or to staging area (`--draft`) |
+| 4. Technical review | `docs-tools:technical-reviewer` | Reviews for technical accuracy — code examples, prerequisites, commands, failure paths |
+| 5. Style review | `docs-tools:docs-reviewer` | Reviews with Vale linting and style guide checks, edits files in place |
 | 6. Create JIRA | *(direct bash/curl)* | Optional: creates a docs JIRA ticket linked to the parent ticket |
 
 ## Output Structure
