@@ -28,7 +28,7 @@
 
 set -o pipefail
 
-TIMEOUT=120
+TIMEOUT="${VERIFY_TIMEOUT:-120}"
 
 # Session file stores the workdir path; its name is the session anchor.
 # init writes it; all other commands read it.
