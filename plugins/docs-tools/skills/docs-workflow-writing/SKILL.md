@@ -1,7 +1,7 @@
 ---
 name: docs-workflow-writing
-description: Write documentation from a documentation plan. Dispatches the docs-writer agent. Supports AsciiDoc (default) and MkDocs formats. Default placement is UPDATE-IN-PLACE; use --draft for staging area. Also supports fix mode for applying technical review corrections.
-argument-hint: <ticket> --base-path <path> --format <adoc|mkdocs> [--draft] [--fix-from <review_path>]
+description: Write documentation from a documentation plan. Dispatches the docs-writer or docs-writer-jtbd agent based on --no-jtbd flag. Supports AsciiDoc (default) and MkDocs formats. Default placement is UPDATE-IN-PLACE; use --draft for staging area. Also supports fix mode for applying technical review corrections.
+argument-hint: <ticket> --base-path <path> --format <adoc|mkdocs> [--draft] [--no-jtbd] [--fix-from <review_path>]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---
 
@@ -18,16 +18,18 @@ Supports three modes:
 
 ### Normal mode
 
-- `$1` — JIRA ticket ID (required)
+- `$1` — JIRA ticket ID or workflow ID (required)
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 - `--format <adoc|mkdocs>` — Output format (default: `adoc`)
 - `--draft` — Use DRAFT placement mode (staging area) instead of UPDATE-IN-PLACE
+- `--no-jtbd` — Use feature-based writing conventions instead of JTBD (optional)
 
 ### Fix mode
 
-- `$1` — JIRA ticket ID (required)
+- `$1` — JIRA ticket ID or workflow ID (required)
 - `--base-path <path>` — Base output path
 - `--fix-from <path>` — Technical review output file (triggers fix mode)
+- `--no-jtbd` — Use feature-based writing conventions instead of JTBD (optional)
 
 ## Input
 
@@ -60,7 +62,7 @@ Files are written directly to their correct repo locations. A manifest is create
 
 ### 1. Parse arguments
 
-Extract the ticket ID, `--base-path`, `--format`, and `--draft` from the args string.
+Extract the ticket ID, `--base-path`, `--format`, `--draft`, and `--no-jtbd` from the args string.
 
 If `--fix-from` is present, operate in **fix mode**. Otherwise, check for `--draft` to determine placement mode.
 
@@ -75,8 +77,13 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2a. UPDATE-IN-PLACE mode (default — no `--draft`)
 
+Select the agent based on the `--no-jtbd` flag:
+
+- **If `--no-jtbd` is present**: dispatch `docs-tools:docs-writer` (feature-based writing)
+- **Otherwise (default)**: dispatch `docs-tools:docs-writer-jtbd` (JTBD writing)
+
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-writer`
+- `subagent_type`: `docs-tools:docs-writer` or `docs-tools:docs-writer-jtbd`
 - `description`: `Write <format> documentation for <TICKET>`
 
 **Prompt (AsciiDoc):**
@@ -119,8 +126,10 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2b. DRAFT mode (`--draft`)
 
+Select the agent based on the `--no-jtbd` flag (same logic as 2a).
+
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-writer`
+- `subagent_type`: `docs-tools:docs-writer` or `docs-tools:docs-writer-jtbd`
 - `description`: `Write <format> documentation for <TICKET>`
 
 **Prompt (AsciiDoc, draft):**
@@ -181,8 +190,10 @@ mkdir -p "$OUTPUT_DIR"
 
 When invoked with `--fix-from`, the skill applies targeted corrections to existing drafts.
 
+Select the agent based on the `--no-jtbd` flag (same logic as 2a).
+
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-writer`
+- `subagent_type`: `docs-tools:docs-writer` or `docs-tools:docs-writer-jtbd`
 - `description`: `Fix documentation for <TICKET>`
 
 **Prompt:**

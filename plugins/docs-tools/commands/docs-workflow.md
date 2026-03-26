@@ -25,8 +25,8 @@ By default, the workflow creates a clean branch from the upstream default branch
 | Stage | Agent | Description |
 |-------|-------|-------------|
 | 1. Requirements | requirements-analyst | Parses JIRA issues, PRs, and specs to extract documentation requirements |
-| 2. Planning | docs-planner | Creates documentation plans with JTBD framework and gap analysis |
-| 3. Writing | docs-writer | Writes complete documentation directly in the repo (default) or to staging area (`--draft`) |
+| 2. Planning | docs-planner-jtbd | Creates documentation plans with JTBD framework and gap analysis |
+| 3. Writing | docs-writer-jtbd | Writes complete documentation directly in the repo (default) or to staging area (`--draft`) |
 | 4. Technical review | technical-reviewer | Reviews for technical accuracy — code examples, prerequisites, commands, failure paths |
 | 5. Style review | docs-reviewer | Reviews with Vale linting and style guide checks, edits files in place |
 | 6. Create JIRA | *(direct bash/curl)* | Optional: creates a docs JIRA ticket linked to the parent ticket |
@@ -563,10 +563,10 @@ After the agent completes, verify the output file exists. If not, search for the
 ls -t "${CLAUDE_DOCS_DIR}/requirements/"*.md 2>/dev/null | head -1
 ```
 
-### Stage 2: Planning (docs-planner)
+### Stage 2: Planning (docs-planner-jtbd)
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-planner`
+- `subagent_type`: `docs-tools:docs-planner-jtbd`
 - `description`: `Create documentation plan for <TICKET>`
 
 **Output file path:**
@@ -601,7 +601,7 @@ PREV_OUTPUT=$(jq -r '.stages.requirements.output_file // ""' "$STATE_FILE")
 
 After the agent completes, verify the output file exists.
 
-### Stage 3: Writing (docs-writer)
+### Stage 3: Writing (docs-writer-jtbd)
 
 The writing stage behavior depends on whether `--draft` mode is active and the `--mkdocs` option.
 
@@ -613,7 +613,7 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 DRAFT_MODE=$(jq -r '.options.draft // false' "$STATE_FILE")
 ```
 
-- `subagent_type`: `docs-tools:docs-writer`
+- `subagent_type`: `docs-tools:docs-writer-jtbd`
 
 - **If `OUTPUT_FORMAT` is `adoc`** (default):
   - `description`: `Write AsciiDoc documentation for <TICKET>`
@@ -798,7 +798,7 @@ ITERATIONS=$(jq '.stages.technical_review.iterations' "$STATE_FILE")
 
 **Writer fix prompt (for iteration):**
 
-Launch the `docs-tools:docs-writer` agent with this prompt:
+Launch the `docs-tools:docs-writer-jtbd` agent with this prompt:
 
 > The technical reviewer found issues in the documentation for ticket `<TICKET>`.
 >
@@ -1029,7 +1029,7 @@ If the unauthenticated request returns HTTP 200, the project is public and the d
 
 **Step 6b: Extract description content from the documentation plan**
 
-Read the documentation plan output file (Stage 2) and extract the three JIRA description sections defined by the docs-planner agent.
+Read the documentation plan output file (Stage 2) and extract the three JIRA description sections defined by the docs-planner-jtbd agent.
 
 ```bash
 PLAN_FILE=$(jq -r '.stages.planning.output_file // ""' "$STATE_FILE")

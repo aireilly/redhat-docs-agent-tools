@@ -1,7 +1,7 @@
 ---
 name: docs-workflow-planning
-description: Create a documentation plan from requirements analysis output. Dispatches the docs-planner agent. Invoked by the orchestrator.
-argument-hint: <ticket> --base-path <path>
+description: Create a documentation plan from requirements analysis output. Dispatches the docs-planner or docs-planner-jtbd agent based on --no-jtbd flag. Invoked by the orchestrator.
+argument-hint: <ticket> --base-path <path> [--no-jtbd]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---
 
@@ -11,8 +11,9 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 
 ## Arguments
 
-- `$1` — JIRA ticket ID (required)
+- `$1` — JIRA ticket ID or workflow ID (required)
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
+- `--no-jtbd` — Use feature-based information architecture instead of JTBD (optional)
 
 ## Input
 
@@ -30,7 +31,7 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 
 ### 1. Parse arguments
 
-Extract the ticket ID and `--base-path` from the args string.
+Extract the ticket ID, `--base-path`, and `--no-jtbd` from the args string.
 
 Set the paths:
 
@@ -43,10 +44,13 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2. Dispatch agent
 
-Dispatch the `docs-tools:docs-planner` agent with the following prompt.
+Select the agent based on the `--no-jtbd` flag:
+
+- **If `--no-jtbd` is present**: dispatch `docs-tools:docs-planner` (feature-based planning)
+- **Otherwise (default)**: dispatch `docs-tools:docs-planner-jtbd` (JTBD planning)
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-planner`
+- `subagent_type`: `docs-tools:docs-planner` or `docs-tools:docs-planner-jtbd`
 - `description`: `Create documentation plan for <TICKET>`
 
 **Prompt:**

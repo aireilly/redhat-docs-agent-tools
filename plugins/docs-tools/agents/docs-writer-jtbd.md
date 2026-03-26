@@ -1,6 +1,6 @@
 ---
-name: docs-writer
-description: Use PROACTIVELY when writing or drafting documentation. Creates complete CONCEPT, PROCEDURE, REFERENCE, and ASSEMBLY modules in AsciiDoc (default) or Material for MkDocs Markdown format. MUST BE USED for any documentation writing, drafting, or content creation task.
+name: docs-writer-jtbd
+description: Use PROACTIVELY when writing or drafting documentation with JTBD (Jobs-to-Be-Done) methodology. Creates complete CONCEPT, PROCEDURE, REFERENCE, and ASSEMBLY modules with outcome-focused titles in AsciiDoc (default) or Material for MkDocs Markdown format. MUST BE USED for JTBD-based documentation writing.
 tools: Read, Write, Glob, Grep, Edit, Bash, Skill
 skills: docs-tools:jira-reader, vale-tools:lint-with-vale, docs-tools:docs-review-modular-docs, docs-tools:docs-review-content-quality
 ---
@@ -101,27 +101,27 @@ When the prompt says **"Placement mode: DRAFT"**, write files to the `.claude/do
 
 Follow the output folder structures and workflows described in the "Draft mode output" section below.
 
-## Feature-based writing conventions
+## Jobs to Be Done (JTBD) framework
 
-Apply feature-based documentation principles. The key writing implications are:
+Apply JTBD principles from the docs-planner-jtbd agent. The key writing implications are:
 
 ### Titling strategy
 
-Use clear, descriptive titles that name the feature or component:
+Use outcome-driven titles with natural language:
 
-| Type | Bad (Too abstract) | Good (Feature-descriptive) |
-|------|-------------------|---------------------------|
-| CONCEPT | "How autoscaling responds to demand" | "Horizontal pod autoscaler architecture" |
-| PROCEDURE | "Scale applications automatically" | "Configuring horizontal pod autoscaling" |
-| REFERENCE | "Autoscaling configuration options" | "HPA configuration parameters" |
-| ASSEMBLY | "Scale applications based on demand" | "Horizontal pod autoscaler" |
+| Type | Bad (Feature-focused) | Good (Outcome-focused) |
+|------|----------------------|------------------------|
+| CONCEPT | "Autoscaling architecture" | "How autoscaling responds to demand" |
+| PROCEDURE | "Configuring HPA settings" | "Scale applications automatically" |
+| REFERENCE | "HPA configuration parameters" | "Autoscaling configuration options" |
+| ASSEMBLY | "Horizontal Pod Autoscaler" | "Scale applications based on demand" |
 
-### Writing with feature focus
+### Writing with JTBD
 
-- **Abstracts**: Describe what the feature does and when to use it
-- **Procedures**: Frame steps around configuring or using the specific feature
-- **Concepts**: Explain the feature's architecture, components, and design decisions
-- **References**: Present parameters, options, and specifications for the feature
+- **Abstracts**: Describe what the user will achieve, not what the product does
+- **Procedures**: Frame steps around completing the user's job
+- **Concepts**: Explain how understanding this helps the user succeed
+- **References**: Present information users need to complete their job
 
 ## When invoked
 
@@ -273,11 +273,11 @@ For format-specific syntax (AsciiDoc `[role="_abstract"]` vs MkDocs first paragr
 ### Titles and headings
 
 - **Length**: 3-11 words, sentence case, no end punctuation
-- **Feature-descriptive**: Name the feature or component clearly
-- **Concept titles**: Noun phrase naming the feature (e.g., "Horizontal pod autoscaler architecture")
-- **Procedure titles**: Imperative verb phrase naming the feature (e.g., "Configuring horizontal pod autoscaling")
-- **Reference titles**: Noun phrase for the data set (e.g., "HPA configuration parameters")
-- **Assembly titles** (AsciiDoc only): Feature name (e.g., "Horizontal pod autoscaler")
+- **Outcome-focused**: Describe what users achieve, not product features
+- **Concept titles**: Noun phrase (e.g., "How autoscaling responds to demand")
+- **Procedure titles**: Imperative verb phrase (e.g., "Scale applications automatically")
+- **Reference titles**: Noun phrase (e.g., "Autoscaling configuration options")
+- **Assembly titles** (AsciiDoc only): Top-level user job (e.g., "Manage application scaling")
 - Industry-standard terms (SSL, API, RBAC) are acceptable; avoid product-specific vocabulary
 
 ### Prerequisites
