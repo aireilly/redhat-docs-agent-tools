@@ -43,7 +43,7 @@ bash scripts/setup-hooks.sh
 - `--tickets <list>` — Comma-separated list of JIRA ticket IDs. Forwarded to the requirements step.
 - `--mkdocs` — Use Material for MkDocs format instead of AsciiDoc
 - `--draft` — Write documentation to a staging area instead of directly into the repo. When set, the writing step uses DRAFT placement mode (no framework detection, no branch creation). Without this flag, UPDATE-IN-PLACE is the default
-- `--no-jtbd` — Disable JTBD framing for planning and writing steps. Passed through to downstream step skills. (Not yet implemented in downstream agents — plumbing only.)
+- `--no-jtbd` — Use feature-based information architecture instead of JTBD for planning and writing steps. Passed through to downstream step skills, which conditionally dispatch `docs-planner`/`docs-writer` (feature-based) instead of `docs-planner-jtbd`/`docs-writer-jtbd`.
 - `--create-jira <PROJECT>` — Create a linked JIRA ticket in the specified project
 
 ## Load the step list
@@ -99,7 +99,7 @@ Every step writes to a predictable folder based on the workflow ID and step name
 .claude/docs/<id>/<step-name>/
 ```
 
-The workflow ID is converted to **lowercase** for directory names (e.g., `PROJ-123` → `proj-123`, `My-Product-Guide` → `my-product-guide`).
+The workflow ID is sanitized for use as a directory name: convert to lowercase, replace any character outside `[a-z0-9.-]` with `-`, collapse consecutive hyphens, and strip leading/trailing hyphens (e.g., `PROJ-123` → `proj-123`, `My Product Guide` → `my-product-guide`). **Reject** IDs that contain `..` or `/` — these indicate path traversal and must cause an immediate error.
 
 ### Folder structure
 

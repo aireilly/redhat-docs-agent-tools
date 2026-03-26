@@ -331,6 +331,7 @@ Before delivering the final plan, verify your own output against these checks. D
 | **Template completeness** | All required output sections are present and populated |
 | **Impact consistency** | Doc impact grades align with the prioritization of recommended modules |
 | **Journey coverage** | Content journey phase mapping is included and has no unexplained gaps |
+| **JIRA description** | JIRA description template is fully populated — no `[REPLACE]` markers, no bracketed placeholder instructions, no example entries left unreplaced, persona reference list not included in output |
 
 ### If verification fails
 

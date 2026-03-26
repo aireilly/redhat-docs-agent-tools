@@ -62,10 +62,10 @@ if __name__ == "__main__":
 
     plan_file, output_file, visibility = sys.argv[1], sys.argv[2], sys.argv[3]
 
-    with open(plan_file) as f:
+    with open(plan_file, encoding="utf-8") as f:
         content = f.read()
 
     result = extract(content, is_public=(visibility == "public"))
 
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         f.write(result)
