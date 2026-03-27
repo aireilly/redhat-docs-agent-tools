@@ -322,7 +322,7 @@ Copy these sections verbatim from the completed full plan. Do not add sections t
 - **Replace ALL `[REPLACE: ...]` text** with real content derived from your research — never output the bracket instructions themselves
 - **Personas**: Select 1-3 personas from the persona reference list below. Output ONLY the selected personas with a brief relevance note. Do NOT include the full persona reference list in the output
 - **New Docs / Updated Docs**: Replace the example entries with actual module names, types, and content outlines from your planning. The entries shown (e.g., "Actual Module Title (Concept)") are structural examples, not headings to keep
-- **User stories**: Replace with actual user stories derived from your analysis
+- **Paradigm-specific sections**: Replace with real content from your analysis, using the section headers and format defined in the paradigm reference file
 
 ```markdown
 # Documentation Plan
