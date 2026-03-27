@@ -131,15 +131,18 @@ Every image must be clearly explained by surrounding text:
 
 #### What to check
 
-1. Grep all `image::` directives in `topics/` and `assemblies/`
-2. Verify all images have non-empty, meaningful alt text (not `[]`, `[screenshot]`, `[image]`)
-3. For concept file images, verify a `.Title` block caption exists on the preceding line
-4. For procedure step images, verify the step text provides explanatory context
-5. Check that images appear near the text referencing them (visual continuity)
-6. Verify caption style consistency — `.Title` captions should use sentence case, no trailing period
+1. Grep all `image::` directives in `topics/` (or `modules/`) and `assemblies/`
+2. **Verify the `.adoc` file containing each `image::` directive actually exists in the repo** — skip any references found in files that are not present on disk (e.g., files from unresolved includes, other branches, or orphaned references). Do NOT flag alt text issues for files that do not exist in the repo.
+3. **Verify the image file itself exists** at the referenced path (relative to `:imagesdir:` if set, otherwise relative to the `.adoc` file). Skip and note any missing image files — these are broken references, not alt text issues.
+4. For images that pass existence checks: verify all have non-empty, meaningful alt text (not `[]`, `[screenshot]`, `[image]`)
+5. For concept file images, verify a `.Title` block caption exists on the preceding line
+6. For procedure step images, verify the step text provides explanatory context
+7. Check that images appear near the text referencing them (visual continuity)
+8. Verify caption style consistency — `.Title` captions should use sentence case, no trailing period
 
 #### Common issues
 
+- **False positives from non-existent files**: Grepping for `image::` across the repo may find references in `.adoc` files that do not exist on the current branch, are not included from any assembly, or are leftover from a different build. Always verify the `.adoc` file and the image file both exist before reporting an issue.
 - Concept images without `.Title` captions — inconsistent with other concept images in the repo
 - Alt text that merely repeats the filename instead of describing the content
 - Images placed far from the text that references them (breaks visual continuity)

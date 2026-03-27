@@ -33,7 +33,9 @@ Choose the approach based on scope.
 
 Run Vale directly against all AsciiDoc files in the repo. This catches every `.adoc` file, including orphan files not referenced by any assembly.
 
-First, ensure a `.vale.ini` exists in the docs repo root with AsciiDocDITA rules. If missing, create one:
+**IMPORTANT**: CQA P1 requires checking with **AsciiDocDITA** rules only. The repo may have its own `.vale.ini` with different styles (e.g., `RedHat`, `AsciiDoc`, `RHEL10`). Do NOT use the repo's own Vale config for CQA P1 — those are for the repo's CI, not for CQA assessment. Always create and use a dedicated CQA config file.
+
+Create `.vale-cqa.ini` in the docs repo root (overwrite if it exists):
 
 ```ini
 StylesPath = .vale/styles
@@ -46,13 +48,15 @@ Packages = https://github.com/jhradilek/asciidoctor-dita-vale/releases/latest/do
 BasedOnStyles = AsciiDocDITA
 ```
 
-Then sync and run:
+Then sync and run with the CQA config explicitly:
 
 ```bash
 cd "$DOCS_REPO"
-vale sync
-find . -name '*.adoc' -not -type l | xargs vale
+vale --config=.vale-cqa.ini sync
+find . -name '*.adoc' -not -type l | xargs vale --config=.vale-cqa.ini
 ```
+
+Do NOT run `vale` without `--config=.vale-cqa.ini` — without it, Vale picks up the repo's own `.vale.ini` which may use different style packages and produce errors/warnings unrelated to CQA P1.
 
 ### For assembly scope — dita-validate-asciidoc
 
@@ -133,7 +137,7 @@ Re-run the same method used in Step 2. The result MUST be clean before scoring.
 
 ```bash
 cd "$DOCS_REPO"
-find . -name '*.adoc' -not -type l | xargs vale
+find . -name '*.adoc' -not -type l | xargs vale --config=.vale-cqa.ini
 ```
 
 ### For assembly or topic scope — dita-validate-asciidoc
@@ -157,6 +161,7 @@ Record the score, the exact Vale output (file count, error count, warning count)
 
 ## Common mistakes
 
+- **Using the repo's own Vale config** instead of `.vale-cqa.ini` — the repo's `.vale.ini` may use `RedHat`, `AsciiDoc`, or `RHEL10` styles that produce errors unrelated to CQA P1 (e.g., `RedHat.TermsErrors` for "vs"). CQA P1 only checks AsciiDocDITA rules.
 - Suppressing warnings in Vale config instead of fixing content
 - Moving links to Additional resources but leaving a bold pseudo-heading after it (causes RelatedLinks warnings)
 - Forgetting to convert bold pseudo-headings to `==` headings in concept files
