@@ -199,8 +199,8 @@ At minimum, your `evals/evals.json` should include:
 These files are built by CI on merge to `main` and are gitignored:
 
 - `docs/plugins.md`
-- `docs/plugins/*.md`
-- `docs/install/index.md`
+- `docs/plugins/` (per-plugin catalog pages)
+- `docs/install/` (install documentation)
 
 Run `make update` locally to preview them. Do not commit them.
 

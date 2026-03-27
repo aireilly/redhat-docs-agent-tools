@@ -37,8 +37,8 @@ Add repository files to the chat per the [Cursor documentation](https://cursor.c
    See the [VS Code multi-root workspace docs][vscode-multiroot-workspaces].
 1. Add **[AGENTS.md](AGENTS.md)** for naming conventions, script paths, and contribution
    rules.
-   [CLAUDE.md](CLAUDE.md) adds Claude Code-only details (for example
-   `${CLAUDE_PLUGIN_ROOT}` for cross-skill scripts).
+   [CLAUDE.md](CLAUDE.md) adds Claude Code-only details (cross-skill
+   `${CLAUDE_PLUGIN_ROOT}` paths and Anthropic authoring compliance for plugins).
    See [Load project instructions][load-project-instructions].
 1. Read **[Get Started with Cursor](docs/get-started/index.md)** for workflows and
    contributing guides.
@@ -91,7 +91,7 @@ make update
 ├── Makefile               # Build automation
 ├── AGENTS.md              # Shared project conventions (Cursor and other agents)
 ├── .cursor/rules/         # Cursor rules for this repository
-├── CLAUDE.md              # Claude Code-only (paths, authoring)
+├── CLAUDE.md              # Claude Code (cross-skill paths, Anthropic authoring)
 ├── CONTRIBUTING.md        # Contribution guidelines
 └── LICENSE                # Apache-2.0
 ```
