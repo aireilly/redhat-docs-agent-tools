@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Extract JTBD sections from a documentation plan for JIRA description.
+"""Extract key sections from a documentation plan for JIRA description.
+
+Supports both JTBD and feature-based plan formats.
 
 Usage: python3 extract-description.py <plan_file> <output_file> <public|private>
 """
@@ -10,8 +12,13 @@ from datetime import date
 
 def extract(plan_content: str, is_public: bool) -> str:
     keep_headings = [
+        # JTBD plan headings
         "## What is the main JTBD",
         "## How does the JTBD",
+        # Feature-based plan headings
+        "## What are the primary user stories",
+        "## How do these features relate",
+        # Common to both
         "## Who can provide information",
     ]
 
@@ -55,10 +62,10 @@ if __name__ == "__main__":
 
     plan_file, output_file, visibility = sys.argv[1], sys.argv[2], sys.argv[3]
 
-    with open(plan_file) as f:
+    with open(plan_file, encoding="utf-8") as f:
         content = f.read()
 
     result = extract(content, is_public=(visibility == "public"))
 
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         f.write(result)

@@ -14,7 +14,7 @@ Step skill for the docs-orchestrator pipeline. Creates a clean working branch fr
 
 ## Arguments
 
-- `$1` — JIRA ticket ID (required)
+- `$1` — Workflow ID (required). Used as the branch name (lowercased).
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 - `--draft` — If present, skip branch creation entirely
 

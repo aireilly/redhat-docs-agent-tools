@@ -1,28 +1,39 @@
 workflow:
-  name: docs-workflow
-  description: Multi-stage documentation workflow for a JIRA ticket. Requirements analysis, planning, writing, technical review, style review, and optionally JIRA creation.
+  name: docs-docset-workflow
+  description: >-
+    Generate a complete MkDocs documentation set from multiple sources.
+    Gathers requirements from JIRA tickets, local files, and Google Drive.
+    Plans, scaffolds, writes, and reviews the full doc set.
+
+  defaults:
+    format: mkdocs
 
   # All step outputs go to: .claude/docs/<id>/<step-name>/
   # Each step reads its inputs from upstream step folders by convention.
   steps:
     - name: requirements
       skill: docs-tools:docs-workflow-requirements
-      description: Analyze documentation requirements
+      description: Gather and analyze requirements from all input sources
 
     - name: planning
       skill: docs-tools:docs-workflow-planning
       description: Create documentation plan
       inputs: [requirements]
 
+    - name: scaffold
+      skill: docs-tools:docs-docset-scaffold
+      description: Create MkDocs project structure from plan
+      inputs: [planning]
+
     - name: prepare-branch
       skill: docs-tools:docs-workflow-prepare-branch
       description: Create a fresh branch from latest upstream default branch
-      inputs: [planning]
+      inputs: [scaffold]
 
     - name: writing
       skill: docs-tools:docs-workflow-writing
-      description: Write documentation
-      inputs: [planning, prepare-branch]
+      description: Write documentation modules
+      inputs: [planning, scaffold, prepare-branch]
 
     - name: technical-review
       skill: docs-tools:docs-workflow-tech-review
@@ -33,9 +44,3 @@ workflow:
       skill: docs-tools:docs-workflow-style-review
       description: Style guide compliance review
       inputs: [writing]
-
-    - name: create-jira
-      skill: docs-tools:docs-workflow-create-jira
-      description: Create linked JIRA ticket
-      when: create_jira_project
-      inputs: [planning]

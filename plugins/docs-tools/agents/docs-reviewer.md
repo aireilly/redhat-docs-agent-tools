@@ -39,14 +39,15 @@ Apply all review skills listed below. Process one file at a time, write findings
 
 ## When invoked
 
-1. **Extract the JIRA ID** from the task context or source folder:
-   - Look for patterns like `JIRA-123`, `RHAISTRAT-248`, `OSDOCS-456`
-   - Convert to lowercase for folder naming: `jira-123`, `rhaistrat-248`
-   - This ID determines the drafts folder location
+1. **Determine the source location** from the task prompt:
+   - If the prompt specifies a source path (e.g., `<base-path>/writing/` or a repo location), use that
+   - If no path is specified, fall back to `.claude/docs/drafts/<jira-id>/` (legacy convention)
+   - Within the source location, look for modules in a `modules/` subfolder and assemblies/pages at the root
 
-2. **Locate source drafts** from `.claude/docs/drafts/<jira-id>/`:
-   - Modules in: `.claude/docs/drafts/<jira-id>/modules/`
-   - Assemblies in: `.claude/docs/drafts/<jira-id>/`
+2. **Extract the workflow ID** for the report header:
+   - From the task prompt (e.g., "Review docs for PROJ-123" → `PROJ-123`)
+   - From the source folder name as a fallback
+   - This is used only for labeling the report, not for path construction
 
 3. **Determine the error level** to report (default: suggestion):
    - **suggestion**: Show all issues (suggestions + warnings + errors)
@@ -61,8 +62,8 @@ Apply all review skills listed below. Process one file at a time, write findings
    - Run Vale once. Fix obvious errors and warnings where the fix is clear. Skip ambiguous issues. Do NOT re-run Vale repeatedly.
    - Read and apply all applicable review skills from the table above (use `docs-tools:docs-review-modular-docs` for .adoc files). Record findings.
 
-6. **Edit files in place** in `.claude/docs/drafts/<jira-id>/`:
-   - Apply all fixes directly to the source files in the drafts folder
+6. **Edit files in place** at the source location:
+   - Apply all fixes directly to the source files
    - Do NOT create copies in a separate reviews folder
 
 7. **Write findings for this file to the report** before moving to the next file.
@@ -189,11 +190,13 @@ Severity levels align with Vale rule levels and Red Hat documentation requiremen
 
 ## Output location
 
-**All files are edited in place in `.claude/docs/drafts/<jira-id>/`. The review report is saved to the same drafts folder.**
+**All files are edited in place at the source location. The review report is saved to the output path specified in the task prompt.**
 
-```
-.claude/docs/drafts/<jira-id>/
-├── _review_report.md                 # Combined review report for all files
+When invoked by the orchestrator, the report path is provided explicitly (e.g., `<base-path>/style-review/review.md`). When invoked standalone or by the legacy command, save to `_review_report.md` in the source folder.
+
+```text
+<source-location>/
+├── _review_report.md                 # Combined review report (standalone/legacy)
 ├── assembly_<name>.adoc              # Reviewed assembly files (edited in place)
 └── modules/                          # Reviewed module files (edited in place)
     ├── <concept-name>.adoc
@@ -201,23 +204,16 @@ Severity levels align with Vale rule levels and Red Hat documentation requiremen
     └── <reference-name>.adoc
 ```
 
-### JIRA ID extraction
-
-Extract the JIRA ID from:
-1. The drafts folder path: `.claude/docs/drafts/rhaistrat-248/` -> `rhaistrat-248`
-2. The task context or user request: "Review docs for RHAISTRAT-248" -> `rhaistrat-248`
-3. Use lowercase with hyphens
-
 ### Review report
 
-Save the combined review report to: `.claude/docs/drafts/<jira-id>/_review_report.md`
+Save the combined review report to the path specified in the task prompt. If no output path is given, save to `<source-location>/_review_report.md`.
 
 Use this report format:
 
 ```markdown
 # Documentation Review Report
 
-**Source**: Ticket: <JIRA-ID>
+**Source**: <WORKFLOW-ID>
 **Date**: YYYY-MM-DD
 
 ## Summary

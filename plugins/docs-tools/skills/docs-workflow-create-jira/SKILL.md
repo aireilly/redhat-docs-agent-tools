@@ -42,7 +42,7 @@ The script handles all steps:
 
 1. **Check for existing link** — if a "Document" link already exists on the parent ticket, exits early
 2. **Check project visibility** — unauthenticated probe to determine public vs private
-3. **Extract description** — pulls JTBD sections from the plan, appends dated footer
+3. **Extract description** — pulls key sections from the plan (supports both JTBD and feature-based formats), appends dated footer
 4. **Convert to JIRA wiki markup** — calls `scripts/md2wiki.py` for markdown → wiki conversion
 5. **Create JIRA ticket** — POST to JIRA REST API with `[ccs] Docs -` prefix
 6. **Link to parent** — creates a "Document" issue link (singular, not "Documents")

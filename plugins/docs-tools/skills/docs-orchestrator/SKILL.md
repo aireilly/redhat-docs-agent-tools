@@ -1,7 +1,7 @@
 ---
 name: docs-orchestrator
 description: Documentation workflow orchestrator. Reads the step list from .claude/docs-workflow.yaml (or the plugin default). Runs steps sequentially, manages progress state, handles iteration and confirmation gates. Claude is the orchestrator — the YAML is a step list, not a workflow engine.
-argument-hint: <ticket> [--workflow <name>] [--pr <url>]... [--mkdocs] [--draft] [--create-jira <PROJECT>]
+argument-hint: <id> [--workflow <name>] [--pr <url>]... [--inputs <path-or-url>]... [--jql <query>] [--tickets <list>] [--mkdocs] [--draft] [--jtbd] [--user-stories] [--create-jira <PROJECT>]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, AskUserQuestion, WebSearch, WebFetch
 ---
 
@@ -22,7 +22,7 @@ if [[ -z "${JIRA_AUTH_TOKEN:-}" ]]; then
 fi
 ```
 
-1. If `JIRA_AUTH_TOKEN` is still unset → **STOP** and ask the user to set it in `~/.env`
+1. **JIRA token check** — require `JIRA_AUTH_TOKEN` if `$1` matches a JIRA ticket pattern (`[A-Z]+-[0-9]+`), or `--jql`/`--tickets` flags are passed. Otherwise skip the check.
 2. Warn (don't stop) if `GITHUB_TOKEN` or `GITLAB_TOKEN` are unset
 3. Install hooks (safe to re-run):
 
@@ -32,11 +32,16 @@ bash scripts/setup-hooks.sh
 
 ## Parse arguments
 
-- `$1` — JIRA ticket ID (required). If missing, STOP and ask the user.
+- `$1` — Workflow ID (required). If it matches a JIRA ticket pattern (`[A-Z]+-[0-9]+`), it is also auto-included as a JIRA ticket source. If missing, STOP and ask the user.
 - `--workflow <name>` — Use `.claude/docs-<name>.yaml` instead of `docs-workflow.yaml`
 - `--pr <url>` — PR/MR URLs (repeatable, accumulated into a list)
+- `--inputs <path-or-url>` — Additional input sources (repeatable, accumulated into a list). Each value can be a local file path, Google Drive URL, or web URL. Forwarded to the requirements step for auto-detection and processing.
+- `--jql <query>` — JQL query for bulk JIRA ticket fetch. Forwarded to the requirements step.
+- `--tickets <list>` — Comma-separated list of JIRA ticket IDs. Forwarded to the requirements step.
 - `--mkdocs` — Use Material for MkDocs format instead of AsciiDoc
 - `--draft` — Write documentation to a staging area instead of directly into the repo. When set, the writing step uses DRAFT placement mode (no framework detection, no branch creation). Without this flag, UPDATE-IN-PLACE is the default
+- `--jtbd` — Use the JTBD (Jobs to Be Done) content paradigm for planning and writing steps (default). Mutually exclusive with `--user-stories`.
+- `--user-stories` — Use the feature-based / user-story content paradigm for planning and writing steps. Mutually exclusive with `--jtbd`. If both `--jtbd` and `--user-stories` are provided, error immediately.
 - `--create-jira <PROJECT>` — Create a linked JIRA ticket in the specified project
 
 ## Load the step list
@@ -49,7 +54,9 @@ bash scripts/setup-hooks.sh
 
 ### 2. Read the YAML
 
-Read the YAML file and extract the ordered step list. Each step has: `name`, `skill`, `description`, optional `when`, and optional `inputs`.
+Read the YAML file and extract the ordered step list and optional defaults. Each step has: `name`, `skill`, `description`, optional `when`, and optional `inputs`.
+
+The YAML may include an optional `defaults` block at the workflow level (see `defaults/docs-docset-workflow.yaml` for an example). Supported keys: `format`, `paradigm`. CLI flags override YAML defaults. YAML defaults override global defaults (`format: adoc`, `paradigm: jtbd`). Precedence: **CLI flag > YAML default > global default**.
 
 ### 3. Evaluate `when` conditions
 
@@ -86,61 +93,70 @@ The orchestrator validates at load time that every step name in `inputs` exists 
 
 ## Output conventions
 
-Every step writes to a predictable folder based on the ticket ID and step name:
+Every step writes to a predictable folder based on the workflow ID and step name:
 
 ```
-.claude/docs/<ticket>/<step-name>/
+.claude/docs/<id>/<step-name>/
 ```
 
-The ticket ID is converted to **lowercase** for directory names (e.g., `PROJ-123` → `proj-123`).
+The workflow ID is sanitized for use as a directory name: convert to lowercase, replace any character outside `[a-z0-9.-]` with `-`, collapse consecutive hyphens, and strip leading/trailing hyphens (e.g., `PROJ-123` → `proj-123`, `My Product Guide` → `my-product-guide`). **Reject** IDs that contain `..` or `/` — these indicate path traversal and must cause an immediate error.
 
 ### Folder structure
 
-```
-.claude/docs/proj-123/
+```text
+.claude/docs/<id>/
   requirements/
     requirements.md
   planning/
     plan.md
+  scaffold/              (docset workflow only)
+    scaffold-info.md
   prepare-branch/
     branch-info.md
   writing/
-    _index.md
-    assembly_*.adoc (or docs/*.md for mkdocs)
-    modules/
+    _index.md            (manifest — always present, lists all file locations)
+    modules/             (draft mode only — actual files live here)
+    assembly_*.adoc      (draft mode only)
+    docs/*.md            (draft mode only, mkdocs)
   technical-review/
     review.md
   style-review/
     review.md
   workflow/
-    docs-workflow_proj-123.json
+    <workflow-type>_<id>.json
 ```
 
-Each step skill knows its own output folder and writes there. Each step reads input from upstream step folders referenced in its `inputs` list. The orchestrator passes the base path `.claude/docs/<ticket>/` — step skills derive everything else by convention.
+In UPDATE-IN-PLACE mode, `writing/` contains only the manifest (`_index.md`). The actual documentation files are at their repo locations as listed in the manifest. In DRAFT mode, `writing/` contains both the manifest and the files themselves.
+
+Each step skill knows its own output folder and writes there. Each step reads input from upstream step folders referenced in its `inputs` list. The orchestrator passes the base path `.claude/docs/<id>/` — step skills derive everything else by convention.
 
 ## Progress file
 
 Claude writes the progress file directly using the Write tool. Create it after parsing arguments, before step 1. Update it after each step.
 
-**Location**: `.claude/docs/<ticket>/workflow/<workflow-type>_<ticket>.json`
+**Location**: `.claude/docs/<id>/workflow/<workflow-type>_<id>.json`
 
-The `workflow_type` field and filename prefix match the YAML's `workflow.name`. This allows multiple workflow types to run against the same ticket without conflict.
+The `workflow_type` field and filename prefix match the YAML's `workflow.name`. This allows multiple workflow types to run against the same ID without conflict.
 
 ### Schema
 
 ```json
 {
   "workflow_type": "<workflow.name from YAML>",
-  "ticket": "<TICKET>",
-  "base_path": ".claude/docs/<ticket>",
+  "id": "<workflow ID>",
+  "base_path": ".claude/docs/<id>",
   "status": "in_progress",
   "created_at": "<ISO 8601>",
   "updated_at": "<ISO 8601>",
   "options": {
     "format": "adoc",
     "draft": false,
+    "paradigm": "jtbd",
     "create_jira_project": null,
-    "pr_urls": []
+    "pr_urls": [],
+    "input_urls": [],
+    "jql": null,
+    "tickets": []
   },
   "step_order": ["requirements", "planning", "writing", ...],
   "steps": {
@@ -170,7 +186,7 @@ A top-level array listing steps in canonical order. This field exists so the Sto
 
 ## Check for existing work
 
-Before starting, check for a progress file at `.claude/docs/<ticket>/workflow/<workflow-type>_<ticket>.json`.
+Before starting, check for a progress file at `.claude/docs/<id>/workflow/<workflow-type>_<id>.json`.
 
 **If a progress file exists:**
 
@@ -178,7 +194,7 @@ Before starting, check for a progress file at `.claude/docs/<ticket>/workflow/<w
 2. For each `"completed"` step, verify its output folder still exists on disk. If it has been deleted, reset that step to `"pending"` and reset all downstream dependent steps to `"pending"` as well
 3. Resume from the first step with status `"pending"` or `"failed"`
 4. Before running the resume step, validate its input dependencies are satisfied
-5. Tell the user: "Found existing work for `<ticket>`. Resuming from `<step>`."
+5. Tell the user: "Found existing work for `<id>`. Resuming from `<step>`."
 6. If the user provided additional flags on resume (e.g., `--create-jira`), update the progress file options accordingly
 
 **If no progress file exists**, start from step 1 and create a new progress file.
@@ -196,11 +212,14 @@ Run steps in the order defined by the YAML. For each step:
 
 Build the args string for the step skill:
 
-1. **Always**: `<ticket> --base-path <base_path>` — the ticket ID and the base output path
+1. **Always**: `<id> --base-path <base_path>` — the workflow ID and the base output path
 2. **From orchestrator context**: Step-specific args from parsed CLI flags:
-   - `requirements`: `[--pr <url>]...`
+   - `requirements`: `[--pr <url>]... [--jql <query>] [--tickets <list>] [--inputs <path-or-url>]...`
+   - `planning`: `[--paradigm <jtbd|user-stories>]`
    - `prepare-branch`: `[--draft]`
-   - `writing`: `--format <adoc|mkdocs> [--draft]`
+   - `scaffold`: `--format mkdocs [--draft]`
+   - `writing`: `--format <adoc|mkdocs> [--draft] [--paradigm <jtbd|user-stories>]`
+   - `technical-review`: *(no additional flags — reads manifest)*
    - `style-review`: `--format <adoc|mkdocs>`
    - `create-jira`: `--project <PROJECT>`
 
@@ -228,7 +247,7 @@ The technical review step runs in a loop until confidence is acceptable or three
 3. If `HIGH` → mark completed, proceed to next step
 4. If `MEDIUM` or `LOW` and fewer than 3 iterations completed → run the fix skill:
    ```
-   Skill: docs-tools:docs-workflow-writing, args: "<ticket> --base-path <base_path> --fix-from <base_path>/technical-review/review.md"
+   Skill: docs-tools:docs-workflow-writing, args: "<id> --base-path <base_path> --fix-from <base_path>/technical-review/review.md --paradigm <jtbd|user-stories>"
    ```
    Then re-run the reviewer (go to step 1)
 5. After 3 iterations without reaching `HIGH`:
@@ -243,7 +262,7 @@ After all steps complete (or are skipped):
 2. Display a summary:
    - List all output folders with paths
    - Note any warnings (tech review didn't reach `HIGH`, etc.)
-   - Show JIRA URL if a ticket was created
+   - Show JIRA URL if a JIRA ticket was created
 
 ## Resume behavior
 
@@ -253,9 +272,9 @@ The progress file is already in context. Skip completed steps and continue from 
 
 ### New session
 
-User says: `"Resume docs workflow for PROJ-123"`
+User says: `"Resume docs workflow for PROJ-123"` or `"Resume docs workflow for my-product-guide"`
 
-1. Invoke this skill with the ticket
+1. Invoke this skill with the workflow ID
 2. Check for an existing progress file
 3. Read it, skip completed steps, resume from first `pending` or `failed` step
 4. Before running the resume step, **validate its input dependencies** — every required upstream step must have `status: "completed"` and a non-null `output` folder. If a dependency is `failed` or `pending`, re-run that dependency first

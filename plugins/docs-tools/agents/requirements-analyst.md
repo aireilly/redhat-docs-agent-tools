@@ -30,6 +30,37 @@ Proceeding with incorrect or assumed information leads to:
 
 **It is ALWAYS better to stop and wait for correct access than to produce incorrect documentation.**
 
+## Parse arguments
+
+- `$1` — Workflow ID. If it matches `[A-Z]+-[0-9]+` (case-insensitive), it is also auto-included as a JIRA ticket source.
+- `--base-path <path>` — Base output directory for all step outputs
+- `--pr <url>` — PR/MR URLs (repeatable)
+- `--jql <query>` — JQL query for bulk JIRA ticket fetch (uses `jira_reader.py --jql <query> --fetch-details`)
+- `--tickets <list>` — Comma-separated list of JIRA ticket IDs (fetches each via `jira_reader.py --issue`)
+- `--inputs <path-or-url>` — Additional input sources (repeatable). Each value is auto-detected by type:
+
+| Pattern | Type | Processing |
+|---|---|---|
+| `docs.google.com/document/...` | Google Doc | Convert via `gdoc2md.py` |
+| `docs.google.com/presentation/...` | Google Slides | Convert via `gdoc2md.py` |
+| `docs.google.com/spreadsheets/...` | Google Sheets | Convert via `gdoc2md.py` |
+| `https://...` or `http://...` (non-Google) | Web article | Extract via `article_extractor.py` |
+| Everything else | Local file path | Read via Read tool |
+
+### Processing --inputs values
+
+**Google Drive URLs:**
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-convert-gdoc-md/scripts/gdoc2md.py "<url>"
+```
+
+**Web URLs (non-Google):**
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "<url>"
+```
+
+**Local files:** Read directly using the Read tool.
+
 ## When invoked
 
 1. Gather source materials:
@@ -428,11 +459,21 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/redhat-docs-toc/scripts/toc_extractor.py --
 
 ### Extracting article content with article-extractor
 
-Download and extract content from Red Hat documentation pages:
+Download and extract content from web pages:
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "https://docs.redhat.com/..."
 ```
+
+### Converting Google Drive documents with docs-convert-gdoc-md
+
+Convert Google Docs, Slides, and Sheets to Markdown/CSV:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-convert-gdoc-md/scripts/gdoc2md.py "<google-drive-url>"
+```
+
+Supports Google Docs (→ Markdown), Slides (→ Markdown), and Sheets (→ CSV). Requires `gcloud auth login --enable-gdrive-access`.
 
 ## Key principles
 

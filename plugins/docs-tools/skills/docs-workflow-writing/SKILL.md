@@ -1,7 +1,7 @@
 ---
 name: docs-workflow-writing
-description: Write documentation from a documentation plan. Dispatches the docs-writer agent. Supports AsciiDoc (default) and MkDocs formats. Default placement is UPDATE-IN-PLACE; use --draft for staging area. Also supports fix mode for applying technical review corrections.
-argument-hint: <ticket> --base-path <path> --format <adoc|mkdocs> [--draft] [--fix-from <review_path>]
+description: Write documentation from a documentation plan. Dispatches the docs-writer agent with the specified content paradigm. Supports AsciiDoc (default) and MkDocs formats. Default placement is UPDATE-IN-PLACE; use --draft for staging area. Also supports fix mode for applying technical review corrections.
+argument-hint: <id> --base-path <path> --format <adoc|mkdocs> [--draft] [--paradigm <jtbd|user-stories>] [--fix-from <review_path>]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---
 
@@ -18,16 +18,18 @@ Supports three modes:
 
 ### Normal mode
 
-- `$1` — JIRA ticket ID (required)
+- `$1` — Workflow ID (JIRA ticket, doc set name, or any identifier) (required)
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 - `--format <adoc|mkdocs>` — Output format (default: `adoc`)
 - `--draft` — Use DRAFT placement mode (staging area) instead of UPDATE-IN-PLACE
+- `--paradigm <jtbd|user-stories>` — Content paradigm (default: `jtbd`)
 
 ### Fix mode
 
-- `$1` — JIRA ticket ID (required)
+- `$1` — Workflow ID (JIRA ticket, doc set name, or any identifier) (required)
 - `--base-path <path>` — Base output path
 - `--fix-from <path>` — Technical review output file (triggers fix mode)
+- `--paradigm <jtbd|user-stories>` — Content paradigm (default: `jtbd`)
 
 ## Input
 
@@ -56,11 +58,40 @@ Files are written directly to their correct repo locations. A manifest is create
   docs/*.md              (MkDocs mode)
 ```
 
+### Manifest format (`_index.md`)
+
+The manifest is a Markdown file listing all documentation files created or updated by the writing step. Review steps and fix mode read this file to locate content regardless of placement mode.
+
+```markdown
+# Writing Manifest
+
+**Workflow ID**: <id>
+**Placement mode**: UPDATE-IN-PLACE | DRAFT
+**Format**: adoc | mkdocs
+**Date**: YYYY-MM-DD
+
+## Files
+
+| Path | Type | Module type | Status |
+|------|------|-------------|--------|
+| `path/to/file.adoc` | assembly | ASSEMBLY | created |
+| `path/to/modules/con_name.adoc` | module | CONCEPT | created |
+| `path/to/modules/proc_name.adoc` | module | PROCEDURE | created |
+| `path/to/modules/ref_name.adoc` | module | REFERENCE | created |
+```
+
+- **Path**: Absolute or repo-relative path to the file. In UPDATE-IN-PLACE mode, these are repo locations. In DRAFT mode, these are paths within `<base-path>/writing/`.
+- **Type**: `assembly` or `module` (or `page` for MkDocs)
+- **Module type**: `ASSEMBLY`, `CONCEPT`, `PROCEDURE`, `REFERENCE` (or `page` for MkDocs)
+- **Status**: `created` (new file) or `updated` (existing file modified)
+
+Review steps iterate the `## Files` table to locate every file for review.
+
 ## Execution
 
 ### 1. Parse arguments
 
-Extract the ticket ID, `--base-path`, `--format`, and `--draft` from the args string.
+Extract the workflow ID, `--base-path`, `--format`, `--draft`, and `--paradigm` from the args string. Default paradigm to `jtbd` if not specified.
 
 If `--fix-from` is present, operate in **fix mode**. Otherwise, check for `--draft` to determine placement mode.
 
@@ -70,18 +101,23 @@ Set the paths:
 INPUT_FILE="${BASE_PATH}/planning/plan.md"
 OUTPUT_DIR="${BASE_PATH}/writing"
 OUTPUT_FILE="${OUTPUT_DIR}/_index.md"
+MANIFEST="${OUTPUT_FILE}"
 mkdir -p "$OUTPUT_DIR"
 ```
 
 ### 2a. UPDATE-IN-PLACE mode (default — no `--draft`)
 
+Always dispatch `docs-tools:docs-writer`. Pass the content paradigm in the prompt so the agent reads the correct paradigm reference file.
+
 **Agent tool parameters:**
 - `subagent_type`: `docs-tools:docs-writer`
-- `description`: `Write <format> documentation for <TICKET>`
+- `description`: `Write <format> documentation for <ID>`
 
 **Prompt (AsciiDoc):**
 
-> Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
+> Write complete AsciiDoc documentation based on the documentation plan for `<ID>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the plan from: `<INPUT_FILE>`
 >
@@ -100,7 +136,9 @@ mkdir -p "$OUTPUT_DIR"
 
 **Prompt (MkDocs):**
 
-> Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
+> Write complete Material for MkDocs Markdown documentation based on the documentation plan for `<ID>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the plan from: `<INPUT_FILE>`
 >
@@ -119,13 +157,17 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2b. DRAFT mode (`--draft`)
 
+Always dispatch `docs-tools:docs-writer` (same agent as 2a). Pass the content paradigm in the prompt.
+
 **Agent tool parameters:**
 - `subagent_type`: `docs-tools:docs-writer`
-- `description`: `Write <format> documentation for <TICKET>`
+- `description`: `Write <format> documentation for <ID>`
 
 **Prompt (AsciiDoc, draft):**
 
-> Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
+> Write complete AsciiDoc documentation based on the documentation plan for `<ID>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the plan from: `<INPUT_FILE>`
 >
@@ -152,7 +194,9 @@ mkdir -p "$OUTPUT_DIR"
 
 **Prompt (MkDocs, draft):**
 
-> Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
+> Write complete Material for MkDocs Markdown documentation based on the documentation plan for `<ID>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the plan from: `<INPUT_FILE>`
 >
@@ -179,25 +223,31 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2c. Fix mode — dispatch writer agent for corrections
 
-When invoked with `--fix-from`, the skill applies targeted corrections to existing drafts.
+When invoked with `--fix-from`, the skill applies targeted corrections to existing documentation.
+
+Always dispatch `docs-tools:docs-writer` (same agent as 2a). Pass the content paradigm in the prompt.
 
 **Agent tool parameters:**
 - `subagent_type`: `docs-tools:docs-writer`
-- `description`: `Fix documentation for <TICKET>`
+- `description`: `Fix documentation for <ID>`
 
 **Prompt:**
 
-> Apply fixes to documentation drafts based on technical review feedback for ticket `<TICKET>`.
+> Apply fixes to documentation based on technical review feedback for `<ID>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the review report from: `<FIX_FROM_PATH>`
-> Drafts location: `<OUTPUT_DIR>/`
+>
+> The documentation manifest is at: `<MANIFEST>`
+> Read the manifest to find all file locations.
 >
 > For each issue flagged in the review:
 > 1. If the fix is clear and unambiguous, apply it directly
 > 2. If the issue requires broader context or judgment, skip it
 > 3. Do NOT rewrite content that was not flagged
 >
-> Edit files in place. Do NOT create copies or new files.
+> Edit files in place at their listed locations. Do NOT create copies or new files.
 
 In fix mode, the skill does not create new modules or restructure content.
 
