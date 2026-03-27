@@ -1,7 +1,7 @@
 ---
 name: docs-workflow-planning
-description: Create a documentation plan from requirements analysis output. Dispatches the docs-planner or docs-planner-jtbd agent based on --no-jtbd flag. Invoked by the orchestrator.
-argument-hint: <ticket> --base-path <path> [--no-jtbd]
+description: Create a documentation plan from requirements analysis output. Dispatches the docs-planner agent with the specified content paradigm. Invoked by the orchestrator.
+argument-hint: <id> --base-path <path> [--paradigm <jtbd|user-stories>]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---
 
@@ -11,9 +11,9 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 
 ## Arguments
 
-- `$1` — JIRA ticket ID or workflow ID (required)
+- `$1` — Workflow ID (JIRA ticket, doc set name, or any identifier) (required)
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
-- `--no-jtbd` — Use feature-based information architecture instead of JTBD (optional)
+- `--paradigm <jtbd|user-stories>` — Content paradigm (default: `jtbd`)
 
 ## Input
 
@@ -31,7 +31,7 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 
 ### 1. Parse arguments
 
-Extract the ticket ID, `--base-path`, and `--no-jtbd` from the args string.
+Extract the workflow ID, `--base-path`, and `--paradigm` from the args string. Default paradigm to `jtbd` if not specified.
 
 Set the paths:
 
@@ -44,18 +44,17 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2. Dispatch agent
 
-Select the agent based on the `--no-jtbd` flag:
-
-- **If `--no-jtbd` is present**: dispatch `docs-tools:docs-planner` (feature-based planning)
-- **Otherwise (default)**: dispatch `docs-tools:docs-planner-jtbd` (JTBD planning)
+Always dispatch `docs-tools:docs-planner`. Pass the content paradigm in the prompt so the agent reads the correct paradigm reference file.
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-planner` or `docs-tools:docs-planner-jtbd`
-- `description`: `Create documentation plan for <TICKET>`
+- `subagent_type`: `docs-tools:docs-planner`
+- `description`: `Create documentation plan for <ID>`
 
 **Prompt:**
 
 > Create a comprehensive documentation plan based on the requirements analysis.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the requirements from: `<INPUT_FILE>`
 >

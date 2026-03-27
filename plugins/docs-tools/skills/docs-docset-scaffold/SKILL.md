@@ -42,7 +42,7 @@ Extract:
 - **Module list**: Individual modules with their types (CONCEPT, PROCEDURE, REFERENCE) and titles
 - **Project name**: From the plan's `**Project**` field or the workflow ID
 
-If the plan does not use JTBD categories (e.g., `--no-jtbd` was used upstream), extract the top-level organizational groupings and parent topics as they appear in the plan.
+If the plan uses the `user-stories` paradigm (i.e., `--paradigm user-stories` was used upstream), extract the top-level organizational groupings and parent topics as they appear in the plan rather than expecting JTBD categories.
 
 ### 3. Determine output location
 

@@ -1,6 +1,6 @@
 ---
 description: Run the multi-stage documentation workflow for a JIRA ticket. Orchestrates agents sequentially — requirements analysis, planning, writing, technical review, and style review
-argument-hint: [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--draft]
+argument-hint: [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--draft] [--jtbd] [--user-stories]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task, WebSearch, WebFetch
 ---
 
@@ -10,7 +10,7 @@ docs-tools:docs-workflow
 
 ## Synopsis
 
-`/docs-tools:docs-workflow [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--draft]`
+`/docs-tools:docs-workflow [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--draft] [--jtbd] [--user-stories]`
 
 ## Description
 
@@ -25,8 +25,8 @@ By default, the workflow creates a clean branch from the upstream default branch
 | Stage | Agent | Description |
 |-------|-------|-------------|
 | 1. Requirements | `docs-tools:requirements-analyst` | Parses JIRA issues, PRs, and specs to extract documentation requirements |
-| 2. Planning | `docs-tools:docs-planner-jtbd` | Creates documentation plans with JTBD framework and gap analysis |
-| 3. Writing | `docs-tools:docs-writer-jtbd` | Writes complete documentation directly in the repo (default) or to staging area (`--draft`) |
+| 2. Planning | `docs-tools:docs-planner` | Creates documentation plans with gap analysis, using the specified content paradigm |
+| 3. Writing | `docs-tools:docs-writer` | Writes complete documentation directly in the repo (default) or to staging area (`--draft`) |
 | 4. Technical review | `docs-tools:technical-reviewer` | Reviews for technical accuracy — code examples, prerequisites, commands, failure paths |
 | 5. Style review | `docs-tools:docs-reviewer` | Reviews with Vale linting and style guide checks, edits files in place |
 | 6. Create JIRA | *(direct bash/curl)* | Optional: creates a docs JIRA ticket linked to the parent ticket |
@@ -101,6 +101,8 @@ Documentation files themselves are placed at their correct repo locations (e.g.,
 - **--pr \<url\>**: GitHub PR or GitLab MR URL to include in requirements analysis. Can be specified multiple times across start/resume invocations.
 - **--mkdocs**: Output Material for MkDocs Markdown instead of AsciiDoc. Produces `.md` files with YAML frontmatter in a `docs/` subfolder, plus a `mkdocs-nav.yml` navigation fragment.
 - **--draft**: Write documentation to the `.claude/docs/drafts/` staging area on the current branch instead of creating a new branch and writing directly to the repo. No build framework detection or file placement is performed.
+- **--jtbd**: Use the JTBD (Jobs to Be Done) content paradigm for planning and writing (default). Mutually exclusive with `--user-stories`.
+- **--user-stories**: Use the feature-based / user-story content paradigm for planning and writing. Mutually exclusive with `--jtbd`.
 - **--create-jira \<PROJECT\>**: Create a documentation JIRA ticket in the specified project (e.g., `INFERENG`) after the review stage completes. The project key is mandatory — there is no default. The created ticket is linked to the parent ticket with a "Document" relationship. Can be passed on `start` or `resume`.
 
 ## Step-by-Step Instructions
@@ -118,6 +120,7 @@ PR_URLS=()
 CREATE_JIRA_PROJECT=""
 OUTPUT_FORMAT="adoc"
 DRAFT=false
+PARADIGM="jtbd"
 shift 2 2>/dev/null
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -129,6 +132,8 @@ while [[ $# -gt 0 ]]; do
             [[ -n "${2:-}" && "${2:0:1}" != "-" ]] || { echo "ERROR: --create-jira requires a project key"; exit 1; }
             CREATE_JIRA_PROJECT="$2"; shift 2 ;;
         --draft) DRAFT=true; shift ;;
+        --jtbd) PARADIGM="jtbd"; shift ;;
+        --user-stories) PARADIGM="user-stories"; shift ;;
         *) shift ;;
     esac
 done
@@ -143,6 +148,7 @@ fi
 echo "Action: ${ACTION}"
 echo "Ticket: ${TICKET}"
 echo "Format: ${OUTPUT_FORMAT}"
+echo "Paradigm: ${PARADIGM}"
 if [[ "$DRAFT" == "true" ]]; then
     echo "Mode: draft (staging area)"
 else
@@ -311,6 +317,7 @@ cat > "$STATE_FILE" << EOF
   "options": {
     "pr_urls": ${PR_URLS_JSON},
     "format": "${OUTPUT_FORMAT}",
+    "paradigm": "${PARADIGM}",
     "draft": ${DRAFT},
     "create_jira_project": ${CREATE_JIRA_JSON}
   },
@@ -563,10 +570,10 @@ After the agent completes, verify the output file exists. If not, search for the
 ls -t "${CLAUDE_DOCS_DIR}/requirements/"*.md 2>/dev/null | head -1
 ```
 
-### Stage 2: Planning (docs-planner-jtbd)
+### Stage 2: Planning (docs-planner)
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-planner-jtbd`
+- `subagent_type`: `docs-tools:docs-planner`
 - `description`: `Create documentation plan for <TICKET>`
 
 **Output file path:**
@@ -586,6 +593,8 @@ PREV_OUTPUT=$(jq -r '.stages.requirements.output_file // ""' "$STATE_FILE")
 
 > Create a comprehensive documentation plan based on the requirements analysis.
 >
+> **Content paradigm: <PARADIGM>**
+>
 > Read the requirements from: `<PREV_OUTPUT>`
 >
 > The plan must include:
@@ -601,7 +610,7 @@ PREV_OUTPUT=$(jq -r '.stages.requirements.output_file // ""' "$STATE_FILE")
 
 After the agent completes, verify the output file exists.
 
-### Stage 3: Writing (docs-writer-jtbd)
+### Stage 3: Writing (docs-writer)
 
 The writing stage behavior depends on whether `--draft` mode is active and the `--mkdocs` option.
 
@@ -611,9 +620,10 @@ Read the format and draft mode from the state file:
 ```bash
 OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 DRAFT_MODE=$(jq -r '.options.draft // false' "$STATE_FILE")
+PARADIGM=$(jq -r '.options.paradigm // "jtbd"' "$STATE_FILE")
 ```
 
-- `subagent_type`: `docs-tools:docs-writer-jtbd`
+- `subagent_type`: `docs-tools:docs-writer`
 
 - **If `OUTPUT_FORMAT` is `adoc`** (default):
   - `description`: `Write AsciiDoc documentation for <TICKET>`
@@ -653,6 +663,8 @@ PREV_OUTPUT=$(jq -r '.stages.planning.output_file // ""' "$STATE_FILE")
 
 > Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
 >
+> **Content paradigm: <PARADIGM>**
+>
 > Read the plan from: `<PREV_OUTPUT>`
 >
 > **IMPORTANT**: Write COMPLETE .adoc files, not summaries or outlines.
@@ -672,6 +684,8 @@ PREV_OUTPUT=$(jq -r '.stages.planning.output_file // ""' "$STATE_FILE")
 
 > Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
 >
+> **Content paradigm: <PARADIGM>**
+>
 > Read the plan from: `<PREV_OUTPUT>`
 >
 > **IMPORTANT**: Write COMPLETE .md files with YAML frontmatter (title, description), not summaries or outlines. Use Material for MkDocs conventions: admonitions (`!!! note`, `!!! warning`), content tabs, code blocks with titles, and proper heading hierarchy starting at `# h1`.
@@ -690,6 +704,8 @@ PREV_OUTPUT=$(jq -r '.stages.planning.output_file // ""' "$STATE_FILE")
 **Prompt (Draft mode — staging area, AsciiDoc):**
 
 > Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the plan from: `<PREV_OUTPUT>`
 >
@@ -717,6 +733,8 @@ PREV_OUTPUT=$(jq -r '.stages.planning.output_file // ""' "$STATE_FILE")
 **Prompt (Draft mode — staging area, MkDocs):**
 
 > Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the plan from: `<PREV_OUTPUT>`
 >
@@ -798,7 +816,7 @@ ITERATIONS=$(jq '.stages.technical_review.iterations' "$STATE_FILE")
 
 **Writer fix prompt (for iteration):**
 
-Launch the `docs-tools:docs-writer-jtbd` agent with this prompt:
+Launch the `docs-tools:docs-writer` agent with this prompt:
 
 > The technical reviewer found issues in the documentation for ticket `<TICKET>`.
 >
@@ -1029,16 +1047,23 @@ If the unauthenticated request returns HTTP 200, the project is public and the d
 
 **Step 6b: Extract description content from the documentation plan**
 
-Read the documentation plan output file (Stage 2) and extract the three JIRA description sections defined by the docs-planner-jtbd agent.
+Read the documentation plan output file (Stage 2) and extract the JIRA description sections defined by the docs-planner agent. The sections vary by content paradigm.
 
 ```bash
 PLAN_FILE=$(jq -r '.stages.planning.output_file // ""' "$STATE_FILE")
+PARADIGM=$(jq -r '.options.paradigm // "jtbd"' "$STATE_FILE")
 ```
 
-Use the Read tool to read `<PLAN_FILE>`. Then extract these three sections (including their headings):
+Use the Read tool to read `<PLAN_FILE>`. Then extract the paradigm-specific sections plus the shared section (including their headings):
 
+**If paradigm is `jtbd`:**
 1. `## What is the main JTBD? What user goal is being accomplished? What pain point is being avoided?`
 2. `## How does the JTBD(s) relate to the overall real-world workflow for the user?`
+3. `## Who can provide information and answer questions?`
+
+**If paradigm is `user-stories`:**
+1. `## What are the primary user stories?`
+2. `## How do these features relate to the user's workflow?`
 3. `## Who can provide information and answer questions?`
 
 For each section, extract everything from the `##` heading through to the next `##` heading (or end of file). Include the headings in the output.
@@ -1352,6 +1377,11 @@ Draft mode with MkDocs:
 /docs-tools:docs-workflow start RHAISTRAT-123 --draft --mkdocs
 ```
 
+Start with feature-based / user-story content paradigm:
+```bash
+/docs-tools:docs-workflow start RHAISTRAT-123 --user-stories
+```
+
 ## Prerequisites
 
 - `jq` — JSON processor (install with: `sudo dnf install jq`)
@@ -1372,7 +1402,8 @@ Draft mode with MkDocs:
 - The review stage edits files in place at their locations (repo or drafts) rather than creating copies
 - The `--create-jira` stage is optional — it only runs when the flag is provided with a project key
 - The `--create-jira` stage checks for existing "is documented by" links on the parent ticket before creating a duplicate ticket. If the "is documented by" link exists, a new ticket is not created. The link type name is `"Document"` (singular)
-- The created JIRA description contains three sections from the documentation plan (JTBD, workflow context, contacts), with the full docs plan attached for private projects only
+- The created JIRA description contains paradigm-specific sections from the documentation plan (JTBD or user-story sections, workflow context, contacts), with the full docs plan attached for private projects only
+- By default, the workflow uses the JTBD (Jobs to Be Done) content paradigm. Use `--user-stories` for feature-based / user-story content paradigm. These flags are mutually exclusive
 - For **public projects**, the detailed docs plan is NOT attached to the JIRA ticket. Project visibility is determined by making an unauthenticated curl request to the JIRA project endpoint — HTTP 200 means public, any other status means private
 - The JIRA description is converted from markdown to JIRA wiki markup before submission, and the JSON payload is built using Python and passed via `--data @file` to avoid shell interpolation issues with large descriptions
 - The `--mkdocs` flag switches output from AsciiDoc to Material for MkDocs Markdown. The same agents are used — the writing and review prompts adapt to produce `.md` files with MkDocs conventions. The review stage omits `docs-tools:docs-review-modular-docs` checks (AsciiDoc-specific) and uses `docs-tools:docs-review-content-quality` plus IBM/Red Hat style guide skills

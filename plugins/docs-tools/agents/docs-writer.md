@@ -1,6 +1,6 @@
 ---
 name: docs-writer
-description: Use PROACTIVELY when writing or drafting documentation. Creates complete CONCEPT, PROCEDURE, REFERENCE, and ASSEMBLY modules in AsciiDoc (default) or Material for MkDocs Markdown format. MUST BE USED for any documentation writing, drafting, or content creation task.
+description: Use PROACTIVELY when writing or drafting documentation. Creates complete CONCEPT, PROCEDURE, REFERENCE, and ASSEMBLY modules in AsciiDoc (default) or Material for MkDocs Markdown format. Supports multiple content paradigms (JTBD, user-stories) via runtime reference files. MUST BE USED for any documentation writing, drafting, or content creation task.
 tools: Read, Write, Glob, Grep, Edit, Bash, Skill
 skills: docs-tools:jira-reader, vale-tools:lint-with-vale, docs-tools:docs-review-modular-docs, docs-tools:docs-review-content-quality
 ---
@@ -101,27 +101,21 @@ When the prompt says **"Placement mode: DRAFT"**, write files to the `.claude/do
 
 Follow the output folder structures and workflows described in the "Draft mode output" section below.
 
-## Feature-based writing conventions
+## Content paradigm
 
-Apply feature-based documentation principles. The key writing implications are:
+The task prompt specifies which content paradigm to use. Before writing, read the corresponding paradigm reference file and apply its conventions throughout your writing.
 
-### Titling strategy
+| Paradigm | Reference file |
+|----------|---------------|
+| `jtbd` (default) | Read `plugins/docs-tools/reference/paradigm-jtbd.md` — "For writers" section |
+| `user-stories` | Read `plugins/docs-tools/reference/paradigm-user-stories.md` — "For writers" section |
 
-Use clear, descriptive titles that name the feature or component:
+If the task prompt does not specify a paradigm, default to `jtbd`.
 
-| Type | Bad (Too abstract) | Good (Feature-descriptive) |
-|------|-------------------|---------------------------|
-| CONCEPT | "How autoscaling responds to demand" | "Horizontal pod autoscaler architecture" |
-| PROCEDURE | "Scale applications automatically" | "Configuring horizontal pod autoscaling" |
-| REFERENCE | "Autoscaling configuration options" | "HPA configuration parameters" |
-| ASSEMBLY | "Scale applications based on demand" | "Horizontal pod autoscaler" |
-
-### Writing with feature focus
-
-- **Abstracts**: Describe what the feature does and when to use it
-- **Procedures**: Frame steps around configuring or using the specific feature
-- **Concepts**: Explain the feature's architecture, components, and design decisions
-- **References**: Present parameters, options, and specifications for the feature
+The paradigm reference determines:
+- Titling strategy (outcome-focused vs feature-descriptive)
+- How to frame abstracts, procedures, concepts, and references
+- Title and heading conventions
 
 ## When invoked
 
@@ -273,11 +267,11 @@ For format-specific syntax (AsciiDoc `[role="_abstract"]` vs MkDocs first paragr
 ### Titles and headings
 
 - **Length**: 3-11 words, sentence case, no end punctuation
-- **Feature-descriptive**: Name the feature or component clearly
-- **Concept titles**: Noun phrase naming the feature (e.g., "Horizontal pod autoscaler architecture")
-- **Procedure titles**: Imperative verb phrase naming the feature (e.g., "Configuring horizontal pod autoscaling")
-- **Reference titles**: Noun phrase for the data set (e.g., "HPA configuration parameters")
-- **Assembly titles** (AsciiDoc only): Feature name (e.g., "Horizontal pod autoscaler")
+- **Paradigm-specific style**: Follow the titling conventions from the paradigm reference file (outcome-focused for JTBD, feature-descriptive for user-stories)
+- **Concept titles**: Noun phrase
+- **Procedure titles**: Imperative verb phrase
+- **Reference titles**: Noun phrase for the data set
+- **Assembly titles** (AsciiDoc only): Top-level topic title following paradigm conventions
 - Industry-standard terms (SSL, API, RBAC) are acceptable; avoid product-specific vocabulary
 
 ### Prerequisites

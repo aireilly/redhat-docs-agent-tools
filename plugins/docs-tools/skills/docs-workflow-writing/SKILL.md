@@ -1,7 +1,7 @@
 ---
 name: docs-workflow-writing
-description: Write documentation from a documentation plan. Dispatches the docs-writer or docs-writer-jtbd agent based on --no-jtbd flag. Supports AsciiDoc (default) and MkDocs formats. Default placement is UPDATE-IN-PLACE; use --draft for staging area. Also supports fix mode for applying technical review corrections.
-argument-hint: <ticket> --base-path <path> --format <adoc|mkdocs> [--draft] [--no-jtbd] [--fix-from <review_path>]
+description: Write documentation from a documentation plan. Dispatches the docs-writer agent with the specified content paradigm. Supports AsciiDoc (default) and MkDocs formats. Default placement is UPDATE-IN-PLACE; use --draft for staging area. Also supports fix mode for applying technical review corrections.
+argument-hint: <id> --base-path <path> --format <adoc|mkdocs> [--draft] [--paradigm <jtbd|user-stories>] [--fix-from <review_path>]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---
 
@@ -18,18 +18,18 @@ Supports three modes:
 
 ### Normal mode
 
-- `$1` — JIRA ticket ID or workflow ID (required)
+- `$1` — Workflow ID (JIRA ticket, doc set name, or any identifier) (required)
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 - `--format <adoc|mkdocs>` — Output format (default: `adoc`)
 - `--draft` — Use DRAFT placement mode (staging area) instead of UPDATE-IN-PLACE
-- `--no-jtbd` — Use feature-based writing conventions instead of JTBD (optional)
+- `--paradigm <jtbd|user-stories>` — Content paradigm (default: `jtbd`)
 
 ### Fix mode
 
-- `$1` — JIRA ticket ID or workflow ID (required)
+- `$1` — Workflow ID (JIRA ticket, doc set name, or any identifier) (required)
 - `--base-path <path>` — Base output path
 - `--fix-from <path>` — Technical review output file (triggers fix mode)
-- `--no-jtbd` — Use feature-based writing conventions instead of JTBD (optional)
+- `--paradigm <jtbd|user-stories>` — Content paradigm (default: `jtbd`)
 
 ## Input
 
@@ -62,7 +62,7 @@ Files are written directly to their correct repo locations. A manifest is create
 
 ### 1. Parse arguments
 
-Extract the ticket ID, `--base-path`, `--format`, `--draft`, and `--no-jtbd` from the args string.
+Extract the workflow ID, `--base-path`, `--format`, `--draft`, and `--paradigm` from the args string. Default paradigm to `jtbd` if not specified.
 
 If `--fix-from` is present, operate in **fix mode**. Otherwise, check for `--draft` to determine placement mode.
 
@@ -77,18 +77,17 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2a. UPDATE-IN-PLACE mode (default — no `--draft`)
 
-Select the agent based on the `--no-jtbd` flag:
-
-- **If `--no-jtbd` is present**: dispatch `docs-tools:docs-writer` (feature-based writing)
-- **Otherwise (default)**: dispatch `docs-tools:docs-writer-jtbd` (JTBD writing)
+Always dispatch `docs-tools:docs-writer`. Pass the content paradigm in the prompt so the agent reads the correct paradigm reference file.
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-writer` or `docs-tools:docs-writer-jtbd`
-- `description`: `Write <format> documentation for <TICKET>`
+- `subagent_type`: `docs-tools:docs-writer`
+- `description`: `Write <format> documentation for <ID>`
 
 **Prompt (AsciiDoc):**
 
-> Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
+> Write complete AsciiDoc documentation based on the documentation plan for `<ID>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the plan from: `<INPUT_FILE>`
 >
@@ -107,7 +106,9 @@ Select the agent based on the `--no-jtbd` flag:
 
 **Prompt (MkDocs):**
 
-> Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
+> Write complete Material for MkDocs Markdown documentation based on the documentation plan for `<ID>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the plan from: `<INPUT_FILE>`
 >
@@ -126,15 +127,17 @@ Select the agent based on the `--no-jtbd` flag:
 
 ### 2b. DRAFT mode (`--draft`)
 
-Select the agent based on the `--no-jtbd` flag (same logic as 2a).
+Always dispatch `docs-tools:docs-writer` (same agent as 2a). Pass the content paradigm in the prompt.
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-writer` or `docs-tools:docs-writer-jtbd`
-- `description`: `Write <format> documentation for <TICKET>`
+- `subagent_type`: `docs-tools:docs-writer`
+- `description`: `Write <format> documentation for <ID>`
 
 **Prompt (AsciiDoc, draft):**
 
-> Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
+> Write complete AsciiDoc documentation based on the documentation plan for `<ID>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the plan from: `<INPUT_FILE>`
 >
@@ -161,7 +164,9 @@ Select the agent based on the `--no-jtbd` flag (same logic as 2a).
 
 **Prompt (MkDocs, draft):**
 
-> Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
+> Write complete Material for MkDocs Markdown documentation based on the documentation plan for `<ID>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the plan from: `<INPUT_FILE>`
 >
@@ -190,15 +195,17 @@ Select the agent based on the `--no-jtbd` flag (same logic as 2a).
 
 When invoked with `--fix-from`, the skill applies targeted corrections to existing drafts.
 
-Select the agent based on the `--no-jtbd` flag (same logic as 2a).
+Always dispatch `docs-tools:docs-writer` (same agent as 2a). Pass the content paradigm in the prompt.
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-writer` or `docs-tools:docs-writer-jtbd`
-- `description`: `Fix documentation for <TICKET>`
+- `subagent_type`: `docs-tools:docs-writer`
+- `description`: `Fix documentation for <ID>`
 
 **Prompt:**
 
-> Apply fixes to documentation drafts based on technical review feedback for ticket `<TICKET>`.
+> Apply fixes to documentation drafts based on technical review feedback for `<ID>`.
+>
+> **Content paradigm: <PARADIGM>**
 >
 > Read the review report from: `<FIX_FROM_PATH>`
 > Drafts location: `<OUTPUT_DIR>/`

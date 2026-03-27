@@ -1,7 +1,7 @@
 ---
 name: docs-orchestrator
 description: Documentation workflow orchestrator. Reads the step list from .claude/docs-workflow.yaml (or the plugin default). Runs steps sequentially, manages progress state, handles iteration and confirmation gates. Claude is the orchestrator — the YAML is a step list, not a workflow engine.
-argument-hint: <id> [--workflow <name>] [--pr <url>]... [--inputs <path-or-url>]... [--jql <query>] [--tickets <list>] [--mkdocs] [--draft] [--no-jtbd] [--create-jira <PROJECT>]
+argument-hint: <id> [--workflow <name>] [--pr <url>]... [--inputs <path-or-url>]... [--jql <query>] [--tickets <list>] [--mkdocs] [--draft] [--jtbd] [--user-stories] [--create-jira <PROJECT>]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, AskUserQuestion, WebSearch, WebFetch
 ---
 
@@ -43,7 +43,8 @@ bash scripts/setup-hooks.sh
 - `--tickets <list>` — Comma-separated list of JIRA ticket IDs. Forwarded to the requirements step.
 - `--mkdocs` — Use Material for MkDocs format instead of AsciiDoc
 - `--draft` — Write documentation to a staging area instead of directly into the repo. When set, the writing step uses DRAFT placement mode (no framework detection, no branch creation). Without this flag, UPDATE-IN-PLACE is the default
-- `--no-jtbd` — Use feature-based information architecture instead of JTBD for planning and writing steps. Passed through to downstream step skills, which conditionally dispatch `docs-planner`/`docs-writer` (feature-based) instead of `docs-planner-jtbd`/`docs-writer-jtbd`.
+- `--jtbd` — Use the JTBD (Jobs to Be Done) content paradigm for planning and writing steps (default). Mutually exclusive with `--user-stories`.
+- `--user-stories` — Use the feature-based / user-story content paradigm for planning and writing steps. Mutually exclusive with `--jtbd`. If both `--jtbd` and `--user-stories` are provided, error immediately.
 - `--create-jira <PROJECT>` — Create a linked JIRA ticket in the specified project
 
 ## Load the step list
@@ -148,7 +149,7 @@ The `workflow_type` field and filename prefix match the YAML's `workflow.name`. 
   "options": {
     "format": "adoc",
     "draft": false,
-    "no_jtbd": false,
+    "paradigm": "jtbd",
     "create_jira_project": null,
     "pr_urls": [],
     "input_urls": [],
@@ -212,10 +213,10 @@ Build the args string for the step skill:
 1. **Always**: `<id> --base-path <base_path>` — the workflow ID and the base output path
 2. **From orchestrator context**: Step-specific args from parsed CLI flags:
    - `requirements`: `[--pr <url>]... [--jql <query>] [--tickets <list>] [--inputs <path-or-url>]...`
-   - `planning`: `[--no-jtbd]`
+   - `planning`: `[--paradigm <jtbd|user-stories>]`
    - `prepare-branch`: `[--draft]`
    - `scaffold`: `--format <adoc|mkdocs> [--draft]`
-   - `writing`: `--format <adoc|mkdocs> [--draft] [--no-jtbd]`
+   - `writing`: `--format <adoc|mkdocs> [--draft] [--paradigm <jtbd|user-stories>]`
    - `style-review`: `--format <adoc|mkdocs>`
    - `create-jira`: `--project <PROJECT>`
 
