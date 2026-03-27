@@ -56,20 +56,7 @@ bash scripts/setup-hooks.sh
 
 Read the YAML file and extract the ordered step list and optional defaults. Each step has: `name`, `skill`, `description`, optional `when`, and optional `inputs`.
 
-The YAML may include an optional `defaults` block at the workflow level:
-
-```yaml
-workflow:
-  name: docs-docset-workflow
-  description: ...
-  defaults:
-    format: mkdocs
-    paradigm: user-stories
-  steps:
-    - ...
-```
-
-CLI flags override YAML defaults. YAML defaults override global defaults (`format: adoc`, `paradigm: jtbd`). Precedence: **CLI flag > YAML default > global default**.
+The YAML may include an optional `defaults` block at the workflow level (see `defaults/docs-docset-workflow.yaml` for an example). Supported keys: `format`, `paradigm`. CLI flags override YAML defaults. YAML defaults override global defaults (`format: adoc`, `paradigm: jtbd`). Precedence: **CLI flag > YAML default > global default**.
 
 ### 3. Evaluate `when` conditions
 

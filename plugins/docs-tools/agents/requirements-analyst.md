@@ -56,7 +56,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-convert-gdoc-md/scripts/gdoc2md.py "<u
 
 **Web URLs (non-Google):**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "<url>" --format markdown
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "<url>"
 ```
 
 **Local files:** Read directly using the Read tool.
@@ -462,7 +462,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/redhat-docs-toc/scripts/toc_extractor.py --
 Download and extract content from web pages:
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "https://docs.redhat.com/..." --format markdown
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "https://docs.redhat.com/..."
 ```
 
 ### Converting Google Drive documents with docs-convert-gdoc-md
