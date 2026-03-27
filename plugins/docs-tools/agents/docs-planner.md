@@ -93,7 +93,7 @@ Run doc impact assessment as the **first analytical step** when multiple issues 
 
 4. Create a documentation plan with:
    - Recommended module structure (concepts, procedures, references)
-   - Feature-based organization with parent topics per feature
+   - Paradigm-aligned organization with parent topics (see Content paradigm section above)
    - Priority ranking for documentation tasks
    - Dependencies between documentation pieces
    - **Reference links** to source materials for each recommendation

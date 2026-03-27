@@ -79,7 +79,7 @@ Parent Topics must include:
 - An overview of common tasks and their sequence, with links to related content
 
 Example Parent Topic outline:
-```
+```text
 Title: Horizontal pod autoscaler
 Description: [What] Automatically adjusts the number of pod replicas based on CPU, memory, or custom metrics. [When] Use when workloads have variable resource demands.
 Overview: The HPA controller monitors metrics and adjusts replica counts within configured bounds.

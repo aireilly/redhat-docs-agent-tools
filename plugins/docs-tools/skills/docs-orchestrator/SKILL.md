@@ -215,7 +215,7 @@ Build the args string for the step skill:
    - `requirements`: `[--pr <url>]... [--jql <query>] [--tickets <list>] [--inputs <path-or-url>]...`
    - `planning`: `[--paradigm <jtbd|user-stories>]`
    - `prepare-branch`: `[--draft]`
-   - `scaffold`: `--format <adoc|mkdocs> [--draft]`
+   - `scaffold`: `--format mkdocs [--draft]`
    - `writing`: `--format <adoc|mkdocs> [--draft] [--paradigm <jtbd|user-stories>]`
    - `style-review`: `--format <adoc|mkdocs>`
    - `create-jira`: `--project <PROJECT>`
@@ -244,7 +244,7 @@ The technical review step runs in a loop until confidence is acceptable or three
 3. If `HIGH` → mark completed, proceed to next step
 4. If `MEDIUM` or `LOW` and fewer than 3 iterations completed → run the fix skill:
    ```
-   Skill: docs-tools:docs-workflow-writing, args: "<id> --base-path <base_path> --fix-from <base_path>/technical-review/review.md"
+   Skill: docs-tools:docs-workflow-writing, args: "<id> --base-path <base_path> --fix-from <base_path>/technical-review/review.md --paradigm <jtbd|user-stories>"
    ```
    Then re-run the reviewer (go to step 1)
 5. After 3 iterations without reaching `HIGH`:

@@ -110,7 +110,7 @@ Parent Topics must include:
 - An overview of the high-level steps to achieve the goal, with links to related content
 
 Example Parent Topic outline:
-```
+```text
 Title: Improve application performance
 Description: [What] Tune the platform for demanding workloads. [Why] Keep applications responsive and resource usage efficient.
 Overview: The product provides tools for resource allocation, pod scheduling, and workload profiling.

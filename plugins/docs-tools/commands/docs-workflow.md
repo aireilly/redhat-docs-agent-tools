@@ -820,6 +820,8 @@ Launch the `docs-tools:docs-writer` agent with this prompt:
 
 > The technical reviewer found issues in the documentation for ticket `<TICKET>`.
 >
+> **Content paradigm: <PARADIGM>**
+>
 > Read the technical review report at: `<TECH_REVIEW_FILE>`
 >
 > Address all **Critical issues** and **Significant issues** listed in the report. Edit the files in place.
