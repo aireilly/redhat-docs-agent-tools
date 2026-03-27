@@ -7,32 +7,27 @@
     {
       "name": "hello-world",
       "source": "./plugins/hello-world",
-      "description": "A hello world reference plugin for Claude Code agent tools.",
-      "version": "0.0.1"
+      "description": "A hello world reference plugin for Claude Code agent tools."
     },
     {
       "name": "docs-tools",
       "source": "./plugins/docs-tools",
-      "description": "Documentation review, writing, and workflow tools for Red Hat AsciiDoc and Markdown documentation.",
-      "version": "0.0.15"
+      "description": "Documentation review, writing, and workflow tools for Red Hat AsciiDoc and Markdown documentation."
     },
     {
       "name": "vale-tools",
       "source": "./plugins/vale-tools",
-      "description": "Vale linting tools for validating documentation using Vale CLI.",
-      "version": "0.0.1"
+      "description": "Vale linting tools for validating documentation using Vale CLI."
     },
     {
       "name": "dita-tools",
       "source": "./plugins/dita-tools",
-      "description": "AsciiDoc cleanup, validation, and rewriting tools for DITA conversion preparation.",
-      "version": "0.0.10"
+      "description": "AsciiDoc cleanup, validation, and rewriting tools for DITA conversion preparation."
     },
     {
       "name": "jtbd-tools",
       "source": "./plugins/jtbd-tools",
       "description": "Jobs-To-Be-Done analysis toolkit for documentation restructuring. Extract JTBD records from Markdown, AsciiDoc, and topic map repos. Generate goal-oriented TOCs, compare structures, and produce consolidation reports.",
-      "version": "1.1.0",
       "category": "documentation",
       "tags": ["jtbd", "documentation", "analysis", "asciidoc", "restructuring"]
     },
@@ -40,7 +35,6 @@
       "name": "cqa-tools",
       "source": "./plugins/cqa-tools",
       "description": "CQA 2.1 Content Quality Assessment toolkit for Red Hat modular documentation. Assess, fix, and score 54 parameters across Pre-migration, Quality, and Onboarding tabs.",
-      "version": "1.0.2",
       "category": "documentation",
       "tags": ["cqa", "dita", "documentation", "quality", "assessment", "modular-docs", "vale"]
     }
