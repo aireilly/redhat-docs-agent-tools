@@ -72,6 +72,7 @@ Set the paths:
 INPUT_FILE="${BASE_PATH}/planning/plan.md"
 OUTPUT_DIR="${BASE_PATH}/writing"
 OUTPUT_FILE="${OUTPUT_DIR}/_index.md"
+MANIFEST="${OUTPUT_FILE}"
 mkdir -p "$OUTPUT_DIR"
 ```
 
@@ -193,7 +194,7 @@ Always dispatch `docs-tools:docs-writer` (same agent as 2a). Pass the content pa
 
 ### 2c. Fix mode — dispatch writer agent for corrections
 
-When invoked with `--fix-from`, the skill applies targeted corrections to existing drafts.
+When invoked with `--fix-from`, the skill applies targeted corrections to existing documentation.
 
 Always dispatch `docs-tools:docs-writer` (same agent as 2a). Pass the content paradigm in the prompt.
 
@@ -203,19 +204,21 @@ Always dispatch `docs-tools:docs-writer` (same agent as 2a). Pass the content pa
 
 **Prompt:**
 
-> Apply fixes to documentation drafts based on technical review feedback for `<ID>`.
+> Apply fixes to documentation based on technical review feedback for `<ID>`.
 >
 > **Content paradigm: <PARADIGM>**
 >
 > Read the review report from: `<FIX_FROM_PATH>`
-> Drafts location: `<OUTPUT_DIR>/`
+>
+> The documentation manifest is at: `<MANIFEST>`
+> Read the manifest to find all file locations.
 >
 > For each issue flagged in the review:
 > 1. If the fix is clear and unambiguous, apply it directly
 > 2. If the issue requires broader context or judgment, skip it
 > 3. Do NOT rewrite content that was not flagged
 >
-> Edit files in place. Do NOT create copies or new files.
+> Edit files in place at their listed locations. Do NOT create copies or new files.
 
 In fix mode, the skill does not create new modules or restructure content.
 

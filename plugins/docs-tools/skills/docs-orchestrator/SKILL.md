@@ -104,7 +104,7 @@ The workflow ID is sanitized for use as a directory name: convert to lowercase, 
 
 ### Folder structure
 
-```
+```text
 .claude/docs/<id>/
   requirements/
     requirements.md
@@ -115,9 +115,10 @@ The workflow ID is sanitized for use as a directory name: convert to lowercase, 
   prepare-branch/
     branch-info.md
   writing/
-    _index.md
-    assembly_*.adoc (or docs/*.md for mkdocs)
-    modules/
+    _index.md            (manifest — always present, lists all file locations)
+    modules/             (draft mode only — actual files live here)
+    assembly_*.adoc      (draft mode only)
+    docs/*.md            (draft mode only, mkdocs)
   technical-review/
     review.md
   style-review/
@@ -125,6 +126,8 @@ The workflow ID is sanitized for use as a directory name: convert to lowercase, 
   workflow/
     <workflow-type>_<id>.json
 ```
+
+In UPDATE-IN-PLACE mode, `writing/` contains only the manifest (`_index.md`). The actual documentation files are at their repo locations as listed in the manifest. In DRAFT mode, `writing/` contains both the manifest and the files themselves.
 
 Each step skill knows its own output folder and writes there. Each step reads input from upstream step folders referenced in its `inputs` list. The orchestrator passes the base path `.claude/docs/<id>/` — step skills derive everything else by convention.
 
@@ -217,6 +220,7 @@ Build the args string for the step skill:
    - `prepare-branch`: `[--draft]`
    - `scaffold`: `--format mkdocs [--draft]`
    - `writing`: `--format <adoc|mkdocs> [--draft] [--paradigm <jtbd|user-stories>]`
+   - `technical-review`: *(no additional flags — reads manifest)*
    - `style-review`: `--format <adoc|mkdocs>`
    - `create-jira`: `--project <PROJECT>`
 

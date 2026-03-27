@@ -1,7 +1,7 @@
 ---
 name: docs-workflow-style-review
-description: Style guide compliance review of documentation drafts. Dispatches the docs-reviewer agent with Vale linting and 18+ style guide review skills.
-argument-hint: <ticket> --base-path <path> --format <adoc|mkdocs>
+description: Style guide compliance review of documentation. Dispatches the docs-reviewer agent with Vale linting and 18+ style guide review skills. Reads the writing manifest to locate files regardless of placement mode.
+argument-hint: <id> --base-path <path> --format <adoc|mkdocs>
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---
 
@@ -11,19 +11,19 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 
 ## Arguments
 
-- `$1` — JIRA ticket ID (required)
+- `$1` — Workflow ID (JIRA ticket, doc set name, or any identifier) (required)
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 - `--format <adoc|mkdocs>` — Documentation format (default: `adoc`)
 
 ## Input
 
-```
-<base-path>/writing/
+```text
+<base-path>/writing/_index.md      (manifest — lists all files and their locations)
 ```
 
 ## Output
 
-```
+```text
 <base-path>/style-review/review.md
 ```
 
@@ -31,12 +31,12 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 
 ### 1. Parse arguments
 
-Extract the ticket ID, `--base-path`, and `--format` from the args string.
+Extract the workflow ID, `--base-path`, and `--format` from the args string.
 
 Set the paths:
 
 ```bash
-DRAFTS_DIR="${BASE_PATH}/writing"
+MANIFEST="${BASE_PATH}/writing/_index.md"
 OUTPUT_DIR="${BASE_PATH}/style-review"
 OUTPUT_FILE="${OUTPUT_DIR}/review.md"
 mkdir -p "$OUTPUT_DIR"
@@ -48,14 +48,17 @@ Dispatch the `docs-tools:docs-reviewer` agent with a format-specific prompt.
 
 **Agent tool parameters:**
 - `subagent_type`: `docs-tools:docs-reviewer`
-- `description`: `Review documentation for <TICKET>`
+- `description`: `Review documentation for <ID>`
 
 **Prompt (AsciiDoc — `--format adoc`):**
 
-> Review the AsciiDoc documentation drafts for ticket `<TICKET>`.
-> Source drafts location: `<DRAFTS_DIR>/`
+> Review the AsciiDoc documentation for `<ID>`.
 >
-> **Edit files in place**. Do NOT create copies.
+> The documentation manifest is at: `<MANIFEST>`
+>
+> Read the manifest to find all file locations, then review every listed .adoc file.
+>
+> **Edit files in place** at their listed locations. Do NOT create copies.
 >
 > For each file:
 > 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)
@@ -70,10 +73,13 @@ Dispatch the `docs-tools:docs-reviewer` agent with a format-specific prompt.
 
 **Prompt (MkDocs — `--format mkdocs`):**
 
-> Review the Material for MkDocs Markdown documentation drafts for ticket `<TICKET>`.
-> Source drafts location: `<DRAFTS_DIR>/`
+> Review the Material for MkDocs Markdown documentation for `<ID>`.
 >
-> **Edit files in place**. Do NOT create copies.
+> The documentation manifest is at: `<MANIFEST>`
+>
+> Read the manifest to find all file locations, then review every listed .md file.
+>
+> **Edit files in place** at their listed locations. Do NOT create copies.
 >
 > For each file:
 > 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)

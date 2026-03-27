@@ -1,7 +1,7 @@
 ---
 name: docs-workflow-tech-review
-description: Technical accuracy review of documentation drafts. Dispatches the technical-reviewer agent. Output includes confidence rating (HIGH/MEDIUM/LOW) Iteration logic is owned by the orchestrator, not this skill.
-argument-hint: <ticket> --base-path <path>
+description: Technical accuracy review of documentation. Dispatches the technical-reviewer agent. Reads the writing manifest to locate files regardless of placement mode. Output includes confidence rating (HIGH/MEDIUM/LOW). Iteration logic is owned by the orchestrator, not this skill.
+argument-hint: <id> --base-path <path>
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---
 
@@ -13,18 +13,18 @@ This skill performs a single review pass. The iteration loop (re-running with fi
 
 ## Arguments
 
-- `$1` — JIRA ticket ID (required)
+- `$1` — Workflow ID (JIRA ticket, doc set name, or any identifier) (required)
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 
 ## Input
 
-```
-<base-path>/writing/
+```text
+<base-path>/writing/_index.md      (manifest — lists all files and their locations)
 ```
 
 ## Output
 
-```
+```text
 <base-path>/technical-review/review.md
 ```
 
@@ -32,12 +32,12 @@ This skill performs a single review pass. The iteration loop (re-running with fi
 
 ### 1. Parse arguments
 
-Extract the ticket ID and `--base-path` from the args string.
+Extract the workflow ID and `--base-path` from the args string.
 
 Set the paths:
 
 ```bash
-DRAFTS_DIR="${BASE_PATH}/writing"
+MANIFEST="${BASE_PATH}/writing/_index.md"
 OUTPUT_DIR="${BASE_PATH}/technical-review"
 OUTPUT_FILE="${OUTPUT_DIR}/review.md"
 mkdir -p "$OUTPUT_DIR"
@@ -45,17 +45,20 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2. Dispatch agent
 
-Dispatch the `docs-tools:technical-reviewer` agent with the following prompt.
+Dispatch the `docs-tools:technical-reviewer` agent.
 
 **Agent tool parameters:**
 - `subagent_type`: `docs-tools:technical-reviewer`
-- `description`: `Technical review of documentation for <TICKET>`
+- `description`: `Technical review of documentation for <ID>`
 
 **Prompt:**
 
-> Perform a technical review of the documentation drafts for ticket `<TICKET>`.
-> Source drafts location: `<DRAFTS_DIR>/`
-> Review all .adoc and .md files. Follow your standard review methodology.
+> Perform a technical review of the documentation for `<ID>`.
+>
+> The documentation manifest is at: `<MANIFEST>`
+>
+> Read the manifest to find all file locations, then review every listed file. Follow your standard review methodology.
+>
 > Save your review report to: `<OUTPUT_FILE>`
 >
 > The report must include an `Overall technical confidence: HIGH|MEDIUM|LOW` line.
