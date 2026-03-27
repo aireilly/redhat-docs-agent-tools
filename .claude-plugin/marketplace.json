@@ -1,5 +1,8 @@
 {
   "name": "redhat-docs-agent-tools",
+  "metadata": {
+    "description": "A collection of plugins, skills, and agent tools for Red Hat documentation workflows."
+  },
   "owner": {
     "name": "redhat-documentation"
   },
