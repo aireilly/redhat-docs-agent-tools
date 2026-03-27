@@ -71,8 +71,26 @@ Attach AGENTS.md again when you open a new thread, change tasks, or see the mode
 - **`@` mention** — How Cursor attaches a file or skill so that the model includes it in the current context.
 - **model** — The AI model selected for a request.
 - **Claude Code** — A separate assistant product that shares the same plugin Markdown.
+- **`plugin:skill`** — Fully qualified skill identifier (for example `docs-tools:jira-reader`). This repository expects that form in prompts and cross-references. See [Skills and rules](#skills-and-rules).
+
+## Common tips and troubleshooting
+
+### The assistant suggests bare skill names or wrong script paths
+
+Start a new thread, attach [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) again, and ask for `plugin:skill` names and paths **relative to the repository root** (Agent Tools clone).
+
+### Agent changed files you did not intend
+
+Revert changes in the Cursor UI or use Git to inspect diffs. See the [Cursor Agent overview](https://cursor.com/docs/agent/overview) for checkpoints.
+
+### Usage limits, model errors, or empty responses
+
+Check your Cursor account usage or billing and the [Cursor documentation](https://cursor.com/docs) for product errors.
+
+### Debug mode loops without fixing the issue
+
+Give exact reproduction steps, expected versus actual output, and any log text. For documentation editing issues, prefer **Agent** mode over **Debug**. See [Debug mode](https://cursor.com/docs/agent/debug-mode) in the Cursor documentation.
 
 ## Privacy and responsibility
 
 Do not paste secrets, credentials, or customer-only content into the chat. Follow your organization’s policies for AI-assisted editing. For data handling, see the [Cursor documentation](https://cursor.com/docs).
-

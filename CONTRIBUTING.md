@@ -8,7 +8,7 @@ This guide helps you contribute effectively and helps maintainers review efficie
 
 Cursor users follow the same conventions as Claude Code contributors. Start with these resources:
 
-- **[AGENTS.md](AGENTS.md)** — Cursor counterpart to [CLAUDE.md](CLAUDE.md) with skill naming, script paths, and contributing rules.
+- **[AGENTS.md](AGENTS.md)** — Shared skill naming, script paths, and contributing rules. [CLAUDE.md](CLAUDE.md) covers Claude Code-only details (for example cross-skill `${CLAUDE_PLUGIN_ROOT}` paths).
 - **[Get Started with Cursor](docs/get-started/index.md)** — Fundamentals, product documentation workflows, and contributing guides.
 - **[Cursor workflows](docs/contribute/cursor-workflows.md)** — How skills, commands, and evals map to Cursor.
 

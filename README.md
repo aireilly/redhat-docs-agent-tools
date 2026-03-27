@@ -35,8 +35,10 @@ Add repository files to the chat per the [Cursor documentation](https://cursor.c
    `AGENTS.md`, `plugins/`, and `Makefile`).
    For docs in another repo, use a **multi-root** workspace.
    See the [VS Code multi-root workspace docs][vscode-multiroot-workspaces].
-1. Add **[AGENTS.md](AGENTS.md)** to context.
-   Match naming and path rules in [CLAUDE.md](CLAUDE.md).
+1. Add **[AGENTS.md](AGENTS.md)** for naming conventions, script paths, and contribution
+   rules.
+   [CLAUDE.md](CLAUDE.md) adds Claude Code-only details (for example
+   `${CLAUDE_PLUGIN_ROOT}` for cross-skill scripts).
    See [Load project instructions][load-project-instructions].
 1. Read **[Get Started with Cursor](docs/get-started/index.md)** for workflows and
    contributing guides.
@@ -87,9 +89,9 @@ make update
 ├── scripts/               # Doc generation scripts
 ├── zensical.toml          # Zensical site config
 ├── Makefile               # Build automation
-├── AGENTS.md              # Cursor project instructions (mirrors CLAUDE.md conventions)
+├── AGENTS.md              # Shared project conventions (Cursor and other agents)
 ├── .cursor/rules/         # Cursor rules for this repository
-├── CLAUDE.md              # Claude Code project config
+├── CLAUDE.md              # Claude Code-only (paths, authoring)
 ├── CONTRIBUTING.md        # Contribution guidelines
 └── LICENSE                # Apache-2.0
 ```
@@ -107,5 +109,5 @@ For Cursor-specific workflows, read [Cursor workflows](docs/contribute/cursor-wo
 Apache-2.0. See [LICENSE](LICENSE).
 
 [vscode-multiroot-workspaces]: https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces
-[load-project-instructions]: docs/get-started/cursor-fundamentals.md#load-project-instructions
+[load-project-instructions]: docs/get-started/cursor-fundamentals.md#load-project-instructions-from-agentsmd
 [zensical-home]: https://zensical.org/

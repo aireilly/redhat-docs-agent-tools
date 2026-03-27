@@ -13,20 +13,17 @@ workspaces, and attach context in the editor.
 
 Confirm the following before you rely on skills during a session:
 
-- [ ] **Environment** — Cursor is installed. Git is installed and can reach your documentation
+- **Environment** — Cursor is installed. Git is installed and can reach your documentation
   repository and GitHub. You do **not** need `python3` or a local docs build in the Agent Tools
   clone to run skills against your product documentation.
-- [ ] **Workspace** — You have cloned both repositories (Agent Tools and your documentation source) to your local disk, and the Cursor workspace shows the root directory of both repos (see
+- **Workspace** — You have cloned both repositories (Agent Tools and your documentation source) to your local disk, and the Cursor workspace shows the root directory of both repos (see
   [Set up the workspace](#set-up-the-workspace)).
-- [ ] **Context** — You have attached `AGENTS.md` from the Agent Tools clone and the correct
+- **Context** — You have attached `AGENTS.md` from the Agent Tools clone and the correct
   `SKILL.md` for your task (see [Attach files and write a prompt](#attach-files-and-write-a-prompt)).
-- [ ] **Prompting** — You know how to refer to a fully qualified `plugin:skill` and repo-relative paths in
+- **Prompting** — You know how to refer to a fully qualified `plugin:skill` and repo-relative paths in
   your prompt (see [Example prompt](#example-prompt)).
-- [ ] **Cursor product** — You picked an assistant mode that allows the agent to make edits (see [Where to learn the
+- **Cursor product** — You picked an assistant mode that allows the agent to make edits (see [Where to learn the
   Cursor interface](cursor-fundamentals.md#where-to-learn-the-cursor-interface)).
-
-If something fails during or after a run, use
-[Tips and troubleshooting](#tips-and-troubleshooting).
 
 ## Procedure overview
 
