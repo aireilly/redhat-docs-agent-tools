@@ -346,17 +346,10 @@ Use the paradigm-specific header variant from the paradigm reference if applicab
 [* Developer: Primary user creating containerized applications]
 [* SysAdmin: Manages the platform where containers are deployed]
 
-## [Paradigm-specific section 1]
-
-[REPLACE: Use the section header and content format from the paradigm reference file.
-For JTBD: "What is the main JTBD? What user goal is being accomplished? What pain point is being avoided?"
-For user-stories: "What are the primary user stories?"]
-
-## [Paradigm-specific section 2]
-
-[REPLACE: Use the section header and content format from the paradigm reference file.
-For JTBD: "How does the JTBD(s) relate to the overall real-world workflow for the user?"
-For user-stories: "How do these features relate to the user's workflow?"]
+[REPLACE: Insert the two paradigm-specific sections from the paradigm reference file.
+The "Plan template: paradigm-specific sections" in the paradigm reference defines the exact
+## section headers and content format. Copy the Section 1 and Section 2 headings verbatim
+from the reference and populate them with your research findings.]
 
 ## What high level steps does the user need to take to accomplish the goal?
 

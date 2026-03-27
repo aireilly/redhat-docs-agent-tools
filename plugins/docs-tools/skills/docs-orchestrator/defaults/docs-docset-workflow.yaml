@@ -5,6 +5,9 @@ workflow:
     Gathers requirements from JIRA tickets, local files, and Google Drive.
     Plans, scaffolds, writes, and reviews the full doc set.
 
+  defaults:
+    format: mkdocs
+
   # All step outputs go to: .claude/docs/<id>/<step-name>/
   # Each step reads its inputs from upstream step folders by convention.
   steps:

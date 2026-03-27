@@ -22,10 +22,7 @@ if [[ -z "${JIRA_AUTH_TOKEN:-}" ]]; then
 fi
 ```
 
-1. **JIRA token check** — require `JIRA_AUTH_TOKEN` only when JIRA access is needed:
-   - If `--jql` or `--tickets` flags are passed → **STOP** if unset (JIRA is explicitly requested)
-   - If the workflow is the default `docs-workflow` → **STOP** if unset (default workflow requires JIRA)
-   - Otherwise (custom workflow without JIRA flags) → skip the check
+1. **JIRA token check** — require `JIRA_AUTH_TOKEN` if `$1` matches a JIRA ticket pattern (`[A-Z]+-[0-9]+`), or `--jql`/`--tickets` flags are passed. Otherwise skip the check.
 2. Warn (don't stop) if `GITHUB_TOKEN` or `GITLAB_TOKEN` are unset
 3. Install hooks (safe to re-run):
 
@@ -35,7 +32,7 @@ bash scripts/setup-hooks.sh
 
 ## Parse arguments
 
-- `$1` — Workflow ID (required). For the default `docs-workflow`, this is a JIRA ticket ID. For custom workflows (e.g., `--workflow docset`), this can be any identifier such as a doc set name. If missing, STOP and ask the user.
+- `$1` — Workflow ID (required). If it matches a JIRA ticket pattern (`[A-Z]+-[0-9]+`), it is also auto-included as a JIRA ticket source. If missing, STOP and ask the user.
 - `--workflow <name>` — Use `.claude/docs-<name>.yaml` instead of `docs-workflow.yaml`
 - `--pr <url>` — PR/MR URLs (repeatable, accumulated into a list)
 - `--inputs <path-or-url>` — Additional input sources (repeatable, accumulated into a list). Each value can be a local file path, Google Drive URL, or web URL. Forwarded to the requirements step for auto-detection and processing.
@@ -57,7 +54,22 @@ bash scripts/setup-hooks.sh
 
 ### 2. Read the YAML
 
-Read the YAML file and extract the ordered step list. Each step has: `name`, `skill`, `description`, optional `when`, and optional `inputs`.
+Read the YAML file and extract the ordered step list and optional defaults. Each step has: `name`, `skill`, `description`, optional `when`, and optional `inputs`.
+
+The YAML may include an optional `defaults` block at the workflow level:
+
+```yaml
+workflow:
+  name: docs-docset-workflow
+  description: ...
+  defaults:
+    format: mkdocs
+    paradigm: user-stories
+  steps:
+    - ...
+```
+
+CLI flags override YAML defaults. YAML defaults override global defaults (`format: adoc`, `paradigm: jtbd`). Precedence: **CLI flag > YAML default > global default**.
 
 ### 3. Evaluate `when` conditions
 

@@ -58,6 +58,35 @@ Files are written directly to their correct repo locations. A manifest is create
   docs/*.md              (MkDocs mode)
 ```
 
+### Manifest format (`_index.md`)
+
+The manifest is a Markdown file listing all documentation files created or updated by the writing step. Review steps and fix mode read this file to locate content regardless of placement mode.
+
+```markdown
+# Writing Manifest
+
+**Workflow ID**: <id>
+**Placement mode**: UPDATE-IN-PLACE | DRAFT
+**Format**: adoc | mkdocs
+**Date**: YYYY-MM-DD
+
+## Files
+
+| Path | Type | Module type | Status |
+|------|------|-------------|--------|
+| `path/to/file.adoc` | assembly | ASSEMBLY | created |
+| `path/to/modules/con_name.adoc` | module | CONCEPT | created |
+| `path/to/modules/proc_name.adoc` | module | PROCEDURE | created |
+| `path/to/modules/ref_name.adoc` | module | REFERENCE | created |
+```
+
+- **Path**: Absolute or repo-relative path to the file. In UPDATE-IN-PLACE mode, these are repo locations. In DRAFT mode, these are paths within `<base-path>/writing/`.
+- **Type**: `assembly` or `module` (or `page` for MkDocs)
+- **Module type**: `ASSEMBLY`, `CONCEPT`, `PROCEDURE`, `REFERENCE` (or `page` for MkDocs)
+- **Status**: `created` (new file) or `updated` (existing file modified)
+
+Review steps iterate the `## Files` table to locate every file for review.
+
 ## Execution
 
 ### 1. Parse arguments

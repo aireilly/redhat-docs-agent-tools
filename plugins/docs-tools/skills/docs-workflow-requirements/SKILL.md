@@ -11,7 +11,7 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 
 ## Arguments
 
-- `$1` — Workflow ID (required). A JIRA ticket ID for single-ticket workflows, or a doc set name for multi-source workflows.
+- `$1` — Workflow ID (required). If it matches a JIRA ticket pattern (`[A-Z]+-[0-9]+`), it is also fetched as a JIRA ticket source automatically.
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 - `--pr <url>` — PR/MR URL to include in analysis (repeatable)
 - `--jql <query>` — JQL query for bulk JIRA ticket fetch (optional)
@@ -38,10 +38,6 @@ OUTPUT_FILE="${OUTPUT_DIR}/requirements.md"
 mkdir -p "$OUTPUT_DIR"
 ```
 
-Determine the mode:
-- **Multi-source mode**: If any of `--jql`, `--tickets`, or `--inputs` are present. `$1` is a workflow ID only.
-- **Single-ticket mode**: If none of those flags are present. `$1` is a JIRA ticket ID.
-
 ### 2. Dispatch agent
 
 Dispatch the `docs-tools:requirements-analyst` agent with the following prompt.
@@ -50,39 +46,29 @@ Dispatch the `docs-tools:requirements-analyst` agent with the following prompt.
 - `subagent_type`: `docs-tools:requirements-analyst`
 - `description`: `Analyze requirements for <ID>`
 
-**Prompt (single-ticket mode):**
+**Prompt:**
 
-> Analyze documentation requirements for JIRA ticket `<ID>`.
+> Analyze documentation requirements for workflow `<ID>`.
 >
-> Manually-provided PR/MR URLs to include in analysis (merge with any auto-discovered URLs, dedup):
-> - `<PR_URL_1>`
-> - `<PR_URL_2>`
+> **JIRA tickets** (fetch all, run --graph on each to discover linked docs and PRs):
+> - `<TICKET_1>`
+> - `<TICKET_2>`
 >
-> Save your complete analysis to: `<OUTPUT_FILE>`
->
-> Follow your standard analysis methodology (JIRA fetch, ticket graph traversal, PR/MR analysis, web search expansion). Format the output as structured markdown for the next stage.
-
-**Prompt (multi-source mode):**
-
-> Analyze documentation requirements from multiple sources for workflow `<ID>`.
->
-> **JIRA sources** (fetch all, run --graph on each):
-> - JQL query: `<JQL>` (use --fetch-details)
-> - Explicit tickets: `<TICKETS>`
+> **JQL query** (use --fetch-details):
+> - `<JQL>`
 >
 > **Additional input sources** (auto-detect type for each):
 > - `<INPUT_1>`
-> - `<INPUT_2>`
 >
 > **PR/MR URLs** (merge with any auto-discovered URLs, dedup):
 > - `<PR_URL_1>`
-> - `<PR_URL_2>`
 >
 > Save your complete analysis to: `<OUTPUT_FILE>`
 >
-> Gather ALL sources before analysis. Process each --inputs value by auto-detecting its type (Google Drive URL → gdoc2md.py, web URL → article_extractor.py, local path → Read tool). Then follow your standard analysis methodology. Produce a single unified requirements.md covering all sources.
+> Gather all sources before analysis. Follow your standard analysis methodology.
+> Format the output as structured markdown for the next stage.
 
-Each section in the prompt is conditional — include only if the corresponding flags were provided. If no `--jql` was passed, omit the JQL line. If no `--inputs` were passed, omit the inputs section. Etc.
+Each section is conditional — include only if sources of that type exist. If `$1` matched the JIRA pattern, it appears in the JIRA tickets list.
 
 ### 3. Verify output
 

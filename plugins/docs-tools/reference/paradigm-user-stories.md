@@ -34,7 +34,7 @@ Structure documentation around product capabilities, features, and components �
    Choose the categorization scheme that best fits the product and its users. Do not use a fixed category list — adapt to the product domain.
 
 5. **Use descriptive, feature-focused titles**:
-   - **Good**: "Configuring horizontal pod autoscaling" (clear feature reference)
+   - **Good**: "Configure horizontal pod autoscaling" (clear feature reference)
    - **Bad**: "Scale applications based on demand" (too abstract)
 
 6. **Apply active phrasing for procedures**: Use imperatives and name the feature (e.g., "Configure RBAC policies", "Install the monitoring agent").
@@ -61,12 +61,12 @@ For each documentation need, identify the user story and map it to the feature h
 **Step 2: Map to the feature hierarchy**
 - **Area**: Broad domain derived from the product (e.g., "Networking", "Security", "Storage")
 - **Feature / Parent Topic**: The specific capability (e.g., "Horizontal Pod Autoscaler")
-- **Tasks / Child Modules**: Specific procedures, concepts, and references for the feature (e.g., "Configuring HPA thresholds", "HPA architecture", "HPA parameters")
+- **Tasks / Child Modules**: Specific procedures, concepts, and references for the feature (e.g., "Configure HPA thresholds", "HPA architecture", "HPA parameters")
 
 TOC nesting rules:
 - Headings in TOCs must not exceed **3 levels** of nesting.
 - **Areas do not count** toward nesting depth because they contain no content — they are organizational groupings only.
-- Example: `Networking (area) → Ingress Controller (Feature, level 1) → Configuring route timeouts (task, level 2) → Route timeout parameters (reference, level 3)`
+- Example: `Networking (area) → Ingress Controller (Feature, level 1) → Configure route timeouts (task, level 2) → Route timeout parameters (reference, level 3)`
 
 **Step 3: Plan Parent Topics**
 
@@ -132,7 +132,7 @@ Use clear, descriptive titles that name the feature or component:
 | Type | Bad (Too abstract) | Good (Feature-descriptive) |
 |------|-------------------|---------------------------|
 | CONCEPT | "How autoscaling responds to demand" | "Horizontal pod autoscaler architecture" |
-| PROCEDURE | "Scale applications automatically" | "Configuring horizontal pod autoscaling" |
+| PROCEDURE | "Scale applications automatically" | "Configure horizontal pod autoscaling" |
 | REFERENCE | "Autoscaling configuration options" | "HPA configuration parameters" |
 | ASSEMBLY | "Scale applications based on demand" | "Horizontal pod autoscaler" |
 
@@ -148,7 +148,7 @@ Use clear, descriptive titles that name the feature or component:
 - **Length**: 3-11 words, sentence case, no end punctuation
 - **Feature-descriptive**: Name the feature or component clearly
 - **Concept titles**: Noun phrase naming the feature (e.g., "Horizontal pod autoscaler architecture")
-- **Procedure titles**: Imperative verb phrase naming the feature (e.g., "Configuring horizontal pod autoscaling")
+- **Procedure titles**: Imperative verb phrase naming the feature (e.g., "Configure horizontal pod autoscaling")
 - **Reference titles**: Noun phrase for the data set (e.g., "HPA configuration parameters")
 - **Assembly titles** (AsciiDoc only): Feature name (e.g., "Horizontal pod autoscaler")
 - Industry-standard terms (SSL, API, RBAC) are acceptable; avoid product-specific vocabulary

@@ -32,7 +32,7 @@ Proceeding with incorrect or assumed information leads to:
 
 ## Parse arguments
 
-- `$1` — Workflow ID. Treated as a JIRA ticket ID by default (fetched via jira-reader). **Exception**: if any of `--jql`, `--tickets`, or `--inputs` flags are provided, `$1` is treated as a plain workflow identifier (not fetched as a JIRA ticket). Use only the flags for actual source input.
+- `$1` — Workflow ID. If it matches `[A-Z]+-[0-9]+` (case-insensitive), it is also auto-included as a JIRA ticket source.
 - `--base-path <path>` — Base output directory for all step outputs
 - `--pr <url>` — PR/MR URLs (repeatable)
 - `--jql <query>` — JQL query for bulk JIRA ticket fetch (uses `jira_reader.py --jql <query> --fetch-details`)
@@ -60,18 +60,6 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor
 ```
 
 **Local files:** Read directly using the Read tool.
-
-### Multi-source mode
-
-When `--jql`, `--tickets`, or `--inputs` are provided, gather ALL sources before analysis:
-
-1. Fetch all JIRA tickets from `--jql` (with `--fetch-details`) and `--tickets`
-2. Run `--graph` on each fetched ticket to discover linked Google Docs and PRs
-3. Process each `--inputs` value based on auto-detected type
-4. Process each `--pr` URL
-5. Merge all gathered content, then proceed with the standard analysis methodology below
-
-All sources are combined into a single unified `requirements.md` in the same format as single-ticket mode.
 
 ## When invoked
 
