@@ -6,7 +6,7 @@ icon: lucide/git-branch
 
 <!-- markdownlint-disable MD013 -->
 
-Use this page when you want to contribute to **Red Hat Docs Agent Tools**  (skills, plugins, commands, or docs under `plugins/`). For general Cursor concepts, see [Cursor fundamentals](../get-started/cursor-fundamentals.md).
+Use this page when you want to contribute to **Red Hat Docs Agent Tools** (skills, plugins, commands, or docs under `plugins/`). For general Cursor concepts, see [Cursor fundamentals](../get-started/cursor-fundamentals.md).
 
 ## What to load in context
 

@@ -72,6 +72,8 @@ Attach AGENTS.md again when you open a new thread, change tasks, or see the mode
 - **model** — The AI model selected for a request.
 - **Claude Code** — A separate assistant product that shares the same plugin Markdown.
 - **`plugin:skill`** — Fully qualified skill identifier (for example `docs-tools:jira-reader`). This repository expects that form in prompts and cross-references. See [Skills and rules](#skills-and-rules).
+- **AGENTS.md** — Shared conventions at the repository root for all agents (naming, paths, contributing). Attach it in Cursor when you work in this repo.
+- **CLAUDE.md** — Claude Code-focused file: cross-skill `${CLAUDE_PLUGIN_ROOT}` paths and Anthropic documentation compliance for authoring plugins and skills. Cursor users rely on [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) for workspace-relative paths.
 
 ## Common tips and troubleshooting
 
