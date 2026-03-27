@@ -57,7 +57,7 @@ Run a suite of DITA cleanup tools against an AsciiDoc assembly and all its inclu
 4. **Baseline**: Run Vale with AsciiDocDITA rules to establish baseline
 5. **Remediation**: Run DITA cleanup skills in sequence, committing after each
 6. **Validation**: Run Vale again to compare results
-7. **Push**: Push the branch to origin
+7. **Push**: Push the branch to the validated remote
 8. **Summary**: Write a summary file for use in PR/MR description
 
 ## Step-by-Step Instructions
@@ -445,19 +445,31 @@ grep -oE "AsciiDocDITA\.[A-Za-z]+" /tmp/dita-rework-vale-after-info.txt | sort |
 
 ### Step 7: Push Branch
 
-Discover the remote and confirm with the user before pushing:
+Discover and validate the push remote before pushing:
 
 ```bash
-# Show available remotes
-git remote -v
+# Discover the remote — prefer 'origin', fall back to first available
+if git remote | grep -q '^origin$'; then
+    PUSH_REMOTE="origin"
+else
+    PUSH_REMOTE=$(git remote | head -n 1)
+fi
+
+if [ -z "$PUSH_REMOTE" ]; then
+    echo "ERROR: No git remotes configured"
+    exit 1
+fi
+
+echo "Using remote: ${PUSH_REMOTE}"
+git remote -v | grep "^${PUSH_REMOTE}"
 ```
 
-Ask the user: **"Ready to push branch `${BRANCH_NAME}` to `origin`? (yes/no)"**
+Ask the user: **"Ready to push branch `${BRANCH_NAME}` to `${PUSH_REMOTE}`? (yes/no)"**
 
 Only after the user confirms, run:
 
 ```bash
-git push -u origin "${BRANCH_NAME}"
+git push -u "${PUSH_REMOTE}" "${BRANCH_NAME}"
 ```
 
 Inform the user that the branch has been pushed and they can create a PR/MR when ready.
@@ -642,7 +654,7 @@ Run Vale to identify AsciiDocDITA issues and use LLM-guided refactoring to fix t
 4. **Rewrite**: Use LLM-guided refactoring to fix issues (following dita-asciidoc-rewrite skill instructions)
 5. **Validate**: Run Vale to confirm issues are resolved
 6. **Commit**: Create per-file commits with issue summary
-7. **Push**: Push the branch to origin
+7. **Push**: Push the branch to the validated remote
 8. **Summary**: Write a summary file for use in PR/MR description
 
 ---
@@ -918,19 +930,31 @@ Replace `<input_path>` with the original input path argument.
 
 ## Rewrite Phase 4: Push Branch and Report
 
-Unless `--no-commit` or `--dry-run` is set, discover the remote and confirm with the user before pushing:
+Unless `--no-commit` or `--dry-run` is set, discover and validate the push remote before pushing:
 
 ```bash
-# Show available remotes
-git remote -v
+# Discover the remote — prefer 'origin', fall back to first available
+if git remote | grep -q '^origin$'; then
+    PUSH_REMOTE="origin"
+else
+    PUSH_REMOTE=$(git remote | head -n 1)
+fi
+
+if [ -z "$PUSH_REMOTE" ]; then
+    echo "ERROR: No git remotes configured"
+    exit 1
+fi
+
+echo "Using remote: ${PUSH_REMOTE}"
+git remote -v | grep "^${PUSH_REMOTE}"
 ```
 
-Ask the user: **"Ready to push branch `$BRANCH_NAME` to `origin`? (yes/no)"**
+Ask the user: **"Ready to push branch `$BRANCH_NAME` to `${PUSH_REMOTE}`? (yes/no)"**
 
 Only after the user confirms, run:
 
 ```bash
-git push -u origin "$BRANCH_NAME"
+git push -u "${PUSH_REMOTE}" "$BRANCH_NAME"
 ```
 
 **IMPORTANT**: When creating a PR/MR, always target the **upstream** repository, not the user's fork. If using `gh pr create`, use `--repo <upstream-org>/<repo>` to ensure the PR is opened against upstream.
