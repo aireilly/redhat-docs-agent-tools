@@ -4,6 +4,16 @@ This repository is a collection of plugins, skills, agents, and commands for Red
 
 This guide helps you contribute effectively and helps maintainers review efficiently.
 
+## Cursor users
+
+Cursor users follow the same conventions as Claude Code contributors. Start with these resources:
+
+- **[AGENTS.md](AGENTS.md)** — Shared skill naming, script paths, and contributing rules. [CLAUDE.md](CLAUDE.md) covers Claude Code-only details (for example cross-skill `${CLAUDE_PLUGIN_ROOT}` paths).
+- **[Get Started with Cursor](docs/get-started/index.md)** — Fundamentals, product documentation workflows, and contributing guides.
+- **[Cursor workflows](docs/contribute/cursor-workflows.md)** — How skills, commands, and evals map to Cursor.
+
+In Cursor, use paths relative to the repository root instead of `${CLAUDE_PLUGIN_ROOT}`. See AGENTS.md for examples. The eval runner described in [Evaluating skills](docs/contribute/evaluating-skills.md) is a Claude Code tool. If you use Cursor, keep `evals/evals.json` accurate and explain in your pull request how reviewers can verify behavior.
+
 ## Before you contribute
 
 ### Check for existing capabilities
@@ -14,7 +24,9 @@ Before creating something new, search the existing plugins to see if your use ca
 2. Read the README, commands, skills, and agents in each plugin under `plugins/`.
 3. Search for keywords related to your capability using `grep -r "your-keyword" plugins/`.
 
-**If similar functionality already exists, contribute to the existing plugin rather than creating a new one.** For example:
+#### If similar functionality already exists
+
+Contribute to the existing plugin rather than creating a new one. For example:
 
 - A new AsciiDoc linting rule belongs in `vale-tools`, not in a new plugin.
 - A new documentation review checklist belongs in `docs-tools`, not in a new plugin.
@@ -25,9 +37,9 @@ Duplicate capabilities fragment the user experience and increase the maintenance
 ### Decide what type of contribution to make
 
 | Type | When to use | Location |
-|------|-------------|----------|
+| --- | --- | --- |
 | **Skill** | Reusable knowledge, checklists, style rules, or domain expertise that the agent applies automatically | `plugins/<plugin>/skills/<skill-name>/SKILL.md` |
-| **Command** | A user-invokable action triggered with `/plugin-name:command` | `plugins/<plugin>/commands/<command>.md` |
+| **Command** | A user-invokable action (`plugin-name:command` after install in Claude Code) | `plugins/<plugin>/commands/<command>.md` |
 | **Agent** | A specialized agent persona with a defined role and workflow | `plugins/<plugin>/agents/<agent>.md` |
 | **Reference** | Static reference material that skills or agents can consult | `plugins/<plugin>/reference/<ref>.md` |
 | **New plugin** | A genuinely new capability domain that doesn't fit any existing plugin | `plugins/<new-plugin>/` |
@@ -100,7 +112,7 @@ If you can run evals, test your skill or command using the eval runner described
 
 ## Plugin structure
 
-```
+```text
 plugins/<plugin-name>/
 ├── .claude-plugin/
 │   └── plugin.json          # Required: name, version, description, author
@@ -187,8 +199,8 @@ At minimum, your `evals/evals.json` should include:
 These files are built by CI on merge to `main` and are gitignored:
 
 - `docs/plugins.md`
-- `docs/plugins/*.md`
-- `docs/install/index.md`
+- `docs/plugins/` (per-plugin catalog pages)
+- `docs/install/` (install documentation)
 
 Run `make update` locally to preview them. Do not commit them.
 

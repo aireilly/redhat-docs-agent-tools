@@ -4,13 +4,14 @@ icon: lucide/home
 
 # Red Hat Docs Agent Tools
 
-A collection of Claude Code plugins, skills, and agent tools for Red Hat documentation workflows.
+Plugins, skills, and agent tools for Red Hat documentation workflows. Install them in Claude Code or open the repository in Cursor.
 
 ## Explore
 
+<!-- markdownlint-disable MD033 -->
 <div class="grid cards" markdown>
 
--   :material-puzzle-outline:{ .lg .middle } **Plugins**
+- :material-puzzle-outline:{ .lg .middle } **Plugins**
 
     ---
 
@@ -18,7 +19,15 @@ A collection of Claude Code plugins, skills, and agent tools for Red Hat documen
 
     [:octicons-arrow-right-24: View plugins](plugins.md)
 
--   :material-download:{ .lg .middle } **Installation**
+- :material-rocket-launch-outline:{ .lg .middle } **Get Started with Cursor**
+
+    ---
+
+    Set up Cursor, load project context, and run workflows
+
+    [:octicons-arrow-right-24: Get Started with Cursor](get-started/index.md)
+
+- :material-download:{ .lg .middle } **Installation**
 
     ---
 
@@ -26,7 +35,7 @@ A collection of Claude Code plugins, skills, and agent tools for Red Hat documen
 
     [:octicons-arrow-right-24: Install](install/index.md)
 
--   :material-account-plus:{ .lg .middle } **Contributing**
+- :material-account-plus:{ .lg .middle } **Contributing**
 
     ---
 
@@ -35,3 +44,4 @@ A collection of Claude Code plugins, skills, and agent tools for Red Hat documen
     [:octicons-arrow-right-24: Contribute](contribute/index.md)
 
 </div>
+<!-- markdownlint-enable MD033 -->
