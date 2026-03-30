@@ -14,6 +14,30 @@ bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-includes/scripts/find_includes.sh "$file"
 
 **Note for Cursor users:** If you use Cursor instead of Claude Code, see [AGENTS.md](AGENTS.md) for workspace-relative path guidance.
 
+## Referencing files from agents and skills
+
+`@` references (e.g., `@plugins/docs-tools/reference/file.md`) are a **user input feature** resolved by the Claude Code CLI when typing in the chat prompt. They are NOT resolved inside agent or skill body text — the body becomes the system prompt verbatim.
+
+**In skills (SKILL.md):** Use relative markdown links for progressive disclosure. Claude follows these by reading the files on demand:
+
+```markdown
+See [FORMS.md](FORMS.md) for the complete guide
+See [reference/finance.md](reference/finance.md) for revenue metrics
+```
+
+**In agents (subagents):** Use `${CLAUDE_PLUGIN_ROOT}` paths with explicit Read instructions. Agent bodies become system prompts where markdown links are not auto-resolved:
+
+```markdown
+## CRITICAL: Mandatory reference loading
+
+Read: ${CLAUDE_PLUGIN_ROOT}/reference/jtbd-framework.md
+Read: ${CLAUDE_PLUGIN_ROOT}/reference/asciidoc-reference.md
+
+If either file cannot be read, STOP and report the error.
+```
+
+**Reference files** under `plugins/<name>/reference/` contain domain knowledge (frameworks, templates, style guides) shared across agents. Agents MUST read them at runtime via the Read tool — they are not automatically injected.
+
 ## Authoring skills, agents, and plugins — Anthropic documentation compliance
 
 When creating or modifying skills, agents, hooks, or plugin components, follow the official Anthropic documentation. Do NOT rely on training data for schemas, frontmatter fields, or best practices — use WebFetch to consult the canonical docs listed below before generating any component.
@@ -50,6 +74,7 @@ For the full subagent schema (required/optional frontmatter fields), consult htt
 
 Key behavioral constraints:
 - The markdown body becomes the agent's system prompt — agents do NOT receive the full Claude Code system prompt
+- `@` references in agent body text are NOT resolved — use `${CLAUDE_PLUGIN_ROOT}` paths with explicit Read instructions instead (see "Referencing files from agents and skills" above)
 - Plugin agents cannot use `hooks`, `mcpServers`, or `permissionMode` frontmatter fields (these are ignored for security)
 - Subagents cannot spawn other subagents
 

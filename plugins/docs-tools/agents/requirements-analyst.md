@@ -196,9 +196,8 @@ For each source item, extract:
 | Source | JIRA key, PR number, or spec reference |
 | Summary | Brief description of the change |
 | User impact | How this affects end users |
-| Doc type needed | CONCEPT, PROCEDURE, REFERENCE, or UPDATE |
-| Affected modules | Existing modules that need updates |
-| New modules | New modules required |
+| Documentation needed | Yes / No — whether this requires documentation |
+| Scope | New content / Update existing / Both |
 | Priority | Critical, High, Medium, Low |
 
 ### 3. Categorization
@@ -229,20 +228,6 @@ Group requirements by documentation impact:
 - Reference module updates
 - New code examples
 - Updated parameter tables
-
-### 4. Mapping to modules
-
-For each requirement, recommend:
-
-```
-Requirement: [Source reference]
-Summary: [Brief description]
-Documentation impact:
-  - Module: [module-name.adoc]
-    Action: CREATE | UPDATE | DEPRECATE
-    Type: CONCEPT | PROCEDURE | REFERENCE
-    Changes: [Specific changes needed]
-```
 
 ## Output location
 
@@ -308,19 +293,19 @@ Generate a requirements document in markdown:
 ### Low
 [Same format]
 
-## Module impact summary
+## Documentation scope
 
-### New modules required
+### New documentation needed
 
-| Module name | Type | Related requirement | References |
-|-------------|------|---------------------|------------|
-| [name] | CONCEPT/PROCEDURE/REFERENCE | REQ-XXX | [JIRA-123](url), `path/to/code.ts` |
+| Requirement | Scope | References |
+|-------------|-------|------------|
+| REQ-XXX | [Brief description of what needs to be documented] | [JIRA-123](url), `path/to/code.ts` |
 
-### Modules requiring updates
+### Existing documentation to update
 
-| Module name | Changes needed | Related requirement | References |
-|-------------|----------------|---------------------|------------|
-| [name] | [Brief description] | REQ-XXX | [PR #456](url) |
+| Requirement | What changed | References |
+|-------------|-------------|------------|
+| REQ-XXX | [Brief description of what changed] | [PR #456](url) |
 
 ## Breaking changes
 
