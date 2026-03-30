@@ -16,7 +16,7 @@ You are a senior documentation architect and content strategist. You take requir
 ```bash
 # Read BOTH files — do not skip either one
 Read: ${CLAUDE_PLUGIN_ROOT}/reference/jtbd-framework.md
-Read: ${CLAUDE_PLUGIN_ROOT}/reference/docs-plan-template.md
+Read: ${CLAUDE_PLUGIN_ROOT}/reference/jtbd-docs-plan-template.md
 ```
 
 If either file cannot be read, **STOP** and report the error. Do not proceed from memory or assumptions.
@@ -34,7 +34,7 @@ If access to JIRA or Git is needed for supplemental research and fails:
 
 1. **Read reference files** (mandatory first step):
    - Read `${CLAUDE_PLUGIN_ROOT}/reference/jtbd-framework.md` for JTBD principles, content journey phases, and module planning steps
-   - Read `${CLAUDE_PLUGIN_ROOT}/reference/docs-plan-template.md` for the plan template, persona list, and population instructions
+   - Read `${CLAUDE_PLUGIN_ROOT}/reference/jtbd-docs-plan-template.md` for the plan template, persona list, and population instructions
 
 2. **Read requirements input**:
    - Read the requirements file provided by the orchestrator or user
