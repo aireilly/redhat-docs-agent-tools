@@ -53,11 +53,11 @@ Run a suite of DITA cleanup tools against an AsciiDoc assembly and all its inclu
 
 1. **Validate**: Verify the input file exists
 2. **Setup**: Create a git branch for the rework
-3. **Discovery**: Find all included files using `dita-includes`
+3. **Discovery**: Find all included files using `dita-tools:dita-includes`
 4. **Baseline**: Run Vale with AsciiDocDITA rules to establish baseline
 5. **Remediation**: Run DITA cleanup skills in sequence, committing after each
 6. **Validation**: Run Vale again to compare results
-7. **Push**: Push the branch to origin
+7. **Push**: Push the branch to the validated remote
 8. **Summary**: Write a summary file for use in PR/MR description
 
 ## Step-by-Step Instructions
@@ -155,7 +155,7 @@ git add -u && git diff --cached --quiet || git commit -m "dita-content-type: Add
 Applied dita-content-type skill to detect and add content type attributes
 (CONCEPT, PROCEDURE, REFERENCE, ASSEMBLY, SNIPPET) for DITA compatibility.
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
 ```
 
 #### 5b. dita-document-id
@@ -171,7 +171,7 @@ Applied dita-document-id skill to generate and insert missing anchor IDs
 for document titles. IDs follow AsciiDoc conventions with _{context} suffix
 for modules.
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
 ```
 
 #### 5c. dita-callouts (rewrite for bullets)
@@ -188,7 +188,7 @@ git add -u && git diff --cached --quiet || git commit -m "dita-callouts: Transfo
 Applied dita-callouts skill with --rewrite-bullets to convert callout
 markers to bullet lists for DITA compatibility.
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
 ```
 
 #### 5d. dita-entity-reference
@@ -203,7 +203,7 @@ git add -u && git diff --cached --quiet || git commit -m "dita-entity-reference:
 Applied dita-entity-reference skill to replace HTML character entity
 references with Unicode equivalents for DITA compatibility.
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
 ```
 
 #### 5e. dita-line-break
@@ -218,7 +218,7 @@ git add -u && git diff --cached --quiet || git commit -m "dita-line-break: Remov
 Applied dita-line-break skill to remove hard line breaks and
 [%hardbreaks] options for DITA compatibility.
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
 ```
 
 #### 5f. dita-related-links
@@ -233,7 +233,7 @@ git add -u && git diff --cached --quiet || git commit -m "dita-related-links: Cl
 Applied dita-related-links skill to fix Additional resources sections
 by removing or relocating non-link content for DITA compatibility.
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
 ```
 
 #### 5g. dita-add-shortdesc-abstract
@@ -248,7 +248,7 @@ git add -u && git diff --cached --quiet || git commit -m "dita-add-shortdesc-abs
 Applied dita-add-shortdesc-abstract skill to add missing [role=\"_abstract\"]
 attributes for DITA short description support.
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
 ```
 
 #### 5h. dita-task-contents
@@ -263,7 +263,7 @@ git add -u && git diff --cached --quiet || git commit -m "dita-task-contents: Ad
 Applied dita-task-contents skill to add missing .Procedure block titles
 to procedure modules for DITA compatibility.
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
 ```
 
 #### 5i. dita-task-step
@@ -278,7 +278,7 @@ git add -u && git diff --cached --quiet || git commit -m "dita-task-step: Fix li
 Applied dita-task-step skill to add list continuation markers (+)
 for multi-block step content in procedures.
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
 ```
 
 #### 5j. dita-task-title
@@ -293,7 +293,7 @@ git add -u && git diff --cached --quiet || git commit -m "dita-task-title: Remov
 Applied dita-task-title skill to remove unsupported block titles from
 procedure modules for DITA compatibility.
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
 ```
 
 #### 5k. dita-block-title
@@ -308,7 +308,7 @@ git add -u && git diff --cached --quiet || git commit -m "dita-block-title: Fix 
 Applied dita-block-title skill to convert or remove block titles that
 are not valid in DITA (only examples, figures, and tables support titles).
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
 ```
 
 #### 5l. dita-check-asciidoctor
@@ -343,7 +343,7 @@ EXIT_CODE=$?
 
      Fixed issues detected by asciidoctor after DITA rework.
 
-     Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+     Co-Authored-By: LLM Co-Author <noreply@anthropic.com>"
      ```
 
   5. Re-run the asciidoctor check to confirm the issues are resolved:
@@ -445,19 +445,44 @@ grep -oE "AsciiDocDITA\.[A-Za-z]+" /tmp/dita-rework-vale-after-info.txt | sort |
 
 ### Step 7: Push Branch
 
-Discover the remote and confirm with the user before pushing:
+Discover and validate the push remote before pushing:
 
 ```bash
-# Show available remotes
-git remote -v
+# Discover the remote — check tracking branch first, then prefer 'origin'
+CURRENT_BRANCH=$(git branch --show-current)
+
+# Try to get the remote from the current branch's tracking configuration
+TRACKING_REMOTE=$(git branch -vv | grep "^\*" | awk -F'[][]' '{print $2}' | awk -F'/' '{print $1}')
+
+if [ -n "$TRACKING_REMOTE" ] && git remote | grep -q "^${TRACKING_REMOTE}$"; then
+    PUSH_REMOTE="$TRACKING_REMOTE"
+elif git remote | grep -q '^origin$'; then
+    PUSH_REMOTE="origin"
+else
+    PUSH_REMOTE=$(git remote | head -n 1)
+fi
+
+if [ -z "$PUSH_REMOTE" ]; then
+    echo "ERROR: No git remotes configured"
+    exit 1
+fi
+
+# Validate branch — refuse to push main or master
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+    echo "ERROR: Refusing to push to protected branch '${CURRENT_BRANCH}'"
+    exit 1
+fi
+
+echo "Using remote: ${PUSH_REMOTE}"
+git remote -v | grep "^${PUSH_REMOTE}"
 ```
 
-Ask the user: **"Ready to push branch `${BRANCH_NAME}` to `origin`? (yes/no)"**
+Ask the user: **"Ready to push branch `${BRANCH_NAME}` to `${PUSH_REMOTE}`? (yes/no)"**
 
 Only after the user confirms, run:
 
 ```bash
-git push -u origin "${BRANCH_NAME}"
+git push -u "${PUSH_REMOTE}" "${BRANCH_NAME}"
 ```
 
 Inform the user that the branch has been pushed and they can create a PR/MR when ready.
@@ -578,7 +603,7 @@ The following issues are informational only and excluded from the before/after c
 - [ ] Review block title conversions
 
 ---
-Generated with [Claude Code](https://claude.com/claude-code)
+Generated with AI Code Tools
 ```
 
 After writing the file, inform the user:
@@ -592,7 +617,7 @@ Copy the summary to clipboard:
   cat /tmp/dita-rework-pr-summary.md | xclip -selection clipboard
 
 Suggested MR/PR title:
-  Claude Code DITA rework run for <relative_assembly_path>
+  DITA rework run for <relative_assembly_path>
 
 Create the MR/PR and paste the rework summary into the description field.
 ```
@@ -642,7 +667,7 @@ Run Vale to identify AsciiDocDITA issues and use LLM-guided refactoring to fix t
 4. **Rewrite**: Use LLM-guided refactoring to fix issues (following dita-asciidoc-rewrite skill instructions)
 5. **Validate**: Run Vale to confirm issues are resolved
 6. **Commit**: Create per-file commits with issue summary
-7. **Push**: Push the branch to origin
+7. **Push**: Push the branch to the validated remote
 8. **Summary**: Write a summary file for use in PR/MR description
 
 ---
@@ -909,7 +934,7 @@ The following issues are informational only and excluded from the before/after c
 - [ ] Links and cross-references work
 
 ---
-Generated with [Claude Code](https://claude.com/claude-code)
+Generated with AI Code Tools
 ```
 
 Replace `<input_path>` with the original input path argument.
@@ -918,19 +943,44 @@ Replace `<input_path>` with the original input path argument.
 
 ## Rewrite Phase 4: Push Branch and Report
 
-Unless `--no-commit` or `--dry-run` is set, discover the remote and confirm with the user before pushing:
+Unless `--no-commit` or `--dry-run` is set, discover and validate the push remote before pushing:
 
 ```bash
-# Show available remotes
-git remote -v
+# Discover the remote — check tracking branch first, then prefer 'origin'
+CURRENT_BRANCH=$(git branch --show-current)
+
+# Try to get the remote from the current branch's tracking configuration
+TRACKING_REMOTE=$(git branch -vv | grep "^\*" | awk -F'[][]' '{print $2}' | awk -F'/' '{print $1}')
+
+if [ -n "$TRACKING_REMOTE" ] && git remote | grep -q "^${TRACKING_REMOTE}$"; then
+    PUSH_REMOTE="$TRACKING_REMOTE"
+elif git remote | grep -q '^origin$'; then
+    PUSH_REMOTE="origin"
+else
+    PUSH_REMOTE=$(git remote | head -n 1)
+fi
+
+if [ -z "$PUSH_REMOTE" ]; then
+    echo "ERROR: No git remotes configured"
+    exit 1
+fi
+
+# Validate branch — refuse to push main or master
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+    echo "ERROR: Refusing to push to protected branch '${CURRENT_BRANCH}'"
+    exit 1
+fi
+
+echo "Using remote: ${PUSH_REMOTE}"
+git remote -v | grep "^${PUSH_REMOTE}"
 ```
 
-Ask the user: **"Ready to push branch `$BRANCH_NAME` to `origin`? (yes/no)"**
+Ask the user: **"Ready to push branch `$BRANCH_NAME` to `${PUSH_REMOTE}`? (yes/no)"**
 
 Only after the user confirms, run:
 
 ```bash
-git push -u origin "$BRANCH_NAME"
+git push -u "${PUSH_REMOTE}" "$BRANCH_NAME"
 ```
 
 **IMPORTANT**: When creating a PR/MR, always target the **upstream** repository, not the user's fork. If using `gh pr create`, use `--repo <upstream-org>/<repo>` to ensure the PR is opened against upstream.
@@ -946,7 +996,7 @@ Copy the summary to clipboard:
   cat /tmp/dita-rewrite-pr-summary.md | xclip -selection clipboard
 
 Suggested MR/PR title:
-  Claude Code DITA rewrite run for <input_path>
+  DITA rewrite run for <input_path>
 
 Create the MR/PR and paste the rewrite summary into the description field.
 ```
@@ -1483,7 +1533,7 @@ Write the following structure to `/tmp/dita-rework-review-report.md`:
 </details>
 
 ---
-Generated with [Claude Code](https://claude.com/claude-code)
+Generated with AI Code Tools
 ```
 
 ### Report Generation Instructions
