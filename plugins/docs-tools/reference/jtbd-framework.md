@@ -14,10 +14,12 @@ Applying JTBD to documentation planning produces measurable improvements:
 
 ## Core JTBD principles
 
-1. **Organize by outcomes, not features**: Structure documentation around user goals ("Top Jobs") rather than internal product modules or feature names.
+1. **Organize by outcomes, not features**: Structure documentation around user goals (main jobs) rather than internal product modules or feature names.
 
-2. **Follow the JTBD hierarchy**: Implement a three-level structure:
-   - **Category** → **Top Job (Parent Topic)** → **User Story (Specific Task)**
+2. **Follow the JTBD hierarchy**: Implement a three-level granularity structure:
+   - **Category** (`job_map_stage`) → **Main Job** (`main_job`) → **User Story** (`user_story`)
+
+   This maps to the `granularity` field in JTBD records: `main_job` (stable, high-level goals, ~10-15 per guide), `user_story` (persona-specific implementation paths, 2-7 per main job), and `procedure` (step-by-step instructions).
 
 3. **Frame the user's job**: Before planning any content, identify the job statement:
    - "When [situation], I want to [motivation], so I can [expected outcome]"
@@ -30,9 +32,9 @@ Applying JTBD to documentation planning produces measurable improvements:
    | Format | "When [situation], I want to [motivation], so I can [outcome]" | "As a [user], I want [goal] so that [benefit]" |
    | Focus | **What** the user wants to achieve + **Why** it matters | **How** the user will use a specific feature |
    | Scope | High-level, broad — overarching user goals | Detailed, specific — single actionable task |
-   | Maps to | Top Jobs (Parent Topics) | Level 3 tasks (child modules) |
+   | Granularity | `main_job` (Parent Topics) | `user_story` (child modules) |
 
-   A single JTBD contains multiple user stories. Use JTBD to define navigation and parent topics; use user stories to plan the child modules within each parent topic.
+   A single JTBD (`main_job`) contains multiple user stories. Use JTBD to define navigation and parent topics; use user stories to plan the child modules within each parent topic.
 
 5. **Use natural language**: Avoid product-specific buzzwords or internal vocabulary. Use terms users naturally use when searching for solutions.
 
@@ -52,24 +54,26 @@ Applying JTBD to documentation planning produces measurable improvements:
    - User story: "As a project manager, I want to export task reports so I can review team progress."
    - Title: "Review team progress by exporting task reports"
 
-10. **Use only approved JTBD categories**: Structure documentation according to the following defined Categories. Do not create new categories.
-   - What's new
-   - Discover
-   - Get started
+10. **Use only approved JTBD categories**: Structure documentation according to the `job_map_stage` values defined in the jtbd-tools schema. Do not create new categories. Use title case exactly as shown.
+   - Get Started
    - Plan
-   - Install
+   - Architecture
+   - Configure
+   - Deploy
    - Upgrade
    - Migrate
-   - Administer
    - Develop
-   - Configure
-   - Secure
+   - Administer
+   - Operate
    - Observe
-   - Integrate
-   - Optimize
+   - Monitor
+   - Analyze
+   - Secure
    - Extend
+   - Training
    - Troubleshoot
    - Reference
+   - What's New
 
 ## Content journey mapping
 
@@ -106,18 +110,18 @@ For each documentation need, follow these steps:
 - This prevents topic proliferation and keeps the documentation structure stable over time.
 
 ### Step 2: Map to the JTBD hierarchy
-- **Category**: Broad area, must be selected from the approved list above
-- **Top Job / Parent Topic**: The user's main goal (e.g., "Deploy applications to production")
-- **User Stories / Tasks**: Specific steps to achieve the goal (e.g., "Configure the runtime," "Set up monitoring")
+- **Category** (`job_map_stage`): Broad area, must be selected from the approved list above
+- **Main Job** (`main_job`): The user's main goal (e.g., "Deploy applications to production")
+- **User Stories** (`user_story`): Specific steps to achieve the goal (e.g., "Configure the runtime," "Set up monitoring")
 
 TOC nesting rules:
 - Headings in TOCs must not exceed **3 levels** of nesting.
 - **Categories do not count** toward nesting depth because they contain no content — they are organizational groupings only.
-- Example: `Configure (category) → Control access to resources (Top Job, level 1) → Set up RBAC (user story, level 2) → RBAC configuration options (reference, level 3)`
+- Example: `Configure (category) → Control access to resources (main_job, level 1) → Set up RBAC (user_story, level 2) → RBAC configuration options (reference, level 3)`
 
 ### Step 3: Plan Parent Topics
 
-Every major job must have a Parent Topic that serves as the starting point for users looking to achieve the desired outcome. Parent Topic descriptions serve both human readers and AI/search engines — including "the what" and "the why" helps both audiences find the right content.
+Every `main_job` must have a Parent Topic that serves as the starting point for users looking to achieve the desired outcome. Parent Topic descriptions serve both human readers and AI/search engines — including "the what" and "the why" helps both audiences find the right content.
 
 Parent Topics must include:
 - A product-agnostic title using natural language (this becomes the TOC entry for the job)
@@ -139,6 +143,6 @@ High-level steps: 1. Profile workloads → 2. Configure resource limits → 3. M
 - REFERENCE - For lookup data (tables, parameters, options) (supports job completion)
 
 ### Step 5: Assembly organization
-- Group related modules into user story assemblies organized by Top Jobs
+- Group related modules into user story assemblies organized by main jobs
 - Define logical reading order based on job completion flow
 - Identify shared prerequisites

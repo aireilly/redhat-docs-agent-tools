@@ -163,7 +163,7 @@ If verification fails, fix the issue before saving. If you cannot fix it, add a 
 
 Save all planning output to `.claude/docs/`:
 
-```
+```text
 .claude/docs/
 ├── plans/                    # Documentation plans
 │   └── plan_<project>_<yyyymmdd>.md

@@ -60,7 +60,7 @@ When [actual circumstance], I want to [actual motivation], so that I can [actual
 
 [REPLACE: Explain how the JTBD fits into the user's broader end-to-end workflow]
 
-## What high level steps does the user need to take to accomplish the goal?
+## What high-level steps does the user need to take to accomplish the goal?
 
 [REPLACE: Provide the actual steps and prerequisites identified during your planning]
 
@@ -129,7 +129,7 @@ Select 1-3 personas from this list when populating the "Who is the target person
 - **Why important**: Derive from the JTBD analysis — explain the user value, not the feature description.
 - **Target personas**: Select from the persona reference list above based on who the JTBD applies to. Limit to 3 personas maximum per the self-review verification checklist.
 - **JTBD statement**: Use the job statement from your JTBD analysis. Must follow the "When... I want to... so that I can..." format with all placeholders replaced.
-- **High level steps**: Extract from your procedure module planning. Include prerequisites identified during gap analysis.
+- **High-level steps**: Extract from your procedure module planning. Include prerequisites identified during gap analysis.
 - **Contacts**: Extract PM, SME, and UX contacts from the parent JIRA ticket fields (assignee, reporter, watchers, or custom fields).
 - **Release note**: Check the JIRA ticket for release note fields or labels. Draft a release note based on the user-facing change.
 - **Links to existing content**: Include links to existing documentation, upstream docs, and related JIRA tickets discovered during research.
