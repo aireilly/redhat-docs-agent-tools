@@ -4,12 +4,34 @@
 import json
 import os
 import re
+import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PLUGINS_DIR = REPO_ROOT / "plugins"
 DOCS_DIR = REPO_ROOT / "docs"
 GITHUB_BASE = "https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main"
+DEPS_FILE = REPO_ROOT / "scripts" / "deps.json"
+
+# Install hints for system tools (used in the install page)
+SYSTEM_TOOL_INSTALL = {
+    "vale": {
+        "fedora": "sudo dnf copr enable mczernek/vale && sudo dnf install vale",
+        "macos": "brew install vale",
+    },
+    "jq": {
+        "fedora": "sudo dnf install jq",
+        "macos": "brew install jq",
+    },
+    "curl": {
+        "fedora": "sudo dnf install curl",
+        "macos": "brew install curl",
+    },
+    "gcloud": {
+        "fedora": "See https://cloud.google.com/sdk/docs/install",
+        "macos": "brew install --cask google-cloud-sdk",
+    },
+}
 
 
 def parse_frontmatter(text: str) -> dict:
@@ -251,7 +273,16 @@ def generate_docs_plugins_index(plugins: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def generate_installation_page(plugins: list[dict]) -> str:
+def load_deps() -> dict:
+    """Load dependency data from deps.json, or return empty structure."""
+    if not DEPS_FILE.is_file():
+        print("WARNING: deps.json not found, skipping dependency section", file=sys.stderr)
+        return {"python": [], "ruby": [], "system": []}
+    with open(DEPS_FILE) as f:
+        return json.load(f)
+
+
+def generate_installation_page(plugins: list[dict], deps: dict) -> str:
     """Generate the docs/installation.md page."""
     lines = [
         "# Install Claude Code and plugins",
@@ -263,6 +294,47 @@ def generate_installation_page(plugins: list[dict]) -> str:
         "",
         "- Install [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI",
         "",
+    ]
+
+    # Software Dependencies section (from deps.json)
+    if deps.get("python") or deps.get("ruby") or deps.get("system"):
+        lines.append("## Software dependencies")
+        lines.append("")
+        lines.append("Plugin scripts require the following software. Install what you need based on which plugins you use.")
+        lines.append("")
+
+    if deps.get("python"):
+        packages = " ".join(d["package"] for d in deps["python"])
+        lines.append("### Python packages")
+        lines.append("")
+        lines.append("```bash")
+        lines.append(f"python3 -m pip install {packages}")
+        lines.append("```")
+        lines.append("")
+
+    if deps.get("ruby"):
+        gems = " ".join(d["gem"] for d in deps["ruby"])
+        lines.append("### Ruby gems")
+        lines.append("")
+        lines.append("```bash")
+        lines.append(f"gem install {gems}")
+        lines.append("```")
+        lines.append("")
+
+    if deps.get("system"):
+        lines.append("### System tools")
+        lines.append("")
+        lines.append("| Tool | Fedora / RHEL | macOS |")
+        lines.append("|------|---------------|-------|")
+        for entry in deps["system"]:
+            tool = entry["tool"]
+            hints = SYSTEM_TOOL_INSTALL.get(tool, {})
+            fedora = f"`{hints['fedora']}`" if hints.get("fedora") else "—"
+            macos = f"`{hints['macos']}`" if hints.get("macos") else "—"
+            lines.append(f"| {tool} | {fedora} | {macos} |")
+        lines.append("")
+
+    lines += [
         "## Install plugins from the marketplace",
         "",
         "Add the plugin marketplace to your Claude Code configuration:",
@@ -316,7 +388,8 @@ def main():
 
     installing_dir = DOCS_DIR / "install"
     installing_dir.mkdir(exist_ok=True)
-    (installing_dir / "index.md").write_text(generate_installation_page(plugins))
+    deps = load_deps()
+    (installing_dir / "index.md").write_text(generate_installation_page(plugins, deps))
     print("Generated docs/install/index.md")
 
     # Update zensical.toml with version status entries and nav
