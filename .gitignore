@@ -4,6 +4,7 @@ site/
 .venv/
 .vale/
 __pycache__/
+.pytest_cache/
 *.pyc
 .work/
 *-workspace/
