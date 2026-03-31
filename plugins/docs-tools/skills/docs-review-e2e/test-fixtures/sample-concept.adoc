@@ -1,0 +1,66 @@
+:_mod-docs-content-type: CONCEPT
+
+[id="understanding-example-architecture_{context}"]
+= Understanding the Example architecture
+
+[role="_abstract"]
+The Example platform uses a microservices architecture built on Kubernetes. This topic describes the core components and how they interact.
+
+== Core components
+
+The platform consists of the following services:
+
+API Gateway:: Handles incoming requests and routes them to the appropriate backend service. Configured via `/etc/example/gateway.conf`.
+
+Controller Manager:: Manages the reconciliation loop for custom resources. The `ExampleConfig` CRD defines cluster-wide settings.
+
+Data Processor:: Processes incoming data streams using the `processStream()` function. Connects to the message broker at `amqp://broker.example.com:5672`.
+
+== Configuration
+
+The platform is configured using a YAML file at `/etc/example/config.yaml`:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: ExampleConfig
+metadata:
+  name: default
+spec:
+  replicas: 3
+  logLevel: info
+  storage:
+    type: persistent
+    size: 10Gi
+  networking:
+    port: 8443
+    tls:
+      enabled: true
+      certPath: /etc/pki/tls/certs/example.pem
+----
+
+== API endpoints
+
+The REST API exposes the following endpoints:
+
+* `GET /api/v1/resources` - List all resources
+* `POST /api/v1/resources` - Create a new resource
+* `DELETE /api/v1/resources/{id}` - Delete a resource
+
+== Code example
+
+The following Python code demonstrates the client library:
+
+[source,python]
+----
+from example_sdk import ExampleClient
+
+client = ExampleClient(
+    endpoint="https://api.example.com",
+    api_key=API_KEY
+)
+
+resources = client.list_resources(namespace="default")
+for resource in resources:
+    print(f"Name: {resource.name}, Status: {resource.status}")
+----
