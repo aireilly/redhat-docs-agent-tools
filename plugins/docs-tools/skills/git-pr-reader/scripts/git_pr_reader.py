@@ -677,13 +677,77 @@ class GitHubReviewAPI(GitReviewAPI):
             })
         return files
 
+    def _fetch_resolved_thread_comment_ids(self) -> set:
+        """Fetch comment IDs that belong to resolved review threads via GraphQL."""
+        if not self.token:
+            return set()
+
+        query = """
+        query($owner: String!, $repo: String!, $pr: Int!, $cursor: String) {
+          repository(owner: $owner, name: $repo) {
+            pullRequest(number: $pr) {
+              reviewThreads(first: 100, after: $cursor) {
+                pageInfo { hasNextPage, endCursor }
+                nodes {
+                  isResolved
+                  comments(first: 1) {
+                    nodes { databaseId }
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+        resolved_ids: set = set()
+        cursor = None
+
+        for _ in range(10):  # max 10 pages (1000 threads)
+            variables = {
+                "owner": self.owner, "repo": self.repo_name,
+                "pr": self.pr_number, "cursor": cursor,
+            }
+            payload = json.dumps({"query": query, "variables": variables}).encode()
+            req = urllib.request.Request(
+                "https://api.github.com/graphql",
+                data=payload,
+                headers={
+                    "Authorization": f"Bearer {self.token}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "git-pr-reader",
+                },
+                method="POST",
+            )
+            try:
+                with urllib.request.urlopen(req) as resp:
+                    data = json.loads(resp.read().decode())
+            except Exception:
+                break
+
+            threads = (data.get("data", {}).get("repository", {})
+                       .get("pullRequest", {}).get("reviewThreads", {}))
+            for node in threads.get("nodes", []):
+                if node.get("isResolved"):
+                    for c in node.get("comments", {}).get("nodes", []):
+                        if c.get("databaseId"):
+                            resolved_ids.add(c["databaseId"])
+
+            page_info = threads.get("pageInfo", {})
+            if not page_info.get("hasNextPage"):
+                break
+            cursor = page_info.get("endCursor")
+
+        return resolved_ids
+
     def get_review_comments(self, include_resolved: bool = False) -> List[Dict]:
         """
         Get review comments on the PR using PyGithub.
 
-        Filters out bot authors and reply comments.
+        Filters out bot authors and reply comments. Uses the GitHub GraphQL
+        API to determine review thread resolution status.
         """
         bot_patterns = ["bot", "gemini", "mergify", "github-actions", "dependabot"]
+        resolved_ids = self._fetch_resolved_thread_comment_ids()
         comments: List[Dict] = []
 
         for c in self._pr.get_review_comments():
@@ -695,13 +759,18 @@ class GitHubReviewAPI(GitReviewAPI):
             if any(pat in author.lower() for pat in bot_patterns):
                 continue
 
+            is_resolved = c.id in resolved_ids
+
+            if is_resolved and not include_resolved:
+                continue
+
             comments.append({
                 "id": c.id,
                 "path": c.path or "",
                 "line": c.line or c.original_line,
                 "body": c.body or "",
                 "author": author,
-                "resolved": False,
+                "resolved": is_resolved,
                 "created_at": c.created_at.isoformat() if c.created_at else "",
                 "url": c.html_url or "",
             })
