@@ -48,7 +48,7 @@ STDLIB_MODULES = {
     "turtledemo", "types", "typing", "unicodedata", "unittest", "urllib",
     "uu", "uuid", "venv", "warnings", "wave", "weakref", "webbrowser",
     "winreg", "winsound", "wsgiref", "xdrlib", "xml", "xmlrpc",
-    "zipapp", "zipfile", "zipimport", "zlib",
+    "zipapp", "zipfile", "zipimport", "zlib", "zoneinfo",
     # common internal/private prefixes to skip
     "_thread", "__future__",
 }
