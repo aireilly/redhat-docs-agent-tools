@@ -30,6 +30,14 @@ SYSTEM_TOOL_INSTALL = {
         "fedora": "See https://cloud.google.com/sdk/docs/install",
         "macos": "brew install --cask google-cloud-sdk",
     },
+    "gh": {
+        "fedora": "sudo dnf install gh",
+        "macos": "brew install gh",
+    },
+    "glab": {
+        "fedora": "sudo dnf install glab",
+        "macos": "brew install glab",
+    },
 }
 
 

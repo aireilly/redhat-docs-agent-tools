@@ -100,6 +100,18 @@
       ]
     },
     {
+      "tool": "gcloud",
+      "found_in": []
+    },
+    {
+      "tool": "gh",
+      "found_in": []
+    },
+    {
+      "tool": "glab",
+      "found_in": []
+    },
+    {
       "tool": "jq",
       "found_in": [
         "plugins/docs-tools/skills/docs-orchestrator/hooks/workflow-completion-check.sh",

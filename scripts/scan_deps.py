@@ -88,7 +88,11 @@ RUBY_STDLIB = {
 }
 
 # System tools detected by command name in shell scripts.
-KNOWN_SYSTEM_TOOLS = {"vale", "jq", "curl", "gcloud"}
+KNOWN_SYSTEM_TOOLS = {"vale", "jq", "curl", "gcloud", "gh", "glab"}
+
+# System tools that are always included even if not detected in scripts.
+# These are user-facing prerequisites used via Python libraries or CLI.
+ALWAYS_INCLUDE_SYSTEM = {"gcloud", "gh", "glab"}
 
 
 def scan_python_imports(filepath: Path) -> set[str]:
@@ -160,6 +164,10 @@ def scan_all() -> dict:
     python_deps: dict[str, list[str]] = {}   # package_name -> [found_in paths]
     ruby_deps: dict[str, list[str]] = {}     # gem_name -> [found_in paths]
     system_deps: dict[str, list[str]] = {}   # tool_name -> [found_in paths]
+
+    # Seed always-included system tools (user-facing prerequisites)
+    for tool in ALWAYS_INCLUDE_SYSTEM:
+        system_deps.setdefault(tool, [])
 
     if not PLUGINS_DIR.is_dir():
         print("WARNING: plugins/ directory not found", file=sys.stderr)
