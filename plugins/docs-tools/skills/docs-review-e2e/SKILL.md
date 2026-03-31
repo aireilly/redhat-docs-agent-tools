@@ -47,24 +47,26 @@ The `--local` and `--pr` modes share the same pipeline. The difference is how fi
 
 ### For --pr mode
 
-Launch a haiku agent to check if any of the following are true:
-- The pull request is closed
-- The pull request is a draft
-- The pull request does not need documentation review (e.g. automated PR, code-only change with no .adoc or .md files)
-- Claude has already commented on this PR (check `gh pr view <PR> --comments` for comments left by claude)
+Launch a haiku agent to run pre-flight checks using `docs-tools:git-pr-reader`. Stop if any condition is true (still review Claude-generated PRs):
 
-If any condition is true, stop. Still review Claude-generated PRs.
+- **PR/MR is closed or draft**: Check the PR/MR state from the platform API.
+- **No documentation files changed**: Run `python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py files "${PR_URL}" --json` and check if any changed files end with `.adoc` or `.md`.
+- **Claude already commented**: Run `python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py comments "${PR_URL}" --include-resolved --json` and check if any comment `author` matches Claude's username.
 
 ### For --local mode
 
 ```bash
 CURRENT_BRANCH=$(git branch --show-current)
-if git show-ref --verify --quiet refs/heads/main; then
-    BASE_BRANCH="main"
-elif git show-ref --verify --quiet refs/heads/master; then
-    BASE_BRANCH="master"
-else
-    echo "ERROR: No main or master branch found"; exit 1
+# Detect base branch from remote default, fall back to local refs
+BASE_BRANCH=$(git rev-parse --abbrev-ref origin/HEAD 2>/dev/null | sed 's|^origin/||')
+if [ -z "$BASE_BRANCH" ]; then
+    if git show-ref --verify --quiet refs/heads/main; then
+        BASE_BRANCH="main"
+    elif git show-ref --verify --quiet refs/heads/master; then
+        BASE_BRANCH="master"
+    else
+        echo "ERROR: Cannot determine base branch"; exit 1
+    fi
 fi
 if [ "$CURRENT_BRANCH" = "$BASE_BRANCH" ]; then
     echo "ERROR: Currently on $BASE_BRANCH. Switch to a feature branch first."; exit 1
@@ -224,7 +226,7 @@ Remove issues that:
 
 **Only runs when Agent 5 ran.** Catches issues extraction+search may miss.
 
-**Scan scope**: `.adoc` and `.md` files in the parent directories of `--docs` sources.
+**Scan scope**: `.adoc` and `.md` files in the parent directories of the files listed in `/tmp/docs-review-doc-files.txt`.
 
 **8a: Anti-pattern scan** — For each confirmed issue from Agent 5, use Grep to search the broader doc tree for additional occurrences of the same error pattern (e.g., same wrong flag name, same stale config key, same renamed path).
 
@@ -263,11 +265,14 @@ Stop here.
 
 ### For --pr mode with --post-comments
 
-If NO issues found, post a summary comment via `gh pr comment`:
+If NO issues found, post a summary comment via `git-pr-reader`:
 
-> ## Documentation review
-> No issues found. Checked for style guide compliance, modular docs structure, content quality, and technical accuracy.
-> RHAI docs Claude Code review
+```bash
+cat <<'SUMMARY' > /tmp/docs-review-summary.json
+[{"file": "", "line": 0, "message": "## Documentation review\n\nNo issues found. Checked for style guide compliance, modular docs structure, content quality, and technical accuracy.", "severity": "suggestion"}]
+SUMMARY
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py post "${PR_URL}" /tmp/docs-review-summary.json
+```
 
 If issues found, continue to Step 10.
 
