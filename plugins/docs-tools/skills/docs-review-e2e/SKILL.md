@@ -161,6 +161,7 @@ Workflow:
    - **APIs** (functions/classes/endpoints): Use Grep to find definitions. Read the source to verify signatures, parameters, and return types match the docs.
    - **Configs**: Use Glob to find config files (*.yaml, *.yml, *.json, *.toml). Read them to compare key names, default values, and structure against what the docs show.
    - **File paths**: Use Glob to check if the documented path exists. If not, search by basename to detect renames.
+   - **Git history**: When a reference is not found in code, use `git log --all --oneline --grep="<term>"` to check for renames, deprecations, or removals. This provides evidence for confidence scoring (e.g., "flag `--enable-feature` was renamed to `--feature-enable` in commit abc123").
 
    Focus on finding **concrete discrepancies**: wrong default values (e.g., "docs say pool_size=10, code says pool_size=5"), renamed flags, missing parameters, stale import paths, undocumented features. Do not report "not found in code" without evidence of a real problem.
 
