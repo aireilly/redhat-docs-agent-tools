@@ -8,23 +8,9 @@
 
 - Install the [Red Hat Docs Agent Tools marketplace](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/)
 
-### GitHub CLI
+- Install [software dependencies](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/#software-dependencies) (Vale CLI)
 
-Install the [GitHub CLI (`gh`)](https://cli.github.com/) and authenticate:
-
-```bash
-gh auth login
-```
-
-### Vale CLI
-
-```bash
-# Fedora/RHEL
-sudo dnf copr enable mczernek/vale && sudo dnf install vale
-
-# macOS
-brew install vale
-```
+- [Install GitHub CLI (`gh`)](https://cli.github.com/) and authenticate with `gh auth login`
 
 ### Vale configuration
 

@@ -13,29 +13,4 @@
 
 - Install the [Red Hat Docs Agent Tools marketplace](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/)
 
-- Install Ruby and required gems
-
-    ```bash
-    # RHEL/Fedora
-    sudo dnf install ruby
-
-    gem install asciidoctor
-    ```
-
-- [Install Vale CLI](https://vale.sh/docs/vale-cli/installation/)
-
-    ```bash
-    # Fedora/RHEL
-    sudo dnf copr enable mczernek/vale && sudo dnf install vale
-    
-    # macOS
-    brew install vale
-    ```
-
-- Install review mode dependencies (required for `--review`)
-
-    ```bash
-    sudo dnf install python3
-    gem install asciidoctor-reducer
-    python3 -m pip install html2text
-    ```
+- Install [software dependencies](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/#software-dependencies) (Ruby gems, Vale CLI, Python packages, system tools)

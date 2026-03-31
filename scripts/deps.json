@@ -1,0 +1,117 @@
+{
+  "python": [
+    {
+      "package": "beautifulsoup4",
+      "import_name": "bs4",
+      "found_in": [
+        "plugins/docs-tools/skills/article-extractor/scripts/article_extractor.py",
+        "plugins/docs-tools/skills/redhat-docs-toc/scripts/toc_extractor.py"
+      ]
+    },
+    {
+      "package": "html2text",
+      "import_name": "html2text",
+      "found_in": [
+        "plugins/docs-tools/skills/article-extractor/scripts/article_extractor.py"
+      ]
+    },
+    {
+      "package": "jira",
+      "import_name": "jira",
+      "found_in": [
+        "plugins/docs-tools/skills/jira-reader/scripts/jira_reader.py",
+        "plugins/docs-tools/skills/jira-writer/scripts/jira_writer.py"
+      ]
+    },
+    {
+      "package": "PyGithub",
+      "import_name": "github",
+      "found_in": [
+        "plugins/docs-tools/skills/git-pr-reader/scripts/git_pr_reader.py"
+      ]
+    },
+    {
+      "package": "python-gitlab",
+      "import_name": "gitlab",
+      "found_in": [
+        "plugins/docs-tools/skills/git-pr-reader/scripts/git_pr_reader.py"
+      ]
+    },
+    {
+      "package": "python-pptx",
+      "import_name": "pptx",
+      "found_in": [
+        "plugins/docs-tools/skills/docs-convert-gdoc-md/scripts/gdoc2md.py"
+      ]
+    },
+    {
+      "package": "pyyaml",
+      "import_name": "yaml",
+      "found_in": [
+        "plugins/docs-tools/skills/git-pr-reader/scripts/git_pr_reader.py"
+      ]
+    },
+    {
+      "package": "ratelimit",
+      "import_name": "ratelimit",
+      "found_in": [
+        "plugins/docs-tools/skills/jira-reader/scripts/jira_reader.py",
+        "plugins/docs-tools/skills/jira-writer/scripts/jira_writer.py"
+      ]
+    },
+    {
+      "package": "requests",
+      "import_name": "requests",
+      "found_in": [
+        "plugins/docs-tools/skills/article-extractor/scripts/article_extractor.py",
+        "plugins/docs-tools/skills/redhat-docs-toc/scripts/toc_extractor.py"
+      ]
+    },
+    {
+      "package": "urllib3",
+      "import_name": "urllib3",
+      "found_in": [
+        "plugins/docs-tools/skills/jira-reader/scripts/jira_reader.py"
+      ]
+    }
+  ],
+  "ruby": [
+    {
+      "gem": "asciidoctor",
+      "found_in": [
+        "plugins/dita-tools/skills/dita-check-asciidoctor/scripts/check_asciidoctor.sh",
+        "plugins/dita-tools/skills/dita-reduce-asciidoc/scripts/reduce_asciidoc.sh"
+      ]
+    },
+    {
+      "gem": "asciidoctor-reducer",
+      "found_in": [
+        "plugins/dita-tools/skills/dita-reduce-asciidoc/scripts/reduce_asciidoc.sh"
+      ]
+    }
+  ],
+  "system": [
+    {
+      "tool": "curl",
+      "found_in": [
+        "plugins/docs-tools/skills/docs-workflow-create-jira/scripts/create-jira-ticket.sh",
+        "plugins/docs-tools/skills/docs-workflow-jira-ready/scripts/jira-ready-check.sh"
+      ]
+    },
+    {
+      "tool": "jq",
+      "found_in": [
+        "plugins/docs-tools/skills/docs-orchestrator/hooks/workflow-completion-check.sh",
+        "plugins/docs-tools/skills/docs-orchestrator/scripts/setup-hooks.sh",
+        "plugins/docs-tools/skills/docs-workflow-create-jira/scripts/create-jira-ticket.sh",
+        "plugins/docs-tools/skills/docs-workflow-jira-ready/scripts/jira-ready-check.sh"
+      ]
+    },
+    {
+      "tool": "vale",
+      "found_in": [
+        "plugins/dita-tools/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh"
+      ]
+    }
+  ]
+}

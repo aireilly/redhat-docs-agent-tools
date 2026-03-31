@@ -8,32 +8,11 @@
 
 - Install the [Red Hat Docs Agent Tools marketplace](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/)
 
-- [Install GitHub CLI (`gh`)](https://cli.github.com/)
+- Install [software dependencies](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/#software-dependencies) (Python packages, system tools)
 
-    ```bash
-    gh auth login
-    ```
+- [Install GitHub CLI (`gh`)](https://cli.github.com/) and authenticate with `gh auth login`
 
-- Install system dependencies
-
-    ```bash
-    # RHEL/Fedora
-    sudo dnf install python3 jq curl
-    ```
-
-- [Install gcloud CLI](https://cloud.google.com/sdk/docs/install)
-
-    ```bash
-    gcloud auth login --enable-gdrive-access
-    ```
-
-- Install Python packages
-
-    ```bash
-    python3 -m pip install python-pptx PyGithub python-gitlab jira pyyaml ratelimit requests beautifulsoup4 html2text pip-system-certs
-    ```
-
-    The `python-pptx` package is only required for Google Slides conversion. Google Docs and Sheets conversion has no extra dependencies.
+- [Install gcloud CLI](https://cloud.google.com/sdk/docs/install) (required for Google Docs conversion) and authenticate with `gcloud auth login --enable-gdrive-access`
 
 - Create an `~/.env` file with your tokens:
 

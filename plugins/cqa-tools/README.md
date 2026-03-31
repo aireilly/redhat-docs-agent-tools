@@ -10,24 +10,7 @@ Assess, fix, and score Red Hat modular documentation against all 54 CQA 2.1 para
 
 - Install the [Red Hat Docs Agent Tools marketplace](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/)
 
-- Install system dependencies
-
-    ```bash
-    # RHEL/Fedora
-    sudo dnf install python3
-    ```
-
-    Python 3.9+ is required. Scripts use only the standard library — no `pip install` needed.
-
-- [Install Vale CLI](https://vale.sh/docs/vale-cli/installation/) (required for P1: Vale DITA linting)
-
-    ```bash
-    # Fedora/RHEL
-    sudo dnf copr enable mczernek/vale && sudo dnf install vale
-
-    # macOS
-    brew install vale
-    ```
+- Install [software dependencies](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/#software-dependencies) (Python 3.9+, Vale CLI)
 
 - Install [`dita-tools` plugin](https://github.com/redhat-documentation/redhat-docs-agent-tools)
 

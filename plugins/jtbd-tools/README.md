@@ -6,22 +6,11 @@
 
 ## Prerequisites
 
-**Ruby (for AsciiDoc skills):**
+- Install [software dependencies](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/#software-dependencies) (Ruby gems for AsciiDoc skills)
 
-The `asciidoctor-reducer` gem is required by any skill that processes AsciiDoc files (`jtbd-analyze-adoc`, `jtbd-analyze-topicmap`, `jtbd-workflow-adoc`, `jtbd-workflow-topicmap`):
+- The batch-runner scripts use only the Python standard library and need the `claude` CLI on `$PATH`
 
-```bash
-gem install asciidoctor-reducer
-
-# If Ruby/gem is not available:
-brew install ruby   # macOS
-```
-
-**Python 3 (for batch-runner scripts only):**
-
-The batch-runner scripts use only the Python standard library — no `pip install` required. They need the `claude` CLI to be available on `$PATH`.
-
-All other skills work directly in Claude Code without additional dependencies. The LLM performs JTBD extraction using the methodology files included in the plugin.
+- All other skills work directly in Claude Code without additional dependencies
 
 ## Usage
 
