@@ -93,7 +93,19 @@ If `--repo` was NOT provided:
   REPO_URL=$(gh pr view "$PR_URL" --json headRepository --jq '.headRepository.url')
   ```
 
-  Clone the repo (shallow — file contents are sufficient, git history is not needed):
+  Extract the PR branch name so the clone reflects the code being documented, not just `main`:
+
+  ```bash
+  PR_BRANCH=$(gh pr view "$PR_URL" --json headRefName --jq '.headRefName')
+  ```
+
+  Clone the repo at the PR branch (shallow — file contents are sufficient, git history is not needed):
+
+  ```bash
+  git clone --depth 1 --branch "$PR_BRANCH" "$REPO_URL" "$CLONE_DIR"
+  ```
+
+  If the branch clone fails (e.g., fork-based PR where the branch isn't on the upstream repo), fall back to cloning the default branch:
 
   ```bash
   git clone --depth 1 "$REPO_URL" "$CLONE_DIR"
@@ -127,6 +139,8 @@ Read `$PLAN_FILE` and extract the key topics to search for. Look for:
 - API or CLI references
 
 Produce a list of 5-15 natural language search queries that cover the plan's scope. Each query should be specific enough to retrieve relevant code (e.g., "authentication middleware implementation" not "auth").
+
+Additionally, derive 1-2 **pattern-level queries** that ask how the codebase implements the general pattern, not the specific component. For example, if the plan is about adding Prometheus monitoring for a new component, add a query like "how do components implement monitoring and alerting" alongside the component-specific queries. These pattern queries help the unfiltered pass surface analogous implementations from other parts of the codebase, giving the writer examples to reference.
 
 ### 5. Run two-pass evidence retrieval for each topic
 
@@ -221,10 +235,12 @@ After completion, verify that both `$EVIDENCE_FILE` and `$SUMMARY_FILE` exist.
 The **writing step** can reference the evidence to ground documentation in actual code:
 
 > The code evidence at `<base-path>/code-evidence/evidence.json` contains two types of evidence per topic:
-> - **`source_results`**: Accurate function signatures, parameter types, class structure from source code. Use these for API references, code examples, and technical accuracy.
-> - **`context_results`**: README content, documentation, examples. Use these for narrative flow, installation instructions, quickstart guides, and architectural context.
+> - **`source_results`**: Accurate function signatures, parameter types, class structure from the PR branch source code. Use these for API references, code examples, and technical accuracy.
+> - **`context_results`**: README content, documentation, examples, and analogous implementations from other parts of the codebase. Use these for narrative flow, installation instructions, quickstart guides, and architectural context.
 >
 > Prefer source_results for "what the code does" and context_results for "why and how to use it."
+>
+> When `context_results` contain analogous patterns from other components (e.g., how another component implements the same monitoring, reconciler, or API pattern), use them to explain the general pattern first, then show how this component follows it. This gives readers both the "how it works here" and the "how the project does this in general" perspective.
 
 The **technical review step** can use it to verify claims:
 
