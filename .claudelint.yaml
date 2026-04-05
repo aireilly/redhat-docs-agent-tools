@@ -41,7 +41,7 @@ rules:
     severity: warning
 
   command-name-format:
-    enabled: true
+    enabled: false  # Bare skill names are the convention — qualified plugin:name not required
     severity: warning
 
   # Marketplace rules
