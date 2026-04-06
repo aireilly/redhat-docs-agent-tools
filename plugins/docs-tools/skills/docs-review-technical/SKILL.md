@@ -161,7 +161,19 @@ Workflow:
    - **File paths**: `matches` (with type: exact/basename), `git_evidence`
    - **Top-level**: `discovered_cli_definitions`, `discovered_schemas`
 
-4. **Validate search results** — Read `/tmp/tech-review-search.json` and for each category, apply the structured triage pipeline from Step 6 (below). Use native tools (Grep, Glob, Read) only to verify ambiguous results — do not re-search everything the script already checked.
+4. **Discover undocumented features** — Run the discover subcommand to build a code-first feature inventory and compare it against the extracted doc references:
+   ```bash
+   python3 scripts/code_scanner.py discover \
+     /tmp/tech-review/repo1 [/tmp/tech-review/repo2 ...] \
+     --refs-json /tmp/tech-review-refs.json \
+     --output /tmp/tech-review-discover.json
+   ```
+
+   The discover output includes:
+   - **inventory**: env_vars, cli_args, config_keys, api_endpoints, data_models found in code
+   - **comparison**: `undocumented` (in code but not in docs) and `doc_only` (in docs but not in code)
+
+5. **Validate search results** — Read `/tmp/tech-review-search.json` and `/tmp/tech-review-discover.json`. For each category, apply the structured triage pipeline from Step 6 (below). Use native tools (Grep, Glob, Read) only to verify ambiguous results — do not re-search everything the script already checked.
 
 5. Return issues in the standard format: `file`, `line`, `description`, `reason`, `confidence`, `severity`. Include the code evidence in `reason`.
 
@@ -184,6 +196,10 @@ Process ALL search results from `/tmp/tech-review-search.json` through a determi
 - No matches at all and no git evidence → low confidence (<50%). Could be wrong repo, or reference lives elsewhere.
 
 **Pass 4: Read source files** — For items flagged in passes 2-3 with confidence >=50%, read the actual source file referenced by the match to confirm the issue. Do not report issues based solely on search output without verifying against the source.
+
+**Pass 5: Undocumented feature triage** — Process the `comparison` section from `/tmp/tech-review-discover.json`:
+- `undocumented` items: Features found in code but not mentioned in any reviewed doc. Severity: Low-Medium. Confidence: 60-80% (lower because absence from *changed* docs doesn't mean absence from *all* docs).
+- `doc_only` items: References in docs with no corresponding code. Cross-reference with Pass 2/3 results — if already flagged as stale, skip. Otherwise flag as potential stale reference. Confidence: 50-70%.
 
 **Assigning severity**: `High` = users will hit errors (broken commands, missing APIs). `Medium` = misleading but not blocking (wrong names, stale options). `Low` = cosmetic or informational (undocumented features, formatting).
 
@@ -415,6 +431,7 @@ Categorize comments: **Required** (technical errors — must fix), **Suggestion*
 | Pass 2 | Deterministic validation | X | Y |
 | Pass 3 | Evidence-based analysis | X | Y |
 | Pass 4 | Source file verification | X | Y |
+| Pass 5 | Undocumented feature triage | X | Y |
 
 ## Summary
 
@@ -452,6 +469,15 @@ Show specific value mismatches (e.g., "Docs: pool_size=10, Code: pool_size=5"), 
 ## Suggestions
 
 1. **file.adoc:91** — Description [validation: manual_analysis]
+
+## Undocumented Features (if discover ran)
+
+Features found in source code but not mentioned in reviewed documentation:
+
+| Category | Name | Source File | Evidence |
+|----------|------|-------------|----------|
+| env_var | SECRET_KEY | src/app.py:15 | os.environ.get("SECRET_KEY") |
+| api_endpoint | /api/v2/health | src/routes.py:42 | @app.route("/api/v2/health") |
 
 ## Out-of-Scope References
 

@@ -11,8 +11,15 @@ sys.path.insert(0, str(_SCRIPTS_DIR))
 from code_scanner import (  # noqa: E402
     Extractor,
     classify_command_scope,
+    detect_languages,
+    discover_all_cli_args,
+    discover_api_endpoints,
     discover_cli_definitions,
+    discover_config_keys,
+    discover_data_models,
+    discover_env_vars,
     discover_schemas,
+    compare_inventory_to_refs,
     search_commands,
     search_code_blocks,
     search_apis,
@@ -515,3 +522,146 @@ class TestEndToEnd:
             assert "framework" in cli_def
             assert "known_flags" in cli_def
             assert "file" in cli_def
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Discover tests
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestDiscover:
+    """Test the discover subcommand functions."""
+
+    def test_detect_languages_python(self):
+        langs = detect_languages([FAKE_REPO])
+        assert "python" in langs
+
+    def test_detect_languages_empty_repo(self, tmp_path):
+        langs = detect_languages([str(tmp_path)])
+        assert langs == []
+
+    def test_discover_env_vars(self):
+        results = discover_env_vars([FAKE_REPO])
+        names = {r["name"] for r in results}
+        assert "API_HOST" in names
+        assert "API_PORT" in names
+        assert "DATABASE_URL" in names
+        # Verify structure
+        for r in results:
+            assert "source_file" in r
+            assert "source_line" in r
+            assert "access_pattern" in r
+
+    def test_discover_all_cli_args(self):
+        results = discover_all_cli_args([FAKE_REPO])
+        names = {r["name"] for r in results}
+        # argparse flags from fake-repo/cmd/example-tool/main.py
+        assert "env" in names or "name" in names
+        for r in results:
+            assert "framework" in r
+            assert "source_file" in r
+
+    def test_discover_config_keys(self):
+        results = discover_config_keys([FAKE_REPO])
+        key_paths = {r["key_path"] for r in results}
+        # From schema files (existing discover_schemas)
+        assert "replicas" in key_paths or "host" in key_paths
+        # From code access patterns (config_loader.py)
+        assert "database.host" in key_paths
+        assert "database.port" in key_paths
+        assert "server.timeout" in key_paths
+        for r in results:
+            assert "source_file" in r
+            assert "format" in r
+            assert "source" in r
+
+    def test_discover_api_endpoints(self):
+        results = discover_api_endpoints([FAKE_REPO])
+        paths = {r["path"] for r in results}
+        assert "/api/v1/resources" in paths
+        # Verify structure
+        for r in results:
+            assert "method" in r
+            assert "path" in r
+            assert "source_file" in r
+            assert "source_line" in r
+            assert "framework" in r
+        # Check methods
+        methods = {(r["method"], r["path"]) for r in results}
+        assert ("GET", "/api/v1/resources") in methods
+        assert ("POST", "/api/v1/resources") in methods
+
+    def test_discover_data_models(self):
+        results = discover_data_models([FAKE_REPO])
+        names = {r["name"] for r in results}
+        assert "Resource" in names
+        for r in results:
+            assert "source_file" in r
+            assert "type" in r
+
+    def test_compare_inventory_undocumented(self):
+        inventory = {
+            "env_vars": [{"name": "API_HOST"}, {"name": "SECRET_KEY"}],
+            "cli_args": [{"name": "verbose"}],
+            "config_keys": [{"key_path": "db.host"}],
+            "api_endpoints": [{"path": "/api/v1/resources"}],
+            "data_models": [{"name": "Resource"}],
+        }
+        refs = {
+            "code_blocks": [],
+            "commands": [],
+            "configs": [],
+            "apis": [],
+        }
+        result = compare_inventory_to_refs(inventory, refs)
+        # Everything should be undocumented since refs are empty
+        assert "API_HOST" in result["undocumented"]["env_vars"]
+        assert "SECRET_KEY" in result["undocumented"]["env_vars"]
+        assert "verbose" in result["undocumented"]["cli_args"]
+
+    def test_compare_inventory_doc_only(self):
+        inventory = {
+            "env_vars": [],
+            "cli_args": [],
+            "config_keys": [],
+            "api_endpoints": [],
+            "data_models": [],
+        }
+        refs = {
+            "code_blocks": [{
+                "content": 'DATABASE_URL = os.environ["DATABASE_URL"]',
+            }],
+            "commands": [{"command": "example-tool --verbose --debug"}],
+            "configs": [{"keys": ["timeout", "retries"]}],
+            "apis": [{"name": "/api/health", "type": "endpoint"}],
+        }
+        result = compare_inventory_to_refs(inventory, refs)
+        # Documented items not in code should appear as doc_only
+        assert "verbose" in result["doc_only"]["cli_args"]
+        assert "debug" in result["doc_only"]["cli_args"]
+        assert "timeout" in result["doc_only"]["config_keys"]
+        assert "/api/health" in result["doc_only"]["api_endpoints"]
+
+    def test_discover_e2e_output_schema(self, tmp_path):
+        """Verify discover output JSON schema via cmd_discover."""
+        import argparse
+        from code_scanner import cmd_discover
+
+        out_file = tmp_path / "inventory.json"
+        args = argparse.Namespace(
+            repos=[FAKE_REPO],
+            refs_json=None,
+            output=str(out_file),
+            language=None,
+        )
+        cmd_discover(args)
+
+        data = json.loads(out_file.read_text())
+        assert "repos" in data
+        assert "languages" in data
+        assert "inventory" in data
+        assert "summary" in data
+        for cat in ["env_vars", "cli_args", "config_keys", "api_endpoints", "data_models"]:
+            assert cat in data["inventory"]
+            assert cat in data["summary"]
+            assert isinstance(data["summary"][cat], int)

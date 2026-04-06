@@ -47,6 +47,63 @@ EXTERNAL_COMMANDS = frozenset(
     "cd pwd env which whereis file stat date cal man info".split()
 )
 
+# ---------------------------------------------------------------------------
+# Discovery patterns — used by the `discover` subcommand
+# ---------------------------------------------------------------------------
+
+LANGUAGE_SIGNATURES = {
+    "python": ["requirements.txt", "setup.py", "pyproject.toml", "Pipfile"],
+    "go": ["go.mod", "go.sum"],
+    "javascript": ["package.json"],
+    "typescript": ["tsconfig.json"],
+    "rust": ["Cargo.toml"],
+    "ruby": ["Gemfile"],
+    "java": ["pom.xml", "build.gradle"],
+}
+
+ENV_VAR_PATTERNS = {
+    "python": re.compile(r"""os\.(?:environ(?:\[['"]|\.get\(['"])(\w+)|getenv\(['"](\w+))"""),
+    "go": re.compile(r"""os\.Getenv\(['"](\w+)['"]"""),
+    "javascript": re.compile(r"""process\.env\.([A-Z_][A-Z0-9_]*)"""),
+    "java": re.compile(r"""System\.getenv\(['"](\w+)['"]"""),
+    "ruby": re.compile(r"""ENV\[['"](\w+)['"]"""),
+    "rust": re.compile(r"""(?:std::)?env::var\(['"](\w+)['"]"""),
+}
+
+ENV_VAR_FILE_EXTENSIONS = {
+    "python": ["*.py"], "go": ["*.go"], "javascript": ["*.js", "*.ts"],
+    "java": ["*.java"], "ruby": ["*.rb"], "rust": ["*.rs"],
+}
+
+CLI_FRAMEWORK_PATTERNS = {
+    "argparse": {"pattern": re.compile(r"""add_argument\(['"]-{1,2}([a-zA-Z0-9_-]+)"""), "globs": ["**/*.py"]},
+    "click": {"pattern": re.compile(r"""@click\.(?:option|argument)\(['"]-{1,2}([a-zA-Z0-9_-]+)"""), "globs": ["**/*.py"]},
+    "cobra": {"pattern": re.compile(r"""Flags\(\)\.(?:String|Bool|Int|Duration)\w*\(['"]([a-zA-Z0-9_-]+)"""), "globs": ["**/*.go"]},
+    "clap": {"pattern": re.compile(r"""Arg::new\(['"]([a-zA-Z0-9_-]+)"""), "globs": ["**/*.rs"]},
+    "commander": {"pattern": re.compile(r"""\.option\(['"]-{1,2}([a-zA-Z0-9_-]+)"""), "globs": ["**/*.js", "**/*.ts"]},
+}
+
+API_ROUTE_PATTERNS = {
+    "flask": {"pattern": re.compile(r"""@\w+\.route\(['"]([^'"]+)['"](?:.*methods=\[['"](\w+))"""), "globs": ["**/*.py"]},
+    "fastapi": {"pattern": re.compile(r"""@\w+\.(get|post|put|patch|delete)\(['"]([^'"]+)['"]"""), "globs": ["**/*.py"]},
+    "express": {"pattern": re.compile(r"""(?:app|router)\.(get|post|put|patch|delete)\(['"]([^'"]+)['"]"""), "globs": ["**/*.js", "**/*.ts"]},
+    "go_net_http": {"pattern": re.compile(r"""(?:HandleFunc|Handle)\(['"]([^'"]+)['"]"""), "globs": ["**/*.go"]},
+    "gin": {"pattern": re.compile(r"""\w+\.(GET|POST|PUT|PATCH|DELETE)\(['"]([^'"]+)['"]"""), "globs": ["**/*.go"]},
+    "spring": {"pattern": re.compile(r"""@(Get|Post|Put|Patch|Delete)Mapping\(['"]([^'"]+)['"]"""), "globs": ["**/*.java"]},
+}
+
+CONFIG_ACCESS_PATTERNS = {
+    "viper": {"pattern": re.compile(r"""viper\.(?:Get\w*)\(['"]([a-zA-Z0-9._-]+)['"]"""), "globs": ["**/*.go"]},
+    "python_config": {"pattern": re.compile(r"""config\.get\(['"]([a-zA-Z0-9._-]+)['"]"""), "globs": ["**/*.py"]},
+    "python_settings": {"pattern": re.compile(r"""settings\.([A-Z_][A-Z0-9_]*)"""), "globs": ["**/*.py"]},
+}
+
+DATA_MODEL_PATTERNS = {
+    "sqlalchemy": {"pattern": re.compile(r"""class\s+(\w+)\(.*(?:Base|Model)\)"""), "globs": ["**/*.py"]},
+    "django": {"pattern": re.compile(r"""class\s+(\w+)\(models\.Model\)"""), "globs": ["**/*.py"]},
+    "go_struct": {"pattern": re.compile(r"""type\s+(\w+)\s+struct\s*\{"""), "globs": ["**/*.go"]},
+}
+
 # Regex patterns for AsciiDoc / Markdown parsing
 RE_SOURCE_BLOCK = re.compile(r"^\[source(?:,\s*([a-z0-9+\-_]+))?(?:,\s*(.+))?\]\s*$", re.I)
 RE_CODE_FENCE = re.compile(r"^```\s*([a-z0-9+\-_]+)?\s*$", re.I)
@@ -729,6 +786,326 @@ def cmd_search(args):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# Discover — scan code repos to build feature inventory
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def detect_languages(repo_paths: list[str]) -> list[str]:
+    """Detect programming languages in repos by signature files."""
+    found = set()
+    for rp in repo_paths:
+        repo = Path(rp)
+        for lang, signatures in LANGUAGE_SIGNATURES.items():
+            for sig in signatures:
+                if list(repo.glob(sig)):
+                    found.add(lang)
+                    break
+        # Fallback: check for source files directly
+        ext_to_lang = {".py": "python", ".go": "go", ".js": "javascript",
+                       ".ts": "typescript", ".rs": "rust", ".rb": "ruby", ".java": "java"}
+        for ext, lang in ext_to_lang.items():
+            if lang not in found:
+                for _ in repo.rglob(f"*{ext}"):
+                    found.add(lang)
+                    break
+    return sorted(found)
+
+
+def discover_env_vars(repo_paths: list[str]) -> list[dict]:
+    """Discover environment variable access in source code."""
+    results = []
+    seen = set()
+    for rp in repo_paths:
+        repo = Path(rp)
+        for lang, pattern in ENV_VAR_PATTERNS.items():
+            for ext in ENV_VAR_FILE_EXTENSIONS.get(lang, []):
+                for fpath in repo.rglob(ext):
+                    if ".git" in fpath.parts:
+                        continue
+                    try:
+                        content = fpath.read_text(encoding="utf-8", errors="replace")
+                    except Exception:
+                        continue
+                    for line_idx, line in enumerate(content.splitlines()):
+                        if line.lstrip().startswith(("#", "//", "*", "/*")):
+                            continue
+                        for m in pattern.finditer(line):
+                            name = next((g for g in m.groups() if g), None)
+                            if not name:
+                                continue
+                            key = (name, str(fpath), line_idx + 1)
+                            if key in seen:
+                                continue
+                            seen.add(key)
+                            results.append({
+                                "name": name,
+                                "source_file": str(fpath),
+                                "source_line": line_idx + 1,
+                                "access_pattern": lang,
+                            })
+    return results
+
+
+def discover_all_cli_args(repo_paths: list[str]) -> list[dict]:
+    """Discover CLI arguments across all entry points in repos."""
+    results = []
+    seen = set()
+    for rp in repo_paths:
+        repo = Path(rp)
+        for framework, spec in CLI_FRAMEWORK_PATTERNS.items():
+            pattern = spec["pattern"]
+            for glob_pat in spec["globs"]:
+                for fpath in repo.rglob(glob_pat):
+                    if ".git" in fpath.parts:
+                        continue
+                    try:
+                        src = fpath.read_text(encoding="utf-8", errors="replace")
+                    except Exception:
+                        continue
+                    for m in pattern.finditer(src):
+                        name = m.group(1)
+                        key = (name, framework)
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        results.append({
+                            "name": name,
+                            "source_file": str(fpath),
+                            "framework": framework,
+                        })
+    return results
+
+
+def discover_config_keys(repo_paths: list[str]) -> list[dict]:
+    """Discover config keys from schema files and code access patterns."""
+    results = []
+    seen = set()
+
+    # Reuse existing schema discovery
+    schemas = discover_schemas(repo_paths)
+    for schema in schemas:
+        for key in schema["keys"]:
+            k = (key, schema["file"])
+            if k not in seen:
+                seen.add(k)
+                results.append({
+                    "key_path": key,
+                    "source_file": schema["file"],
+                    "format": schema["format"],
+                    "source": "schema_file",
+                })
+
+    # Code access patterns
+    for rp in repo_paths:
+        repo = Path(rp)
+        for framework, spec in CONFIG_ACCESS_PATTERNS.items():
+            pattern = spec["pattern"]
+            for glob_pat in spec["globs"]:
+                for fpath in repo.rglob(glob_pat):
+                    if ".git" in fpath.parts:
+                        continue
+                    try:
+                        src = fpath.read_text(encoding="utf-8", errors="replace")
+                    except Exception:
+                        continue
+                    for m in pattern.finditer(src):
+                        key_path = m.group(1)
+                        k = (key_path, str(fpath))
+                        if k not in seen:
+                            seen.add(k)
+                            results.append({
+                                "key_path": key_path,
+                                "source_file": str(fpath),
+                                "format": framework,
+                                "source": "code_access",
+                            })
+    return results
+
+
+def discover_api_endpoints(repo_paths: list[str]) -> list[dict]:
+    """Discover API route/endpoint definitions in source code."""
+    results = []
+    seen = set()
+    for rp in repo_paths:
+        repo = Path(rp)
+        for framework, spec in API_ROUTE_PATTERNS.items():
+            pattern = spec["pattern"]
+            for glob_pat in spec["globs"]:
+                for fpath in repo.rglob(glob_pat):
+                    if ".git" in fpath.parts:
+                        continue
+                    try:
+                        content = fpath.read_text(encoding="utf-8", errors="replace")
+                    except Exception:
+                        continue
+                    for line_idx, line in enumerate(content.splitlines()):
+                        m = pattern.search(line)
+                        if not m:
+                            continue
+                        groups = m.groups()
+                        # Patterns capture either (path,) or (method, path) or (path, method)
+                        if framework in ("flask",):
+                            path = groups[0]
+                            method = groups[1].upper() if groups[1] else "GET"
+                        elif framework in ("fastapi", "express", "gin", "spring"):
+                            method = groups[0].upper()
+                            path = groups[1]
+                        else:  # go_net_http
+                            path = groups[0]
+                            method = "ANY"
+                        key = (method, path, str(fpath))
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        results.append({
+                            "method": method,
+                            "path": path,
+                            "source_file": str(fpath),
+                            "source_line": line_idx + 1,
+                            "framework": framework,
+                        })
+    return results
+
+
+def discover_data_models(repo_paths: list[str]) -> list[dict]:
+    """Discover ORM/struct/CRD model definitions in source code."""
+    results = []
+    seen = set()
+    for rp in repo_paths:
+        repo = Path(rp)
+        for model_type, spec in DATA_MODEL_PATTERNS.items():
+            pattern = spec["pattern"]
+            for glob_pat in spec["globs"]:
+                for fpath in repo.rglob(glob_pat):
+                    if ".git" in fpath.parts:
+                        continue
+                    try:
+                        src = fpath.read_text(encoding="utf-8", errors="replace")
+                    except Exception:
+                        continue
+                    for m in pattern.finditer(src):
+                        name = m.group(1)
+                        key = (name, str(fpath))
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        results.append({
+                            "name": name,
+                            "source_file": str(fpath),
+                            "type": model_type,
+                        })
+    return results
+
+
+def compare_inventory_to_refs(inventory: dict, refs: dict) -> dict:
+    """Compare discovered inventory against extracted doc references."""
+    comparison = {"undocumented": {}, "doc_only": {}}
+
+    # Collect documented names from refs
+    doc_env_vars = set()
+    for block in refs.get("code_blocks", []):
+        content = block.get("content", "")
+        for pat in ENV_VAR_PATTERNS.values():
+            for m in pat.finditer(content):
+                name = next((g for g in m.groups() if g), None)
+                if name:
+                    doc_env_vars.add(name)
+
+    doc_cli_flags = set()
+    for cmd in refs.get("commands", []):
+        for part in cmd.get("command", "").split():
+            if part.startswith("-"):
+                doc_cli_flags.add(part.lstrip("-"))
+
+    doc_config_keys = set()
+    for cfg in refs.get("configs", []):
+        doc_config_keys.update(cfg.get("keys", []))
+
+    doc_endpoints = set()
+    for api in refs.get("apis", []):
+        if api.get("type") == "endpoint":
+            doc_endpoints.add(api.get("name", ""))
+
+    doc_classes = set()
+    for api in refs.get("apis", []):
+        if api.get("type") in ("class", "function"):
+            doc_classes.add(api.get("name", ""))
+
+    # Inventory names
+    inv_env = {item["name"] for item in inventory.get("env_vars", [])}
+    inv_cli = {item["name"] for item in inventory.get("cli_args", [])}
+    inv_cfg = {item["key_path"] for item in inventory.get("config_keys", [])}
+    inv_endpoints = {item["path"] for item in inventory.get("api_endpoints", [])}
+    inv_models = {item["name"] for item in inventory.get("data_models", [])}
+
+    # Undocumented = in code but not in docs
+    comparison["undocumented"]["env_vars"] = sorted(inv_env - doc_env_vars)
+    comparison["undocumented"]["cli_args"] = sorted(inv_cli - doc_cli_flags)
+    comparison["undocumented"]["config_keys"] = sorted(inv_cfg - doc_config_keys)
+    comparison["undocumented"]["api_endpoints"] = sorted(inv_endpoints - doc_endpoints)
+    comparison["undocumented"]["data_models"] = sorted(inv_models - doc_classes)
+
+    # Doc-only = in docs but not in code inventory
+    comparison["doc_only"]["env_vars"] = sorted(doc_env_vars - inv_env)
+    comparison["doc_only"]["cli_args"] = sorted(doc_cli_flags - inv_cli)
+    comparison["doc_only"]["config_keys"] = sorted(doc_config_keys - inv_cfg)
+    comparison["doc_only"]["api_endpoints"] = sorted(doc_endpoints - inv_endpoints)
+    comparison["doc_only"]["data_models"] = sorted(doc_classes - inv_models)
+
+    return comparison
+
+
+def cmd_discover(args):
+    """Discover features in code repositories and build inventory."""
+    repo_paths = args.repos
+    for rp in repo_paths:
+        if not Path(rp).is_dir():
+            log.warning("Repo path not found: %s", rp)
+
+    languages = detect_languages(repo_paths)
+    if args.language:
+        languages = [l for l in args.language.split(",") if l in languages]
+
+    inventory = {
+        "env_vars": discover_env_vars(repo_paths),
+        "cli_args": discover_all_cli_args(repo_paths),
+        "config_keys": discover_config_keys(repo_paths),
+        "api_endpoints": discover_api_endpoints(repo_paths),
+        "data_models": discover_data_models(repo_paths),
+    }
+
+    output = {
+        "repos": repo_paths,
+        "languages": languages,
+        "inventory": inventory,
+        "summary": {k: len(v) for k, v in inventory.items()},
+    }
+
+    # Optional comparison against extracted doc refs
+    if args.refs_json:
+        refs_path = Path(args.refs_json)
+        if refs_path.exists():
+            refs_data = json.loads(refs_path.read_text(encoding="utf-8"))
+            refs = refs_data.get("references", refs_data)
+            output["comparison"] = compare_inventory_to_refs(inventory, refs)
+        else:
+            log.warning("Refs file not found: %s", args.refs_json)
+
+    text = json.dumps(output, indent=2)
+    if args.output:
+        Path(args.output).write_text(text, encoding="utf-8")
+        print(f"Inventory written to {args.output}")
+        for k, v in inventory.items():
+            print(f"  {k}: {len(v)}")
+        if "comparison" in output:
+            undoc = output["comparison"]["undocumented"]
+            total = sum(len(v) for v in undoc.values())
+            print(f"  undocumented features: {total}")
+    else:
+        print(text)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # CLI
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -768,6 +1145,13 @@ def main():
     p_search.add_argument("repos", nargs="+", help="Paths to cloned code repositories")
     p_search.add_argument("-o", "--output", help="Write JSON to file instead of stdout")
 
+    # discover
+    p_discover = sub.add_parser("discover", help="Discover features in code repos")
+    p_discover.add_argument("repos", nargs="+", help="Paths to code repositories")
+    p_discover.add_argument("--refs-json", help="Extracted refs JSON for comparison")
+    p_discover.add_argument("-o", "--output", help="Write JSON to file instead of stdout")
+    p_discover.add_argument("--language", help="Comma-separated language filter")
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -779,6 +1163,8 @@ def main():
         cmd_extract(args)
     elif args.command == "search":
         cmd_search(args)
+    elif args.command == "discover":
+        cmd_discover(args)
 
 
 if __name__ == "__main__":
