@@ -99,6 +99,28 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py file
 
 If no documentation files found, report and exit.
 
+## Step 2a: Extract Changed Line Ranges
+
+Extract the exact changed line ranges so review agents only flag issues in changed content.
+
+### For --local mode
+
+```bash
+git diff "$BASE_BRANCH"...HEAD -- $(cat /tmp/docs-review-doc-files.txt | tr '\n' ' ') | \
+  python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/extract_changed_ranges.py \
+    --context 3 -o /tmp/docs-review-changed-ranges.json
+```
+
+### For --pr mode
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py diff "${PR_URL}" | \
+  python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/extract_changed_ranges.py \
+    --context 3 -o /tmp/docs-review-changed-ranges.json
+```
+
+The output is a JSON file mapping each file to either `"new"` (entire file is in scope) or a list of `[start, end]` line ranges (inclusive, 1-based). Read and store this as `CHANGED_RANGES` for use in Steps 4 and 6.
+
 ## Step 3: Summarize Changes
 
 Launch a sonnet agent to view changes and return a summary noting:
@@ -116,6 +138,12 @@ Launch agents in parallel. Each agent returns issues with: `file`, `line`, `desc
 For `--pr` mode, use `python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py extract` for deterministic line numbers.
 
 **Important**: The agent files describe a JIRA-based drafts workflow for standalone use. In this context, ignore JIRA/drafts sections — review changed files from the diff and return issues in the format above.
+
+**CRITICAL — Scope constraint**: Include the contents of `/tmp/docs-review-changed-ranges.json` in each agent's prompt. Instruct each agent:
+
+> **You MUST only flag issues on lines that fall within the changed ranges below. For files marked `"new"`, all lines are in scope. For files with line ranges, ONLY lines within those ranges are in scope. Do NOT flag issues on lines outside these ranges — they are pre-existing content that is not part of this review.**
+>
+> Changed ranges: `{CHANGED_RANGES}`
 
 ### Agent 1: Style guide compliance (batch A)
 
@@ -169,6 +197,7 @@ Use sonnet subagents for style violations.
 Remove issues that:
 - Were not validated in Step 5
 - Score below the confidence threshold (default: 80)
+- **Fall outside the changed line ranges from Step 2a** — For each issue, check that its `line` number falls within the `CHANGED_RANGES` for its file. For files marked `"new"`, all lines pass. For files with `[[start, end], ...]` ranges, the issue's line must fall within at least one range. Drop any issue that fails this check, regardless of confidence or severity.
 
 ## Step 7: Generate Report and Present Results
 
