@@ -17,6 +17,7 @@ Uses hybrid search: BM25 for exact keyword matches + vector embeddings for seman
 ## Prerequisites
 
 - **code-finder** must be pip-installed: `python3 -m pip install code-finder`
+- The wrapper script at `${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-code-evidence/scripts/find_evidence.py` calls the code-finder Python API directly (no CLI entry point required)
 
 ## Arguments
 
@@ -34,12 +35,12 @@ Extract `--repo`, `--query`, and optional flags from the args string.
 
 Validate:
 - Verify the repo path exists. If not, STOP with error: "Repo path does not exist: <path>"
-- Verify `code-finder-evidence` is available. If not, STOP with error: "code-finder not installed. Run: pip install code-finder"
+- Verify the wrapper script exists. If not, STOP with error: "find_evidence.py script not found."
 
 ### 2. Run evidence retrieval
 
 ```bash
-code-finder-evidence \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-code-evidence/scripts/find_evidence.py \
   --repo "<REPO_PATH>" \
   --query "<QUERY>" \
   --limit <LIMIT>
@@ -48,7 +49,7 @@ code-finder-evidence \
 If `--filter-paths` was provided:
 
 ```bash
-code-finder-evidence \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-code-evidence/scripts/find_evidence.py \
   --repo "<REPO_PATH>" \
   --query "<QUERY>" \
   --limit <LIMIT> \

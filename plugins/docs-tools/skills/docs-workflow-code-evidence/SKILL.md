@@ -19,6 +19,7 @@ The writer typically works from the **documentation repository**, not the code r
 ## Prerequisites
 
 - **code-finder** must be pip-installed: `python3 -m pip install code-finder`
+- The wrapper script `scripts/find_evidence.py` calls the code-finder Python API directly (no CLI entry point required)
 
 ## Arguments
 
@@ -63,7 +64,7 @@ mkdir -p "$OUTPUT_DIR"
 Validate:
 - Verify `--repo` was provided. If not, STOP with error: "code-evidence requires --repo. The orchestrator should provide the repo path."
 - Verify `$PLAN_FILE` exists. If not, STOP with error: "Planning step must complete before code-evidence."
-- Verify `code-finder-evidence` is available (i.e., code-finder is pip-installed). If not, STOP with error: "code-finder not installed. Run: pip install code-finder"
+- Verify the wrapper script exists at `scripts/find_evidence.py` (relative to this skill directory). If not, STOP with error: "find_evidence.py script not found."
 
 ### 2. Validate repo path
 
@@ -110,7 +111,7 @@ For each search query, run code-finder's evidence retrieval **twice** to capture
 **Pass 1 — Source-scoped** (API accuracy):
 
 ```bash
-code-finder-evidence \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-code-evidence/scripts/find_evidence.py \
   --repo "$REPO_PATH" \
   --query "<search_query>" \
   --limit <LIMIT> \
@@ -124,7 +125,7 @@ This pass returns function signatures, class definitions, and implementation det
 **Pass 2 — Unfiltered** (narrative context):
 
 ```bash
-code-finder-evidence \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-code-evidence/scripts/find_evidence.py \
   --repo "$REPO_PATH" \
   --query "<search_query>" \
   --limit <LIMIT>
@@ -136,7 +137,7 @@ This pass picks up READMEs, documentation, examples, and configuration files tha
 
 **Note on indexing**: The index is built once on the first query and cached at `{repo}/.vibe2doc/index.db`. Both passes and all subsequent queries reuse the cached index. The second pass adds ~30-200ms per query, not a full re-index.
 
-If `--reindex` is specified, add it to the **first** query only. Subsequent queries reuse the freshly built index.
+If `--reindex` is specified, add `--reindex` to the **first** query only. Subsequent queries reuse the freshly built index.
 
 Collect all results into a combined evidence structure:
 
