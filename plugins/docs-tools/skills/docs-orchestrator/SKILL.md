@@ -2,7 +2,7 @@
 name: docs-orchestrator
 description: Documentation workflow orchestrator. Reads the step list from .claude/docs-workflow.yaml (or the plugin default). Runs steps sequentially, manages progress state, handles iteration and confirmation gates. Claude is the orchestrator — the YAML is a step list, not a workflow engine.
 argument-hint: <ticket> [--workflow <name>] [--pr <url>]... [--mkdocs] [--draft] [--create-jira <PROJECT>]
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, AskUserQuestion, WebSearch, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, AskUserQuestion
 ---
 
 # Docs Orchestrator

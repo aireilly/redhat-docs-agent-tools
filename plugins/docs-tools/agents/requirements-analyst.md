@@ -182,10 +182,18 @@ Save a summary of web search findings to `.claude/docs/research/`:
 ```
 
 Include:
-- Search queries used
 - Key findings from each source
 - URLs for reference
 - How findings inform documentation requirements
+
+**IMPORTANT — Sanitize search details from output:**
+
+The intermediary research file (`.claude/docs/research/`) may contain raw search queries, result snippets, and search engine metadata for audit purposes. However, the final requirements document (`requirements_<release>_<yyyymmdd>.md`) must NOT include:
+- Raw search queries or search terms used
+- Search engine result counts, rankings, or snippets
+- Unvetted URLs copied directly from search results
+
+The "Web search findings" subsection under "Sources consulted" must contain only **curated references**: a URL, a title, and a short note on relevance. Strip all search process artifacts before writing the final output.
 
 ### 2. Requirement extraction
 
