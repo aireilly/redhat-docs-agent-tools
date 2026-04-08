@@ -33,14 +33,14 @@ The writer typically works from the **documentation repository**, not the code r
 
 ## Input
 
-```
+```text
 <base-path>/planning/plan.md
 <repo-path>/                      (source repo, provided via --repo)
 ```
 
 ## Output
 
-```
+```text
 <base-path>/code-evidence/evidence.json
 <base-path>/code-evidence/summary.md
 ```

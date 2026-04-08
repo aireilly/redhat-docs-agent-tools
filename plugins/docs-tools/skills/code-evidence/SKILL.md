@@ -63,7 +63,7 @@ If `--reindex` was provided, add `--reindex` to the command.
 
 Parse the JSON output and present results to the user in a readable format:
 
-```
+```markdown
 ## Results for: "<query>"
 
 **Repository:** <repo_path>
@@ -93,16 +93,16 @@ Include the full content of each result so the user can see the actual code. If 
 ## Examples
 
 Search an entire repo:
-```
-/code-evidence --repo /path/to/repo --query "how does authentication work"
+```text
+Skill: docs-tools:code-evidence, args: "--repo /path/to/repo --query \"how does authentication work\""
 ```
 
 Search scoped to specific directories:
-```
-/code-evidence --repo /path/to/repo --query "reconciler builder pattern" --filter-paths internal/controller,pkg/reconciler
+```text
+Skill: docs-tools:code-evidence, args: "--repo /path/to/repo --query \"reconciler builder pattern\" --filter-paths internal/controller,pkg/reconciler"
 ```
 
 Re-index after pulling new changes:
-```
-/code-evidence --repo /path/to/repo --query "new feature" --reindex
+```text
+Skill: docs-tools:code-evidence, args: "--repo /path/to/repo --query \"new feature\" --reindex"
 ```
