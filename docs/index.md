@@ -19,21 +19,13 @@ Plugins, skills, and agent tools for Red Hat documentation workflows. Install th
 
     [:octicons-arrow-right-24: View plugins](plugins.md)
 
-- :material-rocket-launch-outline:{ .lg .middle } **Get Started with Cursor**
+- :material-rocket-launch-outline:{ .lg .middle } **Get Started**
 
     ---
 
-    Set up Cursor, load project context, and run workflows
+    Learn what agent tools do and set up Cursor or Claude Code
 
-    [:octicons-arrow-right-24: Get Started with Cursor](get-started/index.md)
-
-- :material-download:{ .lg .middle } **Installation**
-
-    ---
-
-    Get set up with the marketplace and install plugins
-
-    [:octicons-arrow-right-24: Install](install/index.md)
+    [:octicons-arrow-right-24: Get Started](get-started/what-are-agent-tools.md)
 
 - :material-account-plus:{ .lg .middle } **Contributing**
 
