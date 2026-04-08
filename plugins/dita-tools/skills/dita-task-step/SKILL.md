@@ -117,7 +117,7 @@ When the user asks to fix list continuations:
 2. Find procedure modules (files with `:_mod-docs-content-type: PROCEDURE`)
 3. Run the Ruby script against each file:
    ```bash
-   ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-task-step/scripts/task_step.rb <file>
+   ruby ${CLAUDE_SKILL_DIR}/scripts/task_step.rb <file>
    ```
 4. Report the changes made
 
@@ -126,19 +126,19 @@ When the user asks to fix list continuations:
 To preview changes without modifying files:
 
 ```bash
-ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-task-step/scripts/task_step.rb <file> --dry-run
+ruby ${CLAUDE_SKILL_DIR}/scripts/task_step.rb <file> --dry-run
 ```
 
 ### Output to different file
 
 ```bash
-ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-task-step/scripts/task_step.rb <file> -o <output.adoc>
+ruby ${CLAUDE_SKILL_DIR}/scripts/task_step.rb <file> -o <output.adoc>
 ```
 
 ### Process all files in a directory
 
 ```bash
-find <folder> -name "*.adoc" -exec ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-task-step/scripts/task_step.rb {} \;
+find <folder> -name "*.adoc" -exec ruby ${CLAUDE_SKILL_DIR}/scripts/task_step.rb {} \;
 ```
 
 ## Example invocations
@@ -177,7 +177,7 @@ Or:
 
 ## Extension location
 
-The Ruby script is located at: `${CLAUDE_PLUGIN_ROOT}/skills/dita-task-step/scripts/task_step.rb`
+The Ruby script is located at: `${CLAUDE_SKILL_DIR}/scripts/task_step.rb`
 
 ## Related Vale rule
 

@@ -37,37 +37,37 @@ JIRA_URL=https://redhat.atlassian.net  # optional, defaults to redhat.atlassian.
 
 **Fetch a single issue:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --issue INFERENG-5233
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_reader.py --issue INFERENG-5233
 ```
 
 **Fetch issue with comments:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --issue INFERENG-5233 --include-comments
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_reader.py --issue INFERENG-5233 --include-comments
 ```
 
 **Fetch multiple issues:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --issue INFERENG-5233 --issue INFERENG-5049
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_reader.py --issue INFERENG-5233 --issue INFERENG-5049
 ```
 
 **Search issues by JQL (FAST - returns summaries):**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --jql "project=INFERENG AND status='In Progress'"
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_reader.py --jql "project=INFERENG AND status='In Progress'"
 ```
 
 **Search with full details (SLOW - fetches all fields):**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --jql "project=INFERENG AND status='In Progress'" --fetch-details
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_reader.py --jql "project=INFERENG AND status='In Progress'" --fetch-details
 ```
 
 **Traverse the ticket graph:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --graph INFERENG-5233
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_reader.py --graph INFERENG-5233
 ```
 
 **Graph with custom limits:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --graph INFERENG-5233 --max-children 10 --max-siblings 10 --max-links 20
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_reader.py --graph INFERENG-5233 --max-children 10 --max-siblings 10 --max-links 20
 ```
 
 ## Performance Modes

@@ -171,12 +171,12 @@ Workflow:
 
 2. **Extract references** from doc files:
    ```bash
-   python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-review-technical/scripts/code_scanner.py extract $(cat /tmp/docs-review-doc-files.txt) --output /tmp/tech-review-refs.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/code_scanner.py extract $(cat /tmp/docs-review-doc-files.txt) --output /tmp/tech-review-refs.json
    ```
 
 3. **Search repos for references** — Run the search subcommand to validate extracted references against cloned repos:
    ```bash
-   python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-review-technical/scripts/code_scanner.py search /tmp/tech-review-refs.json \
+   python3 ${CLAUDE_SKILL_DIR}/scripts/code_scanner.py search /tmp/tech-review-refs.json \
      /tmp/tech-review/repo1 [/tmp/tech-review/repo2 ...] \
      --output /tmp/tech-review-search.json
    ```
@@ -191,7 +191,7 @@ Workflow:
 
 4. **Discover undocumented features** — Run the discover subcommand to build a code-first feature inventory and compare it against the extracted doc references:
    ```bash
-   python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-review-technical/scripts/code_scanner.py discover \
+   python3 ${CLAUDE_SKILL_DIR}/scripts/code_scanner.py discover \
      /tmp/tech-review/repo1 [/tmp/tech-review/repo2 ...] \
      --refs-json /tmp/tech-review-refs.json \
      --output /tmp/tech-review-discover.json

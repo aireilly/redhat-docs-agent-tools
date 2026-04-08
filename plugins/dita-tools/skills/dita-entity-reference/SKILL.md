@@ -49,7 +49,7 @@ When the user asks to fix entity references:
 2. Find all `.adoc` files in the target location
 3. Run the Ruby script against each file:
    ```bash
-   ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-entity-reference/scripts/entity_reference.rb <file>
+   ruby ${CLAUDE_SKILL_DIR}/scripts/entity_reference.rb <file>
    ```
 4. Report the number of replacements made and any unknown entities found
 
@@ -58,13 +58,13 @@ When the user asks to fix entity references:
 To preview changes without modifying files:
 
 ```bash
-ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-entity-reference/scripts/entity_reference.rb <file> --dry-run
+ruby ${CLAUDE_SKILL_DIR}/scripts/entity_reference.rb <file> --dry-run
 ```
 
 ### Output to different file
 
 ```bash
-ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-entity-reference/scripts/entity_reference.rb <file> -o <output.adoc>
+ruby ${CLAUDE_SKILL_DIR}/scripts/entity_reference.rb <file> -o <output.adoc>
 ```
 
 ## Example invocations
@@ -92,4 +92,4 @@ ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-entity-reference/scripts/entity_reference
 
 ## Extension location
 
-The Ruby script is located at: `${CLAUDE_PLUGIN_ROOT}/skills/dita-entity-reference/scripts/entity_reference.rb`
+The Ruby script is located at: `${CLAUDE_SKILL_DIR}/scripts/entity_reference.rb`

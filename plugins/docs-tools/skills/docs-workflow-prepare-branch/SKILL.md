@@ -35,7 +35,7 @@ Contains the branch name created and the base ref used.
 Run the branch preparation script, passing through all arguments:
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-prepare-branch/scripts/prepare_branch.sh <ticket> --base-path <base-path> [--draft]
+bash ${CLAUDE_SKILL_DIR}/scripts/prepare_branch.sh <ticket> --base-path <base-path> [--draft]
 ```
 
 The script handles:

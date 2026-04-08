@@ -83,16 +83,16 @@ When the user chooses "One assembly" scope, use `resolve-includes.py` to build t
 
 ```bash
 # List all files included by an assembly (recursively follows include:: directives)
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/resolve-includes.py "$DOCS_REPO/assemblies/admin/assembly_installing.adoc" --base-dir "$DOCS_REPO"
+python3 ${CLAUDE_SKILL_DIR}/scripts/resolve-includes.py "$DOCS_REPO/assemblies/admin/assembly_installing.adoc" --base-dir "$DOCS_REPO"
 
 # Tree view showing the include hierarchy
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/resolve-includes.py "$DOCS_REPO/assemblies/admin/assembly_installing.adoc" --base-dir "$DOCS_REPO" --format tree
+python3 ${CLAUDE_SKILL_DIR}/scripts/resolve-includes.py "$DOCS_REPO/assemblies/admin/assembly_installing.adoc" --base-dir "$DOCS_REPO" --format tree
 
 # JSON output for programmatic use
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/resolve-includes.py "$DOCS_REPO/assemblies/admin/assembly_installing.adoc" --base-dir "$DOCS_REPO" --format json
+python3 ${CLAUDE_SKILL_DIR}/scripts/resolve-includes.py "$DOCS_REPO/assemblies/admin/assembly_installing.adoc" --base-dir "$DOCS_REPO" --format json
 
 # Include the root file itself in the output
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/cqa-assess/scripts/resolve-includes.py "$DOCS_REPO/assemblies/admin/assembly_installing.adoc" --base-dir "$DOCS_REPO" --include-root
+python3 ${CLAUDE_SKILL_DIR}/scripts/resolve-includes.py "$DOCS_REPO/assemblies/admin/assembly_installing.adoc" --base-dir "$DOCS_REPO" --include-root
 ```
 
 The script handles symlinks, attribute placeholders in paths, circular includes, and conditional includes (`ifdef`/`ifndef`). Exit codes: 0 (all resolved), 1 (some unresolved), 2 (invalid arguments).

@@ -80,7 +80,7 @@ When the user asks to fix line breaks:
 2. Find all `.adoc` files in the target location
 3. Run the Ruby script against each file:
    ```bash
-   ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-line-break/scripts/line_break.rb <file>
+   ruby ${CLAUDE_SKILL_DIR}/scripts/line_break.rb <file>
    ```
 4. Report the number of line breaks removed
 
@@ -89,19 +89,19 @@ When the user asks to fix line breaks:
 To preview changes without modifying files:
 
 ```bash
-ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-line-break/scripts/line_break.rb <file> --dry-run
+ruby ${CLAUDE_SKILL_DIR}/scripts/line_break.rb <file> --dry-run
 ```
 
 ### Output to different file
 
 ```bash
-ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-line-break/scripts/line_break.rb <file> -o <output.adoc>
+ruby ${CLAUDE_SKILL_DIR}/scripts/line_break.rb <file> -o <output.adoc>
 ```
 
 ### Process all files in a directory
 
 ```bash
-find <folder> -name "*.adoc" -exec ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-line-break/scripts/line_break.rb {} \;
+find <folder> -name "*.adoc" -exec ruby ${CLAUDE_SKILL_DIR}/scripts/line_break.rb {} \;
 ```
 
 ## Example invocations
@@ -133,7 +133,7 @@ Or:
 
 ## Extension location
 
-The Ruby script is located at: `${CLAUDE_PLUGIN_ROOT}/skills/dita-line-break/scripts/line_break.rb`
+The Ruby script is located at: `${CLAUDE_SKILL_DIR}/scripts/line_break.rb`
 
 ## Related Vale rule
 

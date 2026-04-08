@@ -35,27 +35,27 @@ JIRA_URL=https://redhat.atlassian.net  # optional, defaults to redhat.atlassian.
 
 **Push a release note:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-writer/scripts/jira_writer.py --issue INFERENG-5233 --release-note "Fixed issue with..."
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_writer.py --issue INFERENG-5233 --release-note "Fixed issue with..."
 ```
 
 **Update release note status:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-writer/scripts/jira_writer.py --issue INFERENG-5233 --status Proposed
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_writer.py --issue INFERENG-5233 --status Proposed
 ```
 
 **Update custom field:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-writer/scripts/jira_writer.py --issue INFERENG-5233 --custom-field customfield_10783 --value "Release note content"
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_writer.py --issue INFERENG-5233 --custom-field customfield_10783 --value "Release note content"
 ```
 
 **Batch update multiple issues:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-writer/scripts/jira_writer.py --issue INFERENG-5233 --issue INFERENG-5049 --status Approved
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_writer.py --issue INFERENG-5233 --issue INFERENG-5049 --status Approved
 ```
 
 **Read release note from file:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-writer/scripts/jira_writer.py --issue INFERENG-5233 --release-note-file /path/to/note.txt
+python3 ${CLAUDE_SKILL_DIR}/scripts/jira_writer.py --issue INFERENG-5233 --release-note-file /path/to/note.txt
 ```
 
 ## Output Format

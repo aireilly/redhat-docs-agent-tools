@@ -4,11 +4,14 @@ Follow the shared project conventions in @AGENTS.md for repository structure, sk
 
 ## Script calls in skills
 
-The runtime working directory is the **project root**, not the skill directory. Bare relative paths like `scripts/foo.py` will fail. Always use `${CLAUDE_PLUGIN_ROOT}` for **all** script calls (both internal and cross-skill):
+The runtime working directory is the **project root**, not the skill directory. Bare relative paths like `scripts/foo.py` will fail. Use the appropriate substitution variable:
+
+- **`${CLAUDE_SKILL_DIR}`** — resolves to the directory containing the skill's `SKILL.md`. Use for scripts bundled with the same skill.
+- **`${CLAUDE_PLUGIN_ROOT}`** — resolves to the plugin's installation directory. Use for cross-skill calls and hook/MCP/LSP subprocess contexts.
 
 ```bash
-# Internal call (skill invoking its own script)
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py info <url> --json
+# Same-skill call (skill invoking its own script)
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py info <url> --json
 
 # Cross-skill call (skill invoking another skill's script)
 ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-callouts/scripts/callouts.rb "$file"

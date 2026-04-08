@@ -18,17 +18,17 @@ gem install asciidoctor-reducer
 ## Usage
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-reduce-asciidoc/scripts/reduce_asciidoc.sh <file.adoc> [-o output.adoc]
+bash ${CLAUDE_SKILL_DIR}/scripts/reduce_asciidoc.sh <file.adoc> [-o output.adoc]
 ```
 
 ### Examples
 
 ```bash
 # Reduce an assembly (output to master-reduced.adoc in same directory)
-bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-reduce-asciidoc/scripts/reduce_asciidoc.sh master.adoc
+bash ${CLAUDE_SKILL_DIR}/scripts/reduce_asciidoc.sh master.adoc
 
 # Reduce with custom output path
-bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-reduce-asciidoc/scripts/reduce_asciidoc.sh master.adoc -o /tmp/flat-master.adoc
+bash ${CLAUDE_SKILL_DIR}/scripts/reduce_asciidoc.sh master.adoc -o /tmp/flat-master.adoc
 ```
 
 ## Example invocations

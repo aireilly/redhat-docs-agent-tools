@@ -28,12 +28,12 @@ Export Google content using the `gcloud` CLI for authentication:
 
 ### Run the script
 
-The script is at `${CLAUDE_PLUGIN_ROOT}/skills/docs-convert-gdoc-md/scripts/gdoc2md.py`.
+The script is at `${CLAUDE_SKILL_DIR}/scripts/gdoc2md.py`.
 
 Always quote the URL and output file arguments:
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-convert-gdoc-md/scripts/gdoc2md.py "<url>" ["<output_file>"]
+python3 ${CLAUDE_SKILL_DIR}/scripts/gdoc2md.py "<url>" ["<output_file>"]
 ```
 
 - The script auto-detects the URL type:

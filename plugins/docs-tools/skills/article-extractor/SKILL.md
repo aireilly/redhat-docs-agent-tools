@@ -25,22 +25,22 @@ The skill uses a Python script that downloads and parses HTML content.
 
 **Extract article from a URL:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "https://example.com/page"
+python3 ${CLAUDE_SKILL_DIR}/scripts/article_extractor.py --url "https://example.com/page"
 ```
 
 **Extract with specific output format:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "https://example.com/page" --format markdown
+python3 ${CLAUDE_SKILL_DIR}/scripts/article_extractor.py --url "https://example.com/page" --format markdown
 ```
 
 **Save to file:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "https://example.com/page" --output article.md
+python3 ${CLAUDE_SKILL_DIR}/scripts/article_extractor.py --url "https://example.com/page" --output article.md
 ```
 
 **Extract with custom article selector:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "https://example.com/page" --selector "article.main-content"
+python3 ${CLAUDE_SKILL_DIR}/scripts/article_extractor.py --url "https://example.com/page" --selector "article.main-content"
 ```
 
 ### Command Line Options
@@ -68,7 +68,7 @@ Strips all HTML tags and returns plain text content.
 ### Red Hat Documentation
 ```bash
 # Extract from Red Hat OpenShift Lightspeed documentation
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py \
+python3 ${CLAUDE_SKILL_DIR}/scripts/article_extractor.py \
   --url "https://docs.redhat.com/en/documentation/red_hat_openshift_lightspeed/1.0/html/install/ols-installing-lightspeed" \
   --format markdown \
   --output openshift-lightspeed-install.md
@@ -77,7 +77,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor
 ### Generic Documentation Site
 ```bash
 # Extract from any site with article tags
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py \
+python3 ${CLAUDE_SKILL_DIR}/scripts/article_extractor.py \
   --url "https://example.com/docs/guide" \
   --selector "article.documentation" \
   --format text

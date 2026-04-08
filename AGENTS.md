@@ -34,10 +34,16 @@ Use bare skill names for portability. Qualified names (`plugin:skill`) are only 
 
 The runtime working directory is the **project root**, not the skill directory. Bare relative paths like `scripts/foo.py` will fail with "No such file or directory". Always use an absolute-style path:
 
-In **Claude Code**, use `${CLAUDE_PLUGIN_ROOT}` (resolves to the plugin root at runtime):
+In **Claude Code**, two substitution variables are available in skill content:
+
+- **`${CLAUDE_SKILL_DIR}`** — the directory containing the skill's `SKILL.md`. Use for scripts bundled with the same skill.
+- **`${CLAUDE_PLUGIN_ROOT}`** — the plugin's installation directory. Use for cross-skill calls.
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py info <url> --json
+# Same-skill call
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py info <url> --json
+
+# Cross-skill calls
 ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-callouts/scripts/callouts.rb "$file"
 bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-includes/scripts/find_includes.sh "$file"
 ```
@@ -68,7 +74,8 @@ Do not use old slash-command syntax (for example, `/jira-reader --issue PROJ-123
 
 | Approach | When to use | Examples |
 | --- | --- | --- |
-| `${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/...` | All script calls in Claude Code (internal and cross-skill) | `${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py` |
+| `${CLAUDE_SKILL_DIR}/scripts/...` | Same-skill script calls in Claude Code | `${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py` |
+| `${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/...` | Cross-skill script calls in Claude Code | `${CLAUDE_PLUGIN_ROOT}/skills/dita-callouts/scripts/callouts.rb` |
 | `plugins/<plugin>/skills/<skill>/scripts/...` | All script calls in Cursor (internal and cross-skill) | `plugins/docs-tools/skills/git-pr-reader/scripts/git_pr_reader.py` |
 | `Skill: skill-name` | Loading full skill knowledge — rules, checklists, domain expertise the model applies | `rh-ssg-formatting`, `ibm-sg-punctuation` |
 

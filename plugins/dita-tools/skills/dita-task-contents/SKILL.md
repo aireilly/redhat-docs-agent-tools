@@ -73,7 +73,7 @@ When the user asks to fix procedure titles:
 2. Find procedure modules (files with `:_mod-docs-content-type: PROCEDURE`)
 3. Run the Ruby script against each file:
    ```bash
-   ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-task-contents/scripts/task_contents.rb <file>
+   ruby ${CLAUDE_SKILL_DIR}/scripts/task_contents.rb <file>
    ```
 4. Report the changes made
 
@@ -82,19 +82,19 @@ When the user asks to fix procedure titles:
 To preview changes without modifying files:
 
 ```bash
-ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-task-contents/scripts/task_contents.rb <file> --dry-run
+ruby ${CLAUDE_SKILL_DIR}/scripts/task_contents.rb <file> --dry-run
 ```
 
 ### Output to different file
 
 ```bash
-ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-task-contents/scripts/task_contents.rb <file> -o <output.adoc>
+ruby ${CLAUDE_SKILL_DIR}/scripts/task_contents.rb <file> -o <output.adoc>
 ```
 
 ### Process all files in a directory
 
 ```bash
-find <folder> -name "*.adoc" -exec ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-task-contents/scripts/task_contents.rb {} \;
+find <folder> -name "*.adoc" -exec ruby ${CLAUDE_SKILL_DIR}/scripts/task_contents.rb {} \;
 ```
 
 ## Example invocations
@@ -138,7 +138,7 @@ Or:
 
 ## Extension location
 
-The Ruby script is located at: `${CLAUDE_PLUGIN_ROOT}/skills/dita-task-contents/scripts/task_contents.rb`
+The Ruby script is located at: `${CLAUDE_SKILL_DIR}/scripts/task_contents.rb`
 
 ## Related Vale rule
 

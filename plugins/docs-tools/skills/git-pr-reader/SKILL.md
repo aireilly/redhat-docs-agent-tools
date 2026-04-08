@@ -35,62 +35,62 @@ Unified interface for GitHub Pull Requests and GitLab Merge Requests — read, r
 #### read — Read PR/MR data with diffs and file filtering
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py read --url "https://github.com/owner/repo/pull/123"
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py read --url "https://gitlab.com/group/project/-/merge_requests/456" --format markdown
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py read --url "https://github.com/owner/repo/pull/123" --no-filter
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py read --url "https://github.com/owner/repo/pull/123"
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py read --url "https://gitlab.com/group/project/-/merge_requests/456" --format markdown
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py read --url "https://github.com/owner/repo/pull/123" --no-filter
 ```
 
 #### info — Get PR/MR information
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py info https://github.com/owner/repo/pull/123 --json
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py info https://github.com/owner/repo/pull/123 --json
 ```
 
 #### files — List changed files
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py files https://github.com/owner/repo/pull/123
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py files https://github.com/owner/repo/pull/123 --filter "*.adoc" --json
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py files https://github.com/owner/repo/pull/123
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py files https://github.com/owner/repo/pull/123 --filter "*.adoc" --json
 ```
 
 #### comments — List review comments
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py comments https://github.com/owner/repo/pull/123
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py comments https://github.com/owner/repo/pull/123 --include-resolved --json
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py comments https://github.com/owner/repo/pull/123
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py comments https://github.com/owner/repo/pull/123 --include-resolved --json
 ```
 
 #### diff — Get unified diff
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py diff https://github.com/owner/repo/pull/123
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py diff https://github.com/owner/repo/pull/123
 ```
 
 #### post — Post review comments
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py post https://github.com/owner/repo/pull/123 comments.json
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py post https://github.com/owner/repo/pull/123 comments.json --dry-run
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py post https://github.com/owner/repo/pull/123 comments.json
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py post https://github.com/owner/repo/pull/123 comments.json --dry-run
 ```
 
 #### extract — Extract line numbers from diff
 
 ```bash
 # Find line number for a pattern
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py extract https://github.com/owner/repo/pull/123 path/to/file.adoc "pattern"
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py extract https://github.com/owner/repo/pull/123 path/to/file.adoc "pattern"
 
 # Dump all added/modified lines
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py extract --dump https://github.com/owner/repo/pull/123 path/to/file.adoc
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py extract --dump https://github.com/owner/repo/pull/123 path/to/file.adoc
 
 # Validate a comments JSON file against the diff
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py extract --validate https://github.com/owner/repo/pull/123 comments.json
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py extract --validate https://github.com/owner/repo/pull/123 comments.json
 ```
 
 #### detect — Auto-detect PR/MR for current branch
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py detect
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py detect --json
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py detect
+python3 ${CLAUDE_SKILL_DIR}/scripts/git_pr_reader.py detect --json
 ```
 
 ### Authentication

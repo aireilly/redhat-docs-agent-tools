@@ -56,14 +56,14 @@ When the user asks to add abstract role to files:
 2. Find all `.adoc` files in the target location
 3. Run the Ruby script against each file:
    ```bash
-   ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-add-shortdesc-abstract/scripts/short_description.rb <file>
+   ruby ${CLAUDE_SKILL_DIR}/scripts/short_description.rb <file>
    ```
 4. Report which files were updated
 
 ### Process all files in a directory
 
 ```bash
-find <folder> -name "*.adoc" -exec ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-add-shortdesc-abstract/scripts/short_description.rb {} \;
+find <folder> -name "*.adoc" -exec ruby ${CLAUDE_SKILL_DIR}/scripts/short_description.rb {} \;
 ```
 
 ## Example invocations
@@ -117,7 +117,7 @@ Or:
 
 ## Script location
 
-The Ruby script is located at: `${CLAUDE_PLUGIN_ROOT}/skills/dita-add-shortdesc-abstract/scripts/short_description.rb`
+The Ruby script is located at: `${CLAUDE_SKILL_DIR}/scripts/short_description.rb`
 
 ## Related skills
 

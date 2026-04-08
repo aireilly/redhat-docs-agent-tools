@@ -96,14 +96,14 @@ When the user asks to add content type attributes:
 2. Find all `.adoc` files in the target location
 3. Run the Ruby script against each file:
    ```bash
-   ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-content-type/scripts/content_type.rb <file>
+   ruby ${CLAUDE_SKILL_DIR}/scripts/content_type.rb <file>
    ```
 4. Report which files were updated
 
 ### Process all files in a directory
 
 ```bash
-find <folder> -name "*.adoc" -exec ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-content-type/scripts/content_type.rb {} \;
+find <folder> -name "*.adoc" -exec ruby ${CLAUDE_SKILL_DIR}/scripts/content_type.rb {} \;
 ```
 
 ### Dry-run mode
@@ -111,7 +111,7 @@ find <folder> -name "*.adoc" -exec ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-conten
 Preview changes without modifying files:
 
 ```bash
-ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-content-type/scripts/content_type.rb <file.adoc> --dry-run
+ruby ${CLAUDE_SKILL_DIR}/scripts/content_type.rb <file.adoc> --dry-run
 ```
 
 ## Example invocations
@@ -157,7 +157,7 @@ Options:
 
 ## Extension location
 
-The Ruby script is located at: `${CLAUDE_PLUGIN_ROOT}/skills/dita-content-type/scripts/content_type.rb`
+The Ruby script is located at: `${CLAUDE_SKILL_DIR}/scripts/content_type.rb`
 
 ## Related
 

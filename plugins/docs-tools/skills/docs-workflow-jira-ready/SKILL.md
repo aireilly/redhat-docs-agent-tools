@@ -31,7 +31,7 @@ Requires `JIRA_AUTH_TOKEN` and `JIRA_EMAIL` in the environment (typically source
 Run the check script:
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-jira-ready/scripts/jira-ready-check.sh \
+bash ${CLAUDE_SKILL_DIR}/scripts/jira-ready-check.sh \
   --jql "project=PROJ AND labels=docs-needed AND labels != docs-workflow-started" \
   --base-path .claude/docs \
   --label docs-workflow-started
@@ -67,7 +67,7 @@ The script:
 When `--add-label` is passed, the script adds the tracking label to each ticket in the `ready` list via the JIRA REST API after outputting results. This prevents the same tickets from appearing on the next cron run.
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-jira-ready/scripts/jira-ready-check.sh \
+bash ${CLAUDE_SKILL_DIR}/scripts/jira-ready-check.sh \
   --jql "project=PROJ AND labels=docs-needed" \
   --add-label
 ```

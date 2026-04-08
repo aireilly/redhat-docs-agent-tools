@@ -35,7 +35,7 @@ Requires `JIRA_AUTH_TOKEN` and `JIRA_EMAIL` in the environment (typically source
 Run the create-jira-ticket script:
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-create-jira/scripts/create-jira-ticket.sh "$TICKET" "$PROJECT" "${BASE_PATH}/planning/plan.md"
+bash ${CLAUDE_SKILL_DIR}/scripts/create-jira-ticket.sh "$TICKET" "$PROJECT" "${BASE_PATH}/planning/plan.md"
 ```
 
 The script handles all steps:

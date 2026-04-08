@@ -136,7 +136,7 @@ When the user asks to fix additional resources:
 2. Find all `.adoc` files in the target location
 3. Run the Ruby script against each file:
    ```bash
-   ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-related-links/scripts/related_links.rb <file>
+   ruby ${CLAUDE_SKILL_DIR}/scripts/related_links.rb <file>
    ```
 4. Report the changes made
 
@@ -145,19 +145,19 @@ When the user asks to fix additional resources:
 To preview changes without modifying files:
 
 ```bash
-ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-related-links/scripts/related_links.rb <file> --dry-run
+ruby ${CLAUDE_SKILL_DIR}/scripts/related_links.rb <file> --dry-run
 ```
 
 ### Output to different file
 
 ```bash
-ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-related-links/scripts/related_links.rb <file> -o <output.adoc>
+ruby ${CLAUDE_SKILL_DIR}/scripts/related_links.rb <file> -o <output.adoc>
 ```
 
 ### Process all files in a directory
 
 ```bash
-find <folder> -name "*.adoc" -exec ruby ${CLAUDE_PLUGIN_ROOT}/skills/dita-related-links/scripts/related_links.rb {} \;
+find <folder> -name "*.adoc" -exec ruby ${CLAUDE_SKILL_DIR}/scripts/related_links.rb {} \;
 ```
 
 ## Example invocations
@@ -204,7 +204,7 @@ Or:
 
 ## Extension location
 
-The Ruby script is located at: `${CLAUDE_PLUGIN_ROOT}/skills/dita-related-links/scripts/related_links.rb`
+The Ruby script is located at: `${CLAUDE_SKILL_DIR}/scripts/related_links.rb`
 
 ## Related Vale rule
 
