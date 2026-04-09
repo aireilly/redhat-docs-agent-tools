@@ -1,7 +1,7 @@
 ---
 name: docs-orchestrator
 description: Documentation workflow orchestrator. Reads the step list from .claude/docs-workflow.yaml (or the plugin default). Runs steps sequentially, manages progress state, handles iteration and confirmation gates. Claude is the orchestrator — the YAML is a step list, not a workflow engine.
-argument-hint: <ticket> [--workflow <name>] [--pr <url>]... [--mkdocs] [--draft] [--create-jira <PROJECT>]
+argument-hint: <ticket> [--workflow <name>] [--pr <url>]... [--mkdocs] [--draft] [--repo-path <path>] [--create-jira <PROJECT>]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, AskUserQuestion
 ---
 
@@ -16,13 +16,15 @@ This skill teaches you how to run a documentation workflow pipeline. You read th
 Before starting, verify the environment:
 
 ```bash
-# Source ~/.env if JIRA_AUTH_TOKEN is not set
-if [[ -z "${JIRA_AUTH_TOKEN:-}" ]]; then
+# Source ~/.env if JIRA_API_TOKEN is not set
+if [[ -z "${JIRA_API_TOKEN:-}" ]]; then
   set -a && source ~/.env 2>/dev/null && set +a
 fi
 ```
 
-1. If `JIRA_AUTH_TOKEN` is still unset → **STOP** and ask the user to set it in `~/.env`
+1. If `JIRA_API_TOKEN` is still unset:
+   - In interactive mode: **STOP** and ask the user to set it in `~/.env`
+   - In headless mode (no user interaction available, e.g., ACP): log a warning and continue — agents will use `~/.env` credentials for JIRA access (populated by `setup.sh`)
 2. Warn (don't stop) if `GITHUB_TOKEN` or `GITLAB_TOKEN` are unset
 3. Install hooks (safe to re-run):
 
@@ -37,6 +39,7 @@ bash ${CLAUDE_SKILL_DIR}/scripts/setup-hooks.sh
 - `--pr <url>` — PR/MR URLs (repeatable, accumulated into a list)
 - `--mkdocs` — Use Material for MkDocs format instead of AsciiDoc
 - `--draft` — Write documentation to a staging area instead of directly into the repo. When set, the writing step uses DRAFT placement mode (no framework detection, no branch creation). Without this flag, UPDATE-IN-PLACE is the default
+- `--repo-path <path>` — Target repository for UPDATE-IN-PLACE mode. The docs-writer agent explores this directory for framework detection and writes files there, instead of writing to the repository at the current working directory. **Precedence**: if both `--repo-path` and `--draft` are passed, `--repo-path` wins — log a warning and ignore `--draft`
 - `--create-jira <PROJECT>` — Create a linked JIRA ticket in the specified project
 
 ## Load the step list
@@ -62,7 +65,7 @@ Read the YAML file and extract the ordered step list. Each step has: `name`, `sk
 All of the following must be true. If any check fails, **STOP** with a clear error:
 
 - All step names are unique
-- All `skill` references are fully qualified (`plugin:skill` format)
+- All `skill` references resolve to a known skill (bare names like `docs-workflow-writing` are preferred; fully qualified `plugin:skill` format is also accepted)
 - Input dependencies are satisfied — for each step with `inputs`, every referenced step name must be present in the step list (unless it has a `when` condition that would skip it)
 
 ### Input dependencies
@@ -89,15 +92,25 @@ The orchestrator validates at load time that every step name in `inputs` exists 
 Every step writes to a predictable folder based on the ticket ID and step name:
 
 ```
-.claude/docs/<ticket>/<step-name>/
+artifacts/<ticket>/<step-name>/
 ```
 
 The ticket ID is converted to **lowercase** for directory names (e.g., `PROJ-123` → `proj-123`).
 
+### Resolve base path
+
+Resolve the base path to an absolute path so agents (which may run in a different working directory) can locate files correctly:
+
+```bash
+BASE_PATH="$(cd "$(git rev-parse --show-toplevel)" && pwd)/artifacts/${TICKET_LOWER}"
+```
+
+Use this absolute `BASE_PATH` for the progress file's `base_path` field and for all `--base-path` arguments passed to step skills.
+
 ### Folder structure
 
 ```
-.claude/docs/proj-123/
+artifacts/proj-123/
   requirements/
     requirements.md
   planning/
@@ -116,13 +129,13 @@ The ticket ID is converted to **lowercase** for directory names (e.g., `PROJ-123
     docs-workflow_proj-123.json
 ```
 
-Each step skill knows its own output folder and writes there. Each step reads input from upstream step folders referenced in its `inputs` list. The orchestrator passes the base path `.claude/docs/<ticket>/` — step skills derive everything else by convention.
+Each step skill knows its own output folder and writes there. Each step reads input from upstream step folders referenced in its `inputs` list. The orchestrator passes the base path `artifacts/<ticket>/` — step skills derive everything else by convention.
 
 ## Progress file
 
 Claude writes the progress file directly using the Write tool. Create it after parsing arguments, before step 1. Update it after each step.
 
-**Location**: `.claude/docs/<ticket>/workflow/<workflow-type>_<ticket>.json`
+**Location**: `artifacts/<ticket>/workflow/<workflow-type>_<ticket>.json`
 
 The `workflow_type` field and filename prefix match the YAML's `workflow.name`. This allows multiple workflow types to run against the same ticket without conflict.
 
@@ -132,7 +145,7 @@ The `workflow_type` field and filename prefix match the YAML's `workflow.name`. 
 {
   "workflow_type": "<workflow.name from YAML>",
   "ticket": "<TICKET>",
-  "base_path": ".claude/docs/<ticket>",
+  "base_path": "/absolute/path/to/artifacts/<ticket>",
   "status": "in_progress",
   "created_at": "<ISO 8601>",
   "updated_at": "<ISO 8601>",
@@ -152,7 +165,7 @@ The `workflow_type` field and filename prefix match the YAML's `workflow.name`. 
 }
 ```
 
-The `output` field records the step's output folder path (e.g., `.claude/docs/proj-123/writing/`) once completed.
+The `output` field records the step's output folder path (e.g., `artifacts/proj-123/writing/`) once completed.
 
 ### Status values
 
@@ -170,7 +183,7 @@ A top-level array listing steps in canonical order. This field exists so the Sto
 
 ## Check for existing work
 
-Before starting, check for a progress file at `.claude/docs/<ticket>/workflow/<workflow-type>_<ticket>.json`.
+Before starting, check for a progress file at `artifacts/<ticket>/workflow/<workflow-type>_<ticket>.json`.
 
 **If a progress file exists:**
 
@@ -196,12 +209,11 @@ Run steps in the order defined by the YAML. For each step:
 
 Build the args string for the step skill:
 
-1. **Always**: `<ticket> --base-path <base_path>` — the ticket ID and the base output path
+1. **Always**: `<ticket> --base-path <base_path> --format <format>` — the ticket ID, the **absolute** base output path, and the documentation format (`adoc` or `mkdocs`)
 2. **From orchestrator context**: Step-specific args from parsed CLI flags:
    - `requirements`: `[--pr <url>]...`
-   - `prepare-branch`: `[--draft]`
-   - `writing`: `--format <adoc|mkdocs> [--draft]`
-   - `style-review`: `--format <adoc|mkdocs>`
+   - `prepare-branch`: `[--draft] [--repo-path <path>]`
+   - `writing`: `[--draft] [--repo-path <path>]`
    - `create-jira`: `--project <PROJECT>`
 
 Step skills derive their own output folder and input folders from `--base-path` and step name conventions. No per-input flag wiring needed.

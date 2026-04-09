@@ -12,7 +12,7 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 ## Arguments
 
 - `$1` — JIRA ticket ID (required)
-- `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
+- `--base-path <path>` — Base output path (e.g., `artifacts/proj-123`)
 - `--pr <url>` — PR/MR URL to include in analysis (repeatable)
 
 ## Output
@@ -37,13 +37,13 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2. Dispatch agent
 
-Dispatch the `requirements-analyst` agent with the following prompt.
+**You MUST use the Agent tool** to invoke the `requirements-analyst` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
 
 **Agent tool parameters:**
 - `subagent_type`: `requirements-analyst`
 - `description`: `Analyze requirements for <TICKET>`
 
-**Prompt:**
+**Prompt** (pass this as the `prompt` parameter to the Agent tool):
 
 > Analyze documentation requirements for JIRA ticket `<TICKET>`.
 >

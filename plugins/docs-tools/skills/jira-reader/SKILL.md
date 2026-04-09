@@ -9,6 +9,14 @@ allowed-tools: Read, Bash, Grep, Glob
 
 This skill provides read-only access to JIRA issues on Red Hat Issue Tracker (https://redhat.atlassian.net).
 
+## Prerequisites
+
+The script requires Python packages `jira` and `ratelimit`:
+
+```bash
+python3 -m pip install jira ratelimit
+```
+
 ## Capabilities
 
 - **Fetch Issue Details**: Get full issue information including description, status, priority, assignee, components
@@ -28,7 +36,7 @@ The skill uses a Python script that connects to JIRA using an authentication tok
 Set in `~/.env` (see docs-tools README for setup):
 
 ```bash
-JIRA_AUTH_TOKEN=your-jira-api-token
+JIRA_API_TOKEN=your-jira-api-token
 JIRA_EMAIL=you@redhat.com           # required for Atlassian Cloud
 JIRA_URL=https://redhat.atlassian.net  # optional, defaults to redhat.atlassian.net
 ```

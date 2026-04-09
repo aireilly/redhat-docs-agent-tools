@@ -19,22 +19,9 @@ if ! cd "${CLAUDE_PROJECT_DIR:-.}" 2>/dev/null; then
   exit 2
 fi
 
-# Anti-loop guard: if the hook has blocked stop too many times in a row,
-# allow stop to prevent infinite loops. Uses a counter file on disk.
-COUNTER_FILE=".claude/docs/.stop_hook_count"
-if [ -f "$COUNTER_FILE" ]; then
-  COUNT=$(cat "$COUNTER_FILE")
-else
-  COUNT=0
-fi
-if [ "$COUNT" -ge 5 ]; then
-  rm -f "$COUNTER_FILE"
-  exit 0
-fi
-
 # Look for progress files
 shopt -s nullglob
-PROGRESS_FILES=(.claude/docs/*/workflow/*.json)
+PROGRESS_FILES=(artifacts/*/workflow/*.json)
 shopt -u nullglob
 if [ ${#PROGRESS_FILES[@]} -eq 0 ]; then
   exit 0
@@ -50,6 +37,18 @@ for pfile in "${PROGRESS_FILES[@]}"; do
 
   TICKET=$(jq -r '.ticket' "$pfile")
   WORKFLOW_TYPE=$(jq -r '.workflow_type' "$pfile")
+
+  # Anti-loop guard: per-workflow counter prevents infinite blocking.
+  COUNTER_FILE="${pfile}.stop_count"
+  if [ -f "$COUNTER_FILE" ]; then
+    COUNT=$(cat "$COUNTER_FILE")
+  else
+    COUNT=0
+  fi
+  if [ "$COUNT" -ge 5 ]; then
+    rm -f "$COUNTER_FILE"
+    continue
+  fi
 
   # Get step order from the progress file
   mapfile -t STEP_ORDER < <(jq -r '.step_order[]' "$pfile" 2>/dev/null)
@@ -75,9 +74,9 @@ for pfile in "${PROGRESS_FILES[@]}"; do
     exit 2
   fi
 
-  # All steps done — orchestrator will update the top-level status next
+  # All steps done — clean up counter
+  rm -f "$COUNTER_FILE"
 done
 
-# No incomplete workflows found — reset counter and allow stop
-rm -f "$COUNTER_FILE"
+# No incomplete workflows found — allow stop
 exit 0

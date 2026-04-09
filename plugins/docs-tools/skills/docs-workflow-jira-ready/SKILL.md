@@ -16,7 +16,7 @@ Gate skill for automated docs-orchestrator runs. Checks JIRA for new tickets mat
 ## Arguments
 
 - `--jql <query>` — JQL query string (required). Wrap in quotes.
-- `--base-path <path>` — Directory to check for existing progress files (default: `.claude/docs`)
+- `--base-path <path>` — Directory to check for existing progress files (default: `artifacts`)
 - `--label <label>` — JIRA label that marks a ticket as already started (default: `docs-workflow-started`)
 - `--dry-run` — Show what would be returned without adding labels or side effects (default behavior; included for explicitness)
 - `--add-label` — After returning results, add the `--label` value to each returned ticket in JIRA (opt-in, prevents re-processing on next run)
@@ -24,7 +24,7 @@ Gate skill for automated docs-orchestrator runs. Checks JIRA for new tickets mat
 
 ## Environment
 
-Requires `JIRA_AUTH_TOKEN` and `JIRA_EMAIL` in the environment (typically sourced from `~/.env`). Both are validated before any API calls.
+Requires `JIRA_API_TOKEN` and `JIRA_EMAIL` in the environment (typically sourced from `~/.env`). Both are validated before any API calls.
 
 ## Execution
 
@@ -33,7 +33,7 @@ Run the check script:
 ```bash
 bash ${CLAUDE_SKILL_DIR}/scripts/jira-ready-check.sh \
   --jql "project=PROJ AND labels=docs-needed AND labels != docs-workflow-started" \
-  --base-path .claude/docs \
+  --base-path artifacts \
   --label docs-workflow-started
 ```
 

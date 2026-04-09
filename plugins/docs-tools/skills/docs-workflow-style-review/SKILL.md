@@ -12,7 +12,7 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 ## Arguments
 
 - `$1` — JIRA ticket ID (required)
-- `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
+- `--base-path <path>` — Base output path (e.g., `artifacts/proj-123`)
 - `--format <adoc|mkdocs>` — Documentation format (default: `adoc`)
 
 ## Input
@@ -44,13 +44,15 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2. Dispatch agent
 
-Dispatch the `docs-reviewer` agent with a format-specific prompt.
+**You MUST use the Agent tool** to invoke the `docs-reviewer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
+
+Select the prompt below based on the `--format` flag.
 
 **Agent tool parameters:**
 - `subagent_type`: `docs-reviewer`
 - `description`: `Review documentation for <TICKET>`
 
-**Prompt (AsciiDoc — `--format adoc`):**
+**Prompt for AsciiDoc** (`--format adoc`) — pass as the `prompt` parameter to the Agent tool:
 
 > Review the AsciiDoc documentation drafts for ticket `<TICKET>`.
 > Source drafts location: `<DRAFTS_DIR>/`
@@ -68,7 +70,7 @@ Dispatch the `docs-reviewer` agent with a format-specific prompt.
 >
 > Save the review report to: `<OUTPUT_FILE>`
 
-**Prompt (MkDocs — `--format mkdocs`):**
+**Prompt for MkDocs** (`--format mkdocs`) — pass as the `prompt` parameter to the Agent tool:
 
 > Review the Material for MkDocs Markdown documentation drafts for ticket `<TICKET>`.
 > Source drafts location: `<DRAFTS_DIR>/`

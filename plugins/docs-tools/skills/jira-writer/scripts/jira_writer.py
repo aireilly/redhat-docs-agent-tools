@@ -3,12 +3,13 @@
 JIRA Writer Script for Claude Code Skill
 
 This script provides write access to JIRA issues on Red Hat Issue Tracker.
-It can update release notes, custom fields, and issue status.
+It can update release notes, custom fields, issue status, and labels.
 
 Usage:
     python jira_writer.py --issue COO-1145 --release-note "Fixed bug..."
     python jira_writer.py --issue COO-1145 --status Proposed
     python jira_writer.py --issue COO-1145 --custom-field customfield_12317313 --value "Content"
+    python jira_writer.py --issue COO-1145 --labels-add docs-needed --labels-remove docs-pending
 """
 
 import os
@@ -48,9 +49,9 @@ class JiraWriter:
         """Initialize JIRA connection with appropriate authentication."""
         load_env_file()
 
-        token = os.environ.get('JIRA_AUTH_TOKEN')
+        token = os.environ.get('JIRA_API_TOKEN') or os.environ.get('JIRA_AUTH_TOKEN')
         if not token:
-            raise ValueError("JIRA_AUTH_TOKEN environment variable not set. Add it to ~/.env")
+            raise ValueError("JIRA_API_TOKEN environment variable not set. Add it to ~/.env")
 
         server = server or os.environ.get('JIRA_URL', 'https://redhat.atlassian.net')
 
@@ -151,6 +152,57 @@ class JiraWriter:
 
         return self.update_issue(jira_id, fields)
 
+    @sleep_and_retry
+    @limits(calls=2, period=5)
+    def update_labels(self, jira_id, add_labels=None, remove_labels=None):
+        """
+        Add and/or remove labels from a JIRA issue.
+
+        Uses incremental update operations (add/remove) rather than
+        replacing the entire label set.
+
+        Args:
+            jira_id: JIRA issue key
+            add_labels: List of labels to add (or None)
+            remove_labels: List of labels to remove (or None)
+
+        Returns:
+            Dictionary with update results
+        """
+        label_updates = []
+        for label in (add_labels or []):
+            label_updates.append({"add": label})
+        for label in (remove_labels or []):
+            label_updates.append({"remove": label})
+
+        if not label_updates:
+            return {
+                "success": True,
+                "issue_key": jira_id,
+                "labels_added": [],
+                "labels_removed": [],
+                "note": "no label changes requested"
+            }
+
+        try:
+            issue = self.jira.issue(jira_id)
+            issue.update(update={"labels": label_updates})
+
+            return {
+                "success": True,
+                "issue_key": jira_id,
+                "labels_added": add_labels or [],
+                "labels_removed": remove_labels or [],
+                "url": f"{self.server}/browse/{jira_id}"
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to update labels on {jira_id}: {str(e)}",
+                "issue_key": jira_id
+            }
+
 
 def main():
     """Main entry point for the script."""
@@ -189,6 +241,18 @@ def main():
         action='store_true',
         help='Show what would be updated without making changes'
     )
+    parser.add_argument(
+        '--labels-add',
+        action='append',
+        default=[],
+        help='Label to add to the issue (repeatable)'
+    )
+    parser.add_argument(
+        '--labels-remove',
+        action='append',
+        default=[],
+        help='Label to remove from the issue (repeatable)'
+    )
 
     args = parser.parse_args()
 
@@ -196,9 +260,10 @@ def main():
     has_release_note = args.release_note or args.release_note_file
     has_status = args.status is not None
     has_custom_field = args.custom_field and args.value
+    has_label_update = args.labels_add or args.labels_remove
 
-    if not (has_release_note or has_status or has_custom_field):
-        parser.error("Must specify one of: --release-note, --release-note-file, --status, or --custom-field with --value")
+    if not (has_release_note or has_status or has_custom_field or has_label_update):
+        parser.error("Must specify one of: --release-note, --release-note-file, --status, --custom-field with --value, or --labels-add/--labels-remove")
 
     if args.custom_field and not args.value:
         parser.error("--custom-field requires --value")
@@ -237,22 +302,36 @@ def main():
                 if args.custom_field:
                     result["would_update"][args.custom_field] = args.value[:100] + "..." if isinstance(args.value, str) and len(args.value) > 100 else args.value
 
+                if has_label_update:
+                    result["would_add_labels"] = args.labels_add
+                    result["would_remove_labels"] = args.labels_remove
+
                 results.append(result)
 
             else:
-                # Perform actual updates
+                result = None
+
+                # Perform field updates
                 if release_note and args.status:
-                    # Push release note with status
                     result = writer.push_release_note(issue_key, release_note, args.status)
                 elif release_note:
-                    # Push release note with default status
                     result = writer.push_release_note(issue_key, release_note)
                 elif args.status:
-                    # Update only status
                     result = writer.update_release_note_status(issue_key, args.status)
                 elif args.custom_field:
-                    # Update custom field
                     result = writer.update_custom_field(issue_key, args.custom_field, args.value)
+
+                # Perform label updates (can run alongside field updates)
+                if has_label_update:
+                    label_result = writer.update_labels(issue_key, args.labels_add, args.labels_remove)
+                    if result is None:
+                        result = label_result
+                    else:
+                        # Merge label results into the field update result
+                        result["labels_added"] = label_result.get("labels_added", [])
+                        result["labels_removed"] = label_result.get("labels_removed", [])
+                        if not label_result.get("success", True):
+                            result["label_error"] = label_result.get("error")
 
                 results.append(result)
 

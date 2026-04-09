@@ -48,9 +48,9 @@ class JiraReader:
         """Initialize JIRA connection with appropriate authentication."""
         load_env_file()
 
-        token = os.environ.get('JIRA_AUTH_TOKEN')
+        token = os.environ.get('JIRA_API_TOKEN') or os.environ.get('JIRA_AUTH_TOKEN')
         if not token:
-            raise ValueError("JIRA_AUTH_TOKEN environment variable not set. Add it to ~/.env")
+            raise ValueError("JIRA_API_TOKEN environment variable not set. Add it to ~/.env")
 
         server = server or os.environ.get('JIRA_URL', 'https://redhat.atlassian.net')
 

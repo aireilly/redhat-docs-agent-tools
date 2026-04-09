@@ -2,7 +2,7 @@ workflow:
   name: docs-workflow
   description: Multi-stage documentation workflow for a JIRA ticket. Requirements analysis, planning, writing, technical review, style review, and optionally JIRA creation.
 
-  # All step outputs go to: .claude/docs/<ticket>/<step-name>/
+  # All step outputs go to: artifacts/<ticket>/<step-name>/
   # Each step reads its inputs from upstream step folders by convention.
   steps:
     - name: requirements

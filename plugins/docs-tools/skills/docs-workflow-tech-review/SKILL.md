@@ -14,7 +14,7 @@ This skill performs a single review pass. The iteration loop (re-running with fi
 ## Arguments
 
 - `$1` — JIRA ticket ID (required)
-- `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
+- `--base-path <path>` — Base output path (e.g., `artifacts/proj-123`)
 
 ## Input
 
@@ -45,13 +45,13 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2. Dispatch agent
 
-Dispatch the `technical-reviewer` agent with the following prompt.
+**You MUST use the Agent tool** to invoke the `technical-reviewer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
 
 **Agent tool parameters:**
 - `subagent_type`: `technical-reviewer`
 - `description`: `Technical review of documentation for <TICKET>`
 
-**Prompt:**
+**Prompt** (pass this as the `prompt` parameter to the Agent tool):
 
 > Perform a technical review of the documentation drafts for ticket `<TICKET>`.
 > Source drafts location: `<DRAFTS_DIR>/`

@@ -17,7 +17,7 @@ Unlike other step skills, this skill does **not** dispatch an agent. It runs `sc
 ## Arguments
 
 - `$1` — Parent JIRA ticket ID (required)
-- `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
+- `--base-path <path>` — Base output path (e.g., `artifacts/proj-123`)
 - `--project <PROJECT>` — Target JIRA project key for the new ticket (required)
 
 ## Input
@@ -28,7 +28,7 @@ Unlike other step skills, this skill does **not** dispatch an agent. It runs `sc
 
 ## Environment
 
-Requires `JIRA_AUTH_TOKEN` and `JIRA_EMAIL` in the environment (typically sourced from `~/.env`).
+Requires `JIRA_API_TOKEN` and `JIRA_EMAIL` in the environment (typically sourced from `~/.env`).
 
 ## Execution
 

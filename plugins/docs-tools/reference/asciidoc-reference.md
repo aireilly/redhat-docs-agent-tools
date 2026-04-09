@@ -607,10 +607,10 @@ When creating a new drafts folder for a JIRA ticket, set up symlinks to the repo
 **Example setup:**
 ```bash
 # Create the drafts folder
-mkdir -p .claude/docs/drafts/<jira-id>/modules
+mkdir -p artifacts/drafts/<jira-id>/modules
 
 # Create symlinks to repo directories (adjust paths based on actual repo structure)
-cd .claude/docs/drafts/<jira-id>
+cd artifacts/drafts/<jira-id>
 ln -s ../../../_attributes _attributes      # or whatever the attributes folder is called
 ln -s ../../../snippets snippets            # if snippets folder exists
 ln -s ../../../assemblies assemblies        # if assemblies folder exists

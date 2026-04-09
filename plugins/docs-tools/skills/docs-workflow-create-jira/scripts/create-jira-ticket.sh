@@ -5,7 +5,7 @@
 #
 # Usage: create-jira-ticket.sh <TICKET> <PROJECT> <PLAN_FILE>
 # Requires: curl, jq, python3
-# Environment: JIRA_AUTH_TOKEN, JIRA_EMAIL
+# Environment: JIRA_API_TOKEN, JIRA_EMAIL
 
 set -euo pipefail
 
@@ -13,11 +13,16 @@ TICKET="${1:?Usage: create-jira-ticket.sh <TICKET> <PROJECT> <PLAN_FILE>}"
 PROJECT="${2:?Missing PROJECT argument}"
 PLAN_FILE="${3:?Missing PLAN_FILE argument}"
 
-JIRA_URL="https://redhat.atlassian.net"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-if [[ -z "${JIRA_AUTH_TOKEN:-}" || -z "${JIRA_EMAIL:-}" ]]; then
-    echo "Error: JIRA_AUTH_TOKEN and JIRA_EMAIL must be set" >&2
+# Source ~/.env for credential mapping
+source ~/.env 2>/dev/null || true
+# Fallback: accept JIRA_AUTH_TOKEN for backward compatibility
+: "${JIRA_API_TOKEN:=${JIRA_AUTH_TOKEN:-}}"
+JIRA_URL="${JIRA_URL:-https://redhat.atlassian.net}"
+
+if [[ -z "${JIRA_API_TOKEN:-}" || -z "${JIRA_EMAIL:-}" ]]; then
+    echo "Error: JIRA_API_TOKEN and JIRA_EMAIL must be set" >&2
     exit 1
 fi
 
@@ -28,7 +33,7 @@ fi
 
 # --- Check for existing Document link ---
 LINKS_JSON=$(curl -s \
-  -u "${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}" \
+  -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
   -H "Content-Type: application/json" \
   "${JIRA_URL}/rest/api/2/issue/${TICKET}?fields=issuelinks")
 
@@ -79,7 +84,7 @@ python3 "${SCRIPT_DIR}/md2wiki.py" \
 
 # --- Create the JIRA ticket ---
 PARENT_SUMMARY=$(curl -s \
-  -u "${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}" \
+  -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
   "${JIRA_URL}/rest/api/2/issue/${TICKET}?fields=summary" | jq -r '.fields.summary')
 
 python3 "${SCRIPT_DIR}/build-payload.py" \
@@ -89,7 +94,7 @@ python3 "${SCRIPT_DIR}/build-payload.py" \
   "$PARENT_SUMMARY"
 
 RESPONSE=$(curl -s -X POST \
-  -u "${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}" \
+  -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
   -H "Content-Type: application/json" \
   --data @"${TMPDIR}/jira_create_payload.json" \
   "${JIRA_URL}/rest/api/2/issue")
@@ -108,7 +113,7 @@ LINK_PAYLOAD=$(jq -n \
   --arg new_key "$NEW_ISSUE_KEY" \
   '{ type: {name: "Document"}, outwardIssue: {key: $ticket}, inwardIssue: {key: $new_key} }')
 LINK_HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
-  -u "${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}" \
+  -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
   -H "Content-Type: application/json" \
   --data "$LINK_PAYLOAD" \
   "${JIRA_URL}/rest/api/2/issueLink")
@@ -120,7 +125,7 @@ fi
 # --- Attach plan file (private projects only) ---
 if [[ "$PROJECT_IS_PUBLIC" != "true" ]]; then
     ATTACH_HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
-      -u "${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}" \
+      -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
       -H "X-Atlassian-Token: no-check" \
       -F "file=@${PLAN_FILE}" \
       "${JIRA_URL}/rest/api/2/issue/${NEW_ISSUE_KEY}/attachments")

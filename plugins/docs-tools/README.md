@@ -13,7 +13,7 @@
 - Create an `~/.env` file with your tokens:
 
     ```bash
-    JIRA_AUTH_TOKEN=your_jira_api_token
+    JIRA_API_TOKEN=your_jira_api_token
     # Required for Atlassian Cloud authentication
     JIRA_EMAIL=you@redhat.com
     # Optional: defaults to https://redhat.atlassian.net if not set
@@ -133,7 +133,7 @@ Your CI environment needs:
 
 - **Claude Code** installed (`npm install -g @anthropic-ai/claude-code`)
 - **API key** set as `ANTHROPIC_API_KEY` secret
-- **JIRA token** set as `JIRA_AUTH_TOKEN` secret (and `JIRA_EMAIL` for Atlassian Cloud)
+- **JIRA token** set as `JIRA_API_TOKEN` secret (and `JIRA_EMAIL` for Atlassian Cloud)
 - **Python 3** with required packages (see [Prerequisites](#prerequisites))
 - The docs-tools plugin installed or available in the runner
 
@@ -175,7 +175,7 @@ jobs:
         id: check
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          JIRA_AUTH_TOKEN: ${{ secrets.JIRA_AUTH_TOKEN }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
         run: |
           RESULT=$(claude -p "Skill: docs-workflow-jira-ready, args: \"--jql '${{ env.DOCS_JQL }}' --add-label\"")
@@ -200,7 +200,7 @@ jobs:
       - name: Run docs orchestrator
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          JIRA_AUTH_TOKEN: ${{ secrets.JIRA_AUTH_TOKEN }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -210,7 +210,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: docs-${{ matrix.ticket }}
-          path: .claude/docs/
+          path: artifacts/
 ```
 
 This uses a matrix strategy to parallelize orchestrator runs across tickets. The `check` job queries JIRA and passes ready ticket IDs to `run-workflow` via `fromJson`.
@@ -243,18 +243,18 @@ docs-check-tickets:
       done
   artifacts:
     paths:
-      - .claude/docs/
+      - artifacts/
       - .work/cron-runs/
     expire_in: 1 week
 ```
 
-Set `ANTHROPIC_API_KEY`, `JIRA_AUTH_TOKEN`, `JIRA_EMAIL`, and any Git platform tokens as CI/CD variables (masked/protected).
+Set `ANTHROPIC_API_KEY`, `JIRA_API_TOKEN`, `JIRA_EMAIL`, and any Git platform tokens as CI/CD variables (masked/protected).
 
 ### Tips for CI usage
 
-- Use `--draft` to write output to `.claude/docs/` staging area instead of modifying repo files directly
+- Use `--draft` to write output to `artifacts/` staging area instead of modifying repo files directly
 - Use `--add-label` in the JIRA ready check to prevent re-processing tickets on the next run
 - Use `--workflow` to select a CI-specific workflow variant (e.g., a lighter review-only pipeline)
-- Collect the `.claude/docs/` directory as an artifact for downstream review or PR creation
+- Collect the `artifacts/` directory as an artifact for downstream review or PR creation
 - The orchestrator writes a progress JSON file, so failed runs can be resumed in a subsequent job if the artifact is restored
 - For PR-triggered workflows, pass `--pr $CI_MERGE_REQUEST_URL` or `--pr $GITHUB_PR_URL` to include the PR context in requirements analysis

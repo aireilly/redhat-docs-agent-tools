@@ -8,7 +8,7 @@ The planner produces two outputs from the same research: a full documentation pl
 
 ### Full documentation plan (attachment)
 
-Save the fully populated template below to the output path specified in the workflow prompt. When invoked by the orchestrator, this is `<base-path>/planning/plan.md`; when invoked by the legacy command, save to `.claude/docs/plans/plan_<project>_<yyyymmdd>.md`. This is the comprehensive planning artifact with all sections completed.
+Save the fully populated template below to the output path specified in the workflow prompt. When invoked by the orchestrator, this is `<base-path>/planning/plan.md`; when invoked by the legacy command, save to `artifacts/plans/plan_<project>_<yyyymmdd>.md`. This is the comprehensive planning artifact with all sections completed.
 
 ### JIRA ticket description
 

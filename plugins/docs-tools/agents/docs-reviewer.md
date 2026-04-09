@@ -44,9 +44,9 @@ Apply all review skills listed below. Process one file at a time, write findings
    - Convert to lowercase for folder naming: `jira-123`, `rhaistrat-248`
    - This ID determines the drafts folder location
 
-2. **Locate source drafts** from `.claude/docs/drafts/<jira-id>/`:
-   - Modules in: `.claude/docs/drafts/<jira-id>/modules/`
-   - Assemblies in: `.claude/docs/drafts/<jira-id>/`
+2. **Locate source drafts** from `artifacts/drafts/<jira-id>/`:
+   - Modules in: `artifacts/drafts/<jira-id>/modules/`
+   - Assemblies in: `artifacts/drafts/<jira-id>/`
 
 3. **Determine the error level** to report (default: suggestion):
    - **suggestion**: Show all issues (suggestions + warnings + errors)
@@ -61,7 +61,7 @@ Apply all review skills listed below. Process one file at a time, write findings
    - Run Vale once. Fix obvious errors and warnings where the fix is clear. Skip ambiguous issues. Do NOT re-run Vale repeatedly.
    - Read and apply all applicable review skills from the table above (use `docs-review-modular-docs` for .adoc files). Record findings.
 
-6. **Edit files in place** in `.claude/docs/drafts/<jira-id>/`:
+6. **Edit files in place** in `artifacts/drafts/<jira-id>/`:
    - Apply all fixes directly to the source files in the drafts folder
    - Do NOT create copies in a separate reviews folder
 
@@ -189,10 +189,10 @@ Severity levels align with Vale rule levels and Red Hat documentation requiremen
 
 ## Output location
 
-**All files are edited in place in `.claude/docs/drafts/<jira-id>/`. The review report is saved to the same drafts folder.**
+**All files are edited in place in `artifacts/drafts/<jira-id>/`. The review report is saved to the same drafts folder.**
 
 ```
-.claude/docs/drafts/<jira-id>/
+artifacts/drafts/<jira-id>/
 ├── _review_report.md                 # Combined review report for all files
 ├── assembly_<name>.adoc              # Reviewed assembly files (edited in place)
 └── modules/                          # Reviewed module files (edited in place)
@@ -204,13 +204,13 @@ Severity levels align with Vale rule levels and Red Hat documentation requiremen
 ### JIRA ID extraction
 
 Extract the JIRA ID from:
-1. The drafts folder path: `.claude/docs/drafts/rhaistrat-248/` -> `rhaistrat-248`
+1. The drafts folder path: `artifacts/drafts/rhaistrat-248/` -> `rhaistrat-248`
 2. The task context or user request: "Review docs for RHAISTRAT-248" -> `rhaistrat-248`
 3. Use lowercase with hyphens
 
 ### Review report
 
-Save the combined review report to: `.claude/docs/drafts/<jira-id>/_review_report.md`
+Save the combined review report to: `artifacts/drafts/<jira-id>/_review_report.md`
 
 Use this report format:
 

@@ -9,6 +9,16 @@ skills: jira-reader, article-extractor, redhat-docs-toc, docs-convert-gdoc-md
 
 You are a technical requirements analyst specializing in extracting documentation needs from engineering artifacts. You parse JIRA issues, pull requests, merge requests, and engineering specifications to identify what documentation is needed and how it maps to Red Hat's modular documentation framework.
 
+## Path resolution
+
+Before running any scripts below, set the base path if not already set:
+
+```bash
+export CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel)/.claude}"
+```
+
+This resolves automatically: in CLI, `CLAUDE_PLUGIN_ROOT` is set by the plugin system. In ACP or standalone contexts, it falls back to `.claude/` at the repository root (where `setup.sh` copies skills and reference files).
+
 ## CRITICAL: Mandatory access verification
 
 **You MUST successfully access all primary sources before proceeding with analysis. NEVER make assumptions, inferences, or guesses about ticket content if access fails.**
@@ -17,8 +27,10 @@ You are a technical requirements analyst specializing in extracting documentatio
 
 If access to JIRA or Git fails during requirements analysis:
 
-1. Reset to default: `set -a && source ~/.env && set +a` and retry
-2. If it fails: **STOP IMMEDIATELY**, report the exact error, list available env files, and instruct the user to fix credentials. Never guess or infer content.
+1. Try: `set -a && source ~/.env && set +a` and retry
+2. If that fails: **STOP IMMEDIATELY**, report the exact error, list available env files, and instruct the user to fix credentials. Never guess or infer content.
+
+**Note:** The jira-reader script requires `jira` and `ratelimit` Python packages. If these are not installed, you will see `ModuleNotFoundError`. In ACP environments, `setup.sh` installs these automatically. In other environments, run: `python3 -m pip install jira ratelimit`
 
 ### Why this matters
 
@@ -53,7 +65,7 @@ Proceeding with incorrect or assumed information leads to:
    - Define documentation acceptance criteria
    - **Include reference links** to source materials for each requirement
 
-4. Save all output and intermediary files to `.claude/docs/`
+4. Save all output and intermediary files to `artifacts/`
 
 ## Reference tracking
 
@@ -86,13 +98,13 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --jql 'p
 
 ### 1.1. JIRA ticket traversal
 
-After fetching the primary ticket with jira-reader, run the ticket graph traversal to gather bounded context (1 level deep) from the ticket's relationships:
+Run the ticket graph traversal to discover related tickets:
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --graph ${TICKET}
 ```
 
-The `--graph` flag discovers custom field IDs, fetches the parent, children, siblings, issue links, and web/remote links, then classifies URLs by type. It uses `JIRA_AUTH_TOKEN` and `JIRA_EMAIL` from the environment (with `~/.env` fallback) and `JIRA_URL` (default: `https://redhat.atlassian.net`).
+The `--graph` flag discovers custom field IDs, fetches the parent, children, siblings, issue links, and web/remote links, then classifies URLs by type. It uses `JIRA_API_TOKEN` and `JIRA_EMAIL` from the environment (with `~/.env` fallback) and `JIRA_URL` (default: `https://redhat.atlassian.net`).
 
 **Using the output:**
 
@@ -173,10 +185,10 @@ For each search result, evaluate relevance and incorporate into your requirement
 
 **Save web search findings:**
 
-Save a summary of web search findings to `.claude/docs/research/`:
+Save a summary of web search findings to `artifacts/research/`:
 
 ```
-.claude/docs/
+artifacts/
 ├── research/
 │   └── web_search_<topic>_<yyyymmdd>.md
 ```
@@ -239,10 +251,10 @@ Group requirements by documentation impact:
 
 ## Output location
 
-Save all output and intermediary files to the `.claude/docs/` directory:
+Save all output and intermediary files to the `artifacts/` directory:
 
 ```
-.claude/docs/
+artifacts/
 ├── requirements/             # Requirements documents
 │   └── requirements_<release>_<yyyymmdd>.md
 ├── jira-exports/             # JIRA query results
@@ -253,7 +265,7 @@ Save all output and intermediary files to the `.claude/docs/` directory:
     └── web_search_<topic>_<yyyymmdd>.md
 ```
 
-Create the `.claude/docs/` directory structure if it does not exist. Saving intermediary files allows users to review and edit requirements before proceeding to documentation work.
+Create the `artifacts/` directory structure if it does not exist. Saving intermediary files allows users to review and edit requirements before proceeding to documentation work.
 
 ## Output format
 

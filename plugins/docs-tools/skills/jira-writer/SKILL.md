@@ -1,6 +1,6 @@
 ---
 name: jira-writer
-description: Update and modify JIRA issues on Red Hat Issue Tracker. Use this skill to push release notes to JIRA issues, update custom fields (release note content, status), and modify issue properties. This skill performs write operations and will prompt for user approval before making changes. Requires jira and ratelimit Python packages. Only use when explicitly asked to update or modify JIRA issues.
+description: Update and modify JIRA issues on Red Hat Issue Tracker. Use this skill to push release notes, update custom fields (release note content, status), manage labels (add/remove), and modify issue properties. This skill performs write operations and will prompt for user approval before making changes. Requires jira and ratelimit Python packages. Only use when explicitly asked to update or modify JIRA issues.
 author: Gabriel McGoldrick (gmcgoldr@redhat.com)
 ---
 
@@ -15,6 +15,7 @@ This skill provides write access to JIRA issues on Red Hat Issue Tracker (https:
 - **Push Release Notes**: Update the release note custom field with generated content
 - **Update Status**: Set release note status to 'Proposed' or other values
 - **Update Custom Fields**: Modify any custom field on a JIRA issue
+- **Label Management**: Add or remove labels on JIRA issues
 - **Batch Updates**: Update multiple issues with the same content
 
 ## Usage
@@ -26,7 +27,7 @@ The skill uses a Python script that connects to JIRA using an authentication tok
 Set in `~/.env` (see docs-tools README for setup):
 
 ```bash
-JIRA_AUTH_TOKEN=your-jira-api-token
+JIRA_API_TOKEN=your-jira-api-token
 JIRA_EMAIL=you@redhat.com           # required for Atlassian Cloud
 JIRA_URL=https://redhat.atlassian.net  # optional, defaults to redhat.atlassian.net
 ```
@@ -56,6 +57,21 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/jira_writer.py --issue INFERENG-5233 --issue
 **Read release note from file:**
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/jira_writer.py --issue INFERENG-5233 --release-note-file /path/to/note.txt
+```
+
+**Add a label:**
+```bash
+python3 scripts/jira_writer.py --issue PROJ-123 --labels-add ambient-docs-processing
+```
+
+**Swap labels (remove + add in one API call):**
+```bash
+python3 scripts/jira_writer.py --issue PROJ-123 --labels-remove ambient-docs-ready --labels-add ambient-docs-processing
+```
+
+**Batch label update:**
+```bash
+python3 scripts/jira_writer.py --issue PROJ-123 --issue PROJ-456 --labels-add ambient-docs-generated
 ```
 
 ## Output Format
@@ -97,6 +113,7 @@ The skill respects JIRA API rate limits (2 calls per 5 seconds) to avoid overwhe
 2. **Update status**: Mark release notes as Proposed/Approved after review
 3. **Batch updates**: Apply same status to multiple issues
 4. **Field updates**: Modify any custom field on JIRA issues
+5. **Label management**: Add or remove labels for workflow automation
 
 ## Best Practices
 

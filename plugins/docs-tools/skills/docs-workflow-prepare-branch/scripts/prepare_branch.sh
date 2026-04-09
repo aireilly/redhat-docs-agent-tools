@@ -2,7 +2,7 @@
 # Prepare a clean git branch from the latest upstream default branch.
 # Used by the docs-workflow-prepare-branch skill.
 #
-# Usage: prepare_branch.sh <ticket-id> --base-path <path> [--draft]
+# Usage: prepare_branch.sh <ticket-id> --base-path <path> [--draft] [--repo-path <path>]
 #
 # Outputs: <base-path>/prepare-branch/branch-info.md
 
@@ -12,6 +12,7 @@ set -euo pipefail
 TICKET=""
 BASE_PATH=""
 DRAFT=false
+REPO_PATH=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -22,6 +23,10 @@ while [[ $# -gt 0 ]]; do
     --draft)
       DRAFT=true
       shift
+      ;;
+    --repo-path)
+      REPO_PATH="$2"
+      shift 2
       ;;
     -*)
       echo "ERROR: Unknown option: $1" >&2
@@ -53,13 +58,22 @@ OUTPUT_DIR="${BASE_PATH}/prepare-branch"
 OUTPUT_FILE="${OUTPUT_DIR}/branch-info.md"
 mkdir -p "$OUTPUT_DIR"
 
-# --- Draft mode: skip branch creation ---
+# --- Skip mode: draft or repo-path ---
 if [[ "$DRAFT" == true ]]; then
   cat > "$OUTPUT_FILE" <<'EOF'
 # Branch Preparation — Skipped
 Draft mode: no branch created.
 EOF
   echo "Draft mode — skipped branch creation."
+  exit 0
+fi
+
+if [[ -n "$REPO_PATH" ]]; then
+  cat > "$OUTPUT_FILE" <<'EOF'
+# Branch Preparation — Skipped
+Repo-path mode: branch managed externally by repo-setup.sh.
+EOF
+  echo "Repo-path mode — skipped branch creation (managed externally)."
   exit 0
 fi
 

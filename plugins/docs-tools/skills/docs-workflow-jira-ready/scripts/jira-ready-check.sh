@@ -9,17 +9,17 @@
 # Usage:
 #   bash jira-ready-check.sh \
 #     --jql "project=PROJ AND labels=docs-needed" \
-#     [--base-path .claude/docs] \
+#     [--base-path artifacts] \
 #     [--label docs-workflow-started] \
 #     [--add-label]
 #
-# Requires: jq, python3, jira_reader.py, JIRA_AUTH_TOKEN, JIRA_EMAIL
+# Requires: jq, python3, jira_reader.py, JIRA_API_TOKEN, JIRA_EMAIL
 
 set -euo pipefail
 
 # --- Defaults ---
 JQL=""
-BASE_PATH=".claude/docs"
+BASE_PATH="artifacts"
 LABEL="docs-workflow-started"
 ADD_LABEL=false
 MAX_RESULTS=5
@@ -59,13 +59,13 @@ if [[ -z "$JQL" ]]; then
 fi
 
 # --- Validate environment ---
-if [[ -z "${JIRA_AUTH_TOKEN:-}" ]]; then
+if [[ -z "${JIRA_API_TOKEN:-}" ]]; then
   # Try sourcing ~/.env
   set -a; source ~/.env 2>/dev/null || true; set +a
 fi
 
-if [[ -z "${JIRA_AUTH_TOKEN:-}" ]]; then
-  echo '{"error": "JIRA_AUTH_TOKEN is not set. Add it to ~/.env."}'
+if [[ -z "${JIRA_API_TOKEN:-}" ]]; then
+  echo '{"error": "JIRA_API_TOKEN is not set. Add it to ~/.env."}'
   exit 1
 fi
 
@@ -172,7 +172,7 @@ if [[ "$ADD_LABEL" == "true" && ${#READY[@]} -gt 0 ]]; then
 
     PAYLOAD=$(jq -n --arg label "$LABEL" '{"update":{"labels":[{"add": $label}]}}')
     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X PUT \
-      -u "${JIRA_EMAIL}:${JIRA_AUTH_TOKEN}" \
+      -u "${JIRA_EMAIL}:${JIRA_API_TOKEN}" \
       -H "Content-Type: application/json" \
       --data "$PAYLOAD" \
       "${JIRA_URL}/rest/api/2/issue/${TICKET}")
