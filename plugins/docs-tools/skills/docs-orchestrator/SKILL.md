@@ -209,8 +209,9 @@ Run steps in the order defined by the YAML. For each step:
 
 Build the args string for the step skill:
 
-1. **Always**: `<ticket> --base-path <base_path> --format <format>` — the ticket ID, the **absolute** base output path, and the documentation format (`adoc` or `mkdocs`)
-2. **From orchestrator context**: Step-specific args from parsed CLI flags:
+1. **Always**: `<ticket> --base-path <base_path>` — the ticket ID and the **absolute** base output path
+2. **Format-aware steps only** (`writing`, `style-review`): append `--format <format>` (`adoc` or `mkdocs`)
+3. **From orchestrator context**: Step-specific args from parsed CLI flags:
    - `requirements`: `[--pr <url>]...`
    - `prepare-branch`: `[--draft] [--repo-path <path>]`
    - `writing`: `[--draft] [--repo-path <path>]`

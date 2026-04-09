@@ -1,10 +1,12 @@
 .cache/
+# Claude Code runtime state (ignored by default)
 .claude/*
+# ACP requires committed symlinks and workflow config at clone time
 !.claude/skills/
 !.claude/agents/
 !.claude/reference/
 !.claude/settings.json
-!.claude/docs-workflow.yaml
+!.claude/docs-acp.yaml
 artifacts/
 site/
 .venv/

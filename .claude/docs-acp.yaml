@@ -1,5 +1,9 @@
+# ACP headless variant — 5 steps (no prepare-branch or create-jira).
+# Repo setup and publishing are handled externally by batch-controller scripts.
+# For the full interactive workflow, see: plugins/docs-tools/skills/docs-orchestrator/defaults/docs-workflow.yaml
+# Invoked via: --workflow acp
 workflow:
-  name: docs-workflow
+  name: docs-acp
   description: Headless documentation pipeline for scheduled ACP sessions.
   steps:
     - name: requirements

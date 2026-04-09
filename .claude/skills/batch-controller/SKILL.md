@@ -89,7 +89,7 @@ Build orchestrator args from `repo-info.json`:
 - Add `--repo-path <clone_path>` if `repo_url` is non-null and `clone_path` exists; otherwise add `--draft`
 
 ```
-Skill: docs-orchestrator, args: "<TICKET-KEY> [--repo-path <clone_path> | --draft] [--mkdocs]"
+Skill: docs-orchestrator, args: "<TICKET-KEY> --workflow acp [--repo-path <clone_path> | --draft] [--mkdocs]"
 ```
 
 ### 2c. Publish changes
