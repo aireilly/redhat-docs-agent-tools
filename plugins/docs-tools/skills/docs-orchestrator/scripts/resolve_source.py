@@ -252,7 +252,12 @@ def _clone_repo(repo_url, clone_dir, ref=None):
 
 
 def _verify_existing_clone(clone_dir, ref=None, expected_repo_url=None):
-    """Verify an existing clone is valid. Optionally checkout a different ref."""
+    """Verify an existing clone is valid. Optionally checkout a different ref.
+
+    Assumes the remote is named "origin". This is always true for repos cloned
+    by this script. For user-provided local paths where the remote was renamed,
+    the origin check will fail gracefully (returns False).
+    """
     result = _run_git(["rev-parse", "HEAD"], cwd=str(clone_dir), check=False)
     if result.returncode != 0:
         return False
