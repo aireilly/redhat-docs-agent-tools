@@ -56,6 +56,7 @@
       "package": "pyyaml",
       "import_name": "yaml",
       "found_in": [
+        "plugins/docs-tools/skills/docs-orchestrator/scripts/resolve_source.py",
         "plugins/docs-tools/skills/git-pr-reader/scripts/git_pr_reader.py"
       ]
     },
