@@ -1,0 +1,8 @@
+{
+  "name": "rhivos-content",
+  "version": "1.0.0",
+  "description": "RHIVOS 2.0 Core documentation pipeline. Maps upstream CentOS Automotive SIG content to downstream Red Hat modular AsciiDoc using JTBD restructuring and style governance.",
+  "author": {
+    "name": "redhat-documentation"
+  }
+}
