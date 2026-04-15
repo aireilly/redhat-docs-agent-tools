@@ -59,15 +59,15 @@ READY_LABEL="${DOCS_TRIGGER_LABEL:-ambient-docs-ready}"
 PROCESSING_LABEL="${DOCS_PROCESSING_LABEL:-ambient-docs-processing}"
 
 READY_JQL="${PROJECT_FILTER}labels = \"${READY_LABEL}\""
-READY_JSON="$(python3 "$JIRA_SCRIPT" --jql "$READY_JQL" 2>&1)" || {
-  echo "WARNING: JIRA query for '${READY_LABEL}' failed: ${READY_JSON}" >&2
+READY_JSON="$(python3 "$JIRA_SCRIPT" --jql "$READY_JQL")" || {
+  echo "WARNING: JIRA query for '${READY_LABEL}' failed. Treating as empty result set." >&2
   READY_JSON="[]"
 }
 
 # --- Query for processing tickets (potential orphans) ---
 PROCESSING_JQL="${PROJECT_FILTER}labels = \"${PROCESSING_LABEL}\""
-PROCESSING_JSON="$(python3 "$JIRA_SCRIPT" --jql "$PROCESSING_JQL" 2>&1)" || {
-  echo "WARNING: JIRA query for '${PROCESSING_LABEL}' failed: ${PROCESSING_JSON}" >&2
+PROCESSING_JSON="$(python3 "$JIRA_SCRIPT" --jql "$PROCESSING_JQL")" || {
+  echo "WARNING: JIRA query for '${PROCESSING_LABEL}' failed. Treating as empty result set." >&2
   PROCESSING_JSON="[]"
 }
 

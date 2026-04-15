@@ -12,7 +12,8 @@
     "Technical Reviews": "artifacts/*/technical-review/review.md",
     "Style Reviews": "artifacts/*/style-review/review.md",
     "Repo Info": "artifacts/*/repo-info.json",
-    "Publish Info": "artifacts/*/publish-info.json",
+    "Commit Info": "artifacts/*/commit/commit-info.json",
+    "MR Info": "artifacts/*/create-mr/mr-info.json",
     "Batch Summary": "artifacts/batch-summary.md",
     "Workflow State": "artifacts/*/workflow/*.json"
   }

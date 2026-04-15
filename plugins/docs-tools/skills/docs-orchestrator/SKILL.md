@@ -133,6 +133,10 @@ artifacts/proj-123/
     review.md
   style-review/
     review.md
+  commit/
+    commit-info.json
+  create-mr/
+    mr-info.json
   workflow/
     docs-workflow_proj-123.json
 ```
@@ -223,6 +227,8 @@ Build the args string for the step skill:
    - `requirements`: `[--pr <url>]...`
    - `prepare-branch`: `[--draft] [--repo-path <path>]`
    - `writing`: `[--draft] [--repo-path <path>]`
+   - `commit`: `[--draft] [--repo-path <path>]`
+   - `create-mr`: `[--draft] [--repo-path <path>]`
    - `create-jira`: `--project <PROJECT>`
 
 Step skills derive their own output folder and input folders from `--base-path` and step name conventions. No per-input flag wiring needed.
@@ -252,12 +258,24 @@ The technical review step runs in a loop until confidence is acceptable or three
    - If the severity line is missing, or either `critical > 0` or `significant > 0` → continue to step 5 for iteration
 5. If `MEDIUM` (with fixable issues) or `LOW` and fewer than 3 iterations completed → run the fix skill:
    ```
-   Skill: docs-workflow-writing, args: "<ticket> --base-path <base_path> --fix-from <base_path>/technical-review/review.md"
+   Skill: docs-tools:docs-workflow-writing, args: "<ticket> --base-path <base_path> --fix-from <base_path>/technical-review/review.md"
    ```
    Then re-run the reviewer (go to step 1)
 6. After 3 iterations without reaching `HIGH`:
    - `MEDIUM` is acceptable — proceed with a warning that manual review is recommended
    - `LOW` after max iterations — ask the user whether to proceed or stop
+
+## Commit confirmation gate
+
+Before running the `commit` step, check whether this is an interactive session:
+
+- If `artifacts/.setup-complete` exists (ACP/headless mode): proceed without confirmation
+- Otherwise (interactive/local mode): **ask the user to confirm** before committing. Show:
+  - The target branch name
+  - The repository being committed to (current directory or `--repo-path`)
+  - The number of files in the writing manifest
+
+If the user declines, mark the `commit` step as `skipped` and also skip the `create-mr` step (its input dependency is unsatisfied).
 
 ## Completion
 
@@ -267,6 +285,7 @@ After all steps complete (or are skipped):
 2. Display a summary:
    - List all output folders with paths
    - Note any warnings (tech review didn't reach `HIGH`, etc.)
+   - Show MR/PR URL if one was created
    - Show JIRA URL if a ticket was created
 
 ## Resume behavior
