@@ -6,7 +6,7 @@ description: >-
   admonitions, snippets, figure captions). Use this skill after rhivos-map-upstream
   has produced an approved upstream-mapping.yaml.
 argument-hint: "<mapping-yaml> [--sig-docs-path <path>]"
-allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 ---
 
 # Fetch and Convert Upstream Content

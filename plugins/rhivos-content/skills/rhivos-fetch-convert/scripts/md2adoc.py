@@ -50,10 +50,9 @@ def convert_admonitions(lines: list[str]) -> list[str]:
 
     while i < len(lines):
         match = re.match(
-            r'^(!{3}|\\?{3})\s+([\w]+)(?:\s+"([^"]*)")?\s*$', lines[i]
+            r'^(!{3}|\?{3})\s+([\w]+)(?:\s+"([^"]*)")?\s*$', lines[i]
         )
         if match:
-            marker = match.group(1)
             admon_type = match.group(2).lower()
             title = match.group(3)
             asciidoc_type = admonition_map.get(admon_type, "NOTE")
