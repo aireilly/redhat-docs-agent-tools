@@ -23,13 +23,24 @@ DRAFT=false
 REPO_PATH=""
 FIX_FROM=""
 
+require_arg() {
+  local opt="$1"
+  local val="${2:-}"
+  if [[ -z "$val" || "$val" == -* ]]; then
+    echo "ERROR: ${opt} requires a value." >&2
+    exit 1
+  fi
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --base-path)
+      require_arg "$1" "${2:-}"
       BASE_PATH="$2"
       shift 2
       ;;
     --format)
+      require_arg "$1" "${2:-}"
       FORMAT="$2"
       shift 2
       ;;
@@ -38,10 +49,12 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --repo-path)
+      require_arg "$1" "${2:-}"
       REPO_PATH="$2"
       shift 2
       ;;
     --fix-from)
+      require_arg "$1" "${2:-}"
       FIX_FROM="$2"
       shift 2
       ;;
@@ -105,6 +118,11 @@ fi
 
 if [[ "$MODE" == "fix" && ! -f "$FIX_FROM" ]]; then
   echo "ERROR: Review file not found: ${FIX_FROM}" >&2
+  exit 1
+fi
+
+if [[ -n "$REPO_PATH" && ! -d "$REPO_PATH" ]]; then
+  echo "ERROR: Repo path not found or not a directory: ${REPO_PATH}" >&2
   exit 1
 fi
 

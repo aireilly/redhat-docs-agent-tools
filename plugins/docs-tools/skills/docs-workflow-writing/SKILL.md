@@ -41,7 +41,7 @@ If the script exits non-zero, stop and report the error from stderr.
 
 **You MUST use the Agent tool** to invoke the `docs-writer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
 
-Select the prompt based on `mode` and `format` from the JSON output. In every prompt below, substitute the `<TICKET>`, `<INPUT_FILE>`, `<OUTPUT_FILE>`, `<OUTPUT_DIR>`, and `<REPO_PATH>` placeholders with the corresponding values from the script's JSON.
+Select the prompt based on `mode` and `format` from the JSON output. In every prompt below, substitute the `<TICKET>`, `<INPUT_FILE>`, `<OUTPUT_FILE>`, `<OUTPUT_DIR>`, `<REPO_PATH>`, and `<FIX_FROM>` placeholders with the corresponding values from the script's JSON.
 
 **Agent tool parameters for all modes:**
 - `subagent_type`: `docs-writer`
