@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
-<map id="install-guide">
-  <title>Installation Guide</title>
-  <topicref href="overview.dita"/>
-  <topicref href="system-requirements.dita"/>
-  <topicref href="installing-the-product.dita"/>
-  <topicref href="cli-reference.dita"/>
-</map>
