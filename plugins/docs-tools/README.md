@@ -125,19 +125,11 @@ Use `--workflow <name>` to maintain different workflows for different purposes:
 
 ## Using the docs orchestrator locally
 
-Run the docs orchestrator from a terminal in the root of your documentation repository. The orchestrator reads a JIRA ticket, analyzes requirements, plans the documentation structure, writes modules, and runs technical and style reviews.
+Run the docs orchestrator from a Claude Code command prompt in the root of your documentation repository or from the chat panel in Agent mode in Cursor. The orchestrator reads a JIRA ticket, analyzes requirements, plans the documentation structure, writes modules, and runs technical and style reviews.
 
 ### Basic usage
 
-Generate draft documentation for a JIRA ticket:
-
-```bash
-/docs-orchestrator PROJ-123 --draft
-```
-
-The `--draft` flag writes all output to `artifacts/proj-123/` instead of modifying files in your repo. This is recommended for first runs so you can review the output before integrating it.
-
-To write files directly into your repo (update-in-place mode), omit `--draft`:
+To write files directly into your repo (update-in-place mode), run as follows:
 
 ```bash
 /docs-orchestrator PROJ-123
@@ -150,7 +142,7 @@ In update-in-place mode, the orchestrator detects your repo's documentation fram
 When documenting a feature that lives in a source code repository, pass `--repo` to provide the code repository. The orchestrator clones the repo, indexes it using AST chunking and hybrid search, and retrieves relevant code snippets for each topic in the documentation plan. The writer then uses this evidence to ground its output in actual function signatures, class definitions, and configuration — rather than generating from the JIRA description alone.
 
 ```bash
-/docs-orchestrator PROJ-123 --draft --repo https://github.com/org/repo
+/docs-orchestrator PROJ-123 --repo https://github.com/org/repo
 ```
 
 The code-evidence step runs automatically when `--repo` is provided. It:
@@ -172,7 +164,7 @@ Without `--repo`, the code-evidence step is skipped and the writer works from th
 If the feature has associated pull requests, pass their URLs to include the code changes in the requirements analysis:
 
 ```bash
-/docs-orchestrator PROJ-123 --draft --pr https://github.com/org/repo/pull/456
+/docs-orchestrator PROJ-123 --pr https://github.com/org/repo/pull/456
 ```
 
 Multiple `--pr` flags can be passed. The requirements analyst will read the PR diff, comments, and description alongside the JIRA ticket.
@@ -181,7 +173,6 @@ Multiple `--pr` flags can be passed. The requirements analyst will read the PR d
 
 | Flag | Description |
 |------|-------------|
-| `--draft` | Write to `artifacts/` staging area instead of modifying repo files |
 | `--repo <url-or-path>` | Source code repository for code-evidence grounding |
 | `--pr <url>` | PR/MR URL to include in requirements analysis (repeatable) |
 | `--mkdocs` | Generate Material for MkDocs Markdown instead of AsciiDoc |
@@ -194,7 +185,7 @@ Multiple `--pr` flags can be passed. The requirements analyst will read the PR d
 The orchestrator saves progress to `artifacts/<ticket>/workflow/docs-workflow_<ticket>.json`. If a run is interrupted or fails, start the orchestrator again with the same ticket and it will resume from where it left off:
 
 ```bash
-/docs-orchestrator PROJ-123 --draft
+/docs-orchestrator PROJ-123
 ```
 
 Completed steps are skipped automatically. You can add flags on resume (e.g., add `--create-jira` to a run that didn't originally include it).
