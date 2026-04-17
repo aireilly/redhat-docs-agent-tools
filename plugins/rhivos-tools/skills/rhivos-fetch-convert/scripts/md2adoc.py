@@ -31,6 +31,8 @@ EXTENSION_LANGUAGE_MAP = {
     ".py": "python",
     ".sh": "bash",
     ".toml": "toml",
+    ".container": "ini",
+    ".conf": "ini",
 }
 
 RAW_OPEN = "```{=asciidoc}"
@@ -39,7 +41,7 @@ RAW_CLOSE = "```"
 
 def _raw_block(asciidoc_lines: list[str]) -> list[str]:
     """Wrap AsciiDoc lines in a pandoc raw block for pass-through."""
-    return [RAW_OPEN] + asciidoc_lines + ["", RAW_CLOSE]
+    return [RAW_OPEN, *asciidoc_lines, "", RAW_CLOSE]
 
 
 def _unwrap_raw_blocks(lines: list[str]) -> list[str]:
@@ -161,6 +163,8 @@ def _read_snippet_lines(file_path: Path, start: int | None, end: int | None) -> 
     """Read lines from a file, optionally extracting a 1-indexed inclusive range."""
     all_lines = file_path.read_text(encoding="utf-8").splitlines()
     if start is not None and end is not None:
+        if start < 1 or end < start:
+            return all_lines
         return all_lines[start - 1 : end]
     return all_lines
 
@@ -373,9 +377,18 @@ def convert_markdown_links(lines: list[str]) -> list[str]:
     """
     result = []
     link_pattern = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+    in_raw_block = False
 
     for line in lines:
-        if line.startswith(RAW_OPEN) or line == RAW_CLOSE:
+        if line == RAW_OPEN:
+            in_raw_block = True
+            result.append(line)
+            continue
+        if line == RAW_CLOSE:
+            in_raw_block = False
+            result.append(line)
+            continue
+        if in_raw_block:
             result.append(line)
             continue
 

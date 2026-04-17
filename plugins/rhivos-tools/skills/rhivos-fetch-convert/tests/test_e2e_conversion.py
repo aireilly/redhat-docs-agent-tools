@@ -245,7 +245,8 @@ class TestCodeSnippetInlining:
         content = adoc_path.read_text(encoding="utf-8")
         assert "[source,yaml]" in content
         assert "[source,bash]" in content
-        assert "[source]" in content
+        assert "[source,ini]" in content
+        # 4 code snippets x 2 delimiters each = 8 minimum
         assert content.count("----") >= 8
 
     @requires_pandoc
