@@ -19,10 +19,10 @@ jobs:
           python-version: "3.x"
 
       - name: Scan plugin dependencies
-        run: python scripts/scan_deps.py
+        run: python3 scripts/scan_deps.py
 
       - name: Generate plugin docs
-        run: python scripts/generate_plugin_docs.py
+        run: python3 scripts/generate_plugin_docs.py
 
       - name: Install zensical
         run: pip install zensical
