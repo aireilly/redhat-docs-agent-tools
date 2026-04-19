@@ -364,7 +364,7 @@ The script scans `requirements.md` for GitHub/GitLab PR/MR URLs, groups them by 
 |---|---|---|
 | 0 | `resolved` | Record `options.source` in the progress file. Update all `deferred` steps to `pending`. If `discovered_repos` has multiple entries, log which was auto-selected |
 | 1 | `error` / `clone_failed` | Log a warning: "Could not clone `<repo_url>`. Code-evidence will be skipped. To retry, run with `--repo <url-or-local-path>`." Update all `deferred` steps to `skipped` |
-| 2 | `no_source` | Prompt the user (see below) |
+| 2 | `no_source` | Skip code-evidence (see below) |
 
 ### 3. No source found
 
