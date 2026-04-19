@@ -366,29 +366,11 @@ The script scans `requirements.md` for GitHub/GitLab PR/MR URLs, groups them by 
 | 1 | `error` / `clone_failed` | Log a warning: "Could not clone `<repo_url>`. Code-evidence will be skipped. To retry, run with `--repo <url-or-local-path>`." Update all `deferred` steps to `skipped` |
 | 2 | `no_source` | Prompt the user (see below) |
 
-### 3. Prompt when no source found
+### 3. No source found
 
-When the script returns `no_source`, prompt the user before skipping:
+When the script returns `no_source`, skip code-evidence without prompting.
 
-Use `AskUserQuestion` to ask:
-
-> No source code repository or PR was discovered for this ticket. If you have a PR or repo URL, provide it now to enable code-evidence retrieval. Otherwise, press Enter to skip.
-
-- If the user provides a URL, re-run the script with the URL:
-
-  ```bash
-  # If URL matches a PR/MR pattern
-  python3 ${CLAUDE_SKILL_DIR}/scripts/resolve_source.py \
-    --base-path <base_path> --pr <user_url>
-
-  # Otherwise treat as a repo URL or local path
-  python3 ${CLAUDE_SKILL_DIR}/scripts/resolve_source.py \
-    --base-path <base_path> --repo <user_url>
-  ```
-
-  Handle the result as above (exit 0 → record and enable deferred steps; exit 1 → skip with warning).
-
-- If the user presses Enter (empty response), update all `deferred` steps to `skipped` and continue without code-evidence. Log: "No source repo provided. Skipping code-evidence."
+Update all `deferred` steps to `skipped` and continue without code-evidence. Log: "No source code repository or PR discovered. Skipping code-evidence. To enable it, re-run with `--repo <url-or-path>` or `--pr <url>`."
 
 ## Technical review iteration
 
