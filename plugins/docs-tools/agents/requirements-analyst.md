@@ -25,10 +25,9 @@ This resolves automatically: in CLI, `CLAUDE_PLUGIN_ROOT` is set by the plugin s
 
 ### Access failure procedure
 
-If access to JIRA or Git fails during requirements analysis:
+If access to JIRA or Git fails during requirements analysis, **STOP IMMEDIATELY**, report the exact error, and instruct the user to check their credentials in `~/.env`. Never guess or infer content.
 
-1. Try: `set -a && source ~/.env && set +a` and retry
-2. If that fails: **STOP IMMEDIATELY**, report the exact error, list available env files, and instruct the user to fix credentials. Never guess or infer content.
+**Do not** prepend `source ~/.env` to bash commands — all Python scripts (`jira_reader.py`, `git_pr_reader.py`, etc.) load `~/.env` automatically.
 
 **Note:** The jira-reader script requires `jira` and `ratelimit` Python packages. If these are not installed, you will see `ModuleNotFoundError`. In ACP environments, `setup.sh` installs these automatically. In other environments, run: `python3 -m pip install jira ratelimit`
 
@@ -104,7 +103,7 @@ Run the ticket graph traversal to discover related tickets:
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --graph ${TICKET}
 ```
 
-The `--graph` flag discovers custom field IDs, fetches the parent, children, siblings, issue links, and web/remote links, then classifies URLs by type. It uses `JIRA_API_TOKEN` and `JIRA_EMAIL` from the environment (with `~/.env` fallback) and `JIRA_URL` (default: `https://redhat.atlassian.net`).
+The `--graph` flag discovers custom field IDs, fetches the parent, children, siblings, issue links, and web/remote links, then classifies URLs by type. It loads `JIRA_API_TOKEN`, `JIRA_EMAIL`, and `JIRA_URL` from `~/.env` automatically.
 
 **Using the output:**
 
@@ -419,9 +418,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py diff
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py comments <pr-url> --json
 ```
 
-Requires tokens in `~/.env`:
-- `GITHUB_TOKEN` for GitHub PRs
-- `GITLAB_TOKEN` for GitLab MRs
+Requires `GITHUB_TOKEN` (GitHub) or `GITLAB_TOKEN` (GitLab) in `~/.env`. The script loads `~/.env` automatically — do not source it in bash.
 
 ### Reading Red Hat documentation with redhat-docs-toc
 
