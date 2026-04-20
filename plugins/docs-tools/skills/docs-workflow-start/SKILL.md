@@ -100,9 +100,9 @@ Wait for all answers before proceeding to step 4.
 
 ### Step 3B: Specific steps selection — call AskUserQuestion
 
-You MUST call the AskUserQuestion tool now with 1 question (multiSelect enabled). Do not skip this.
+You MUST call the AskUserQuestion tool now with 1 question. Set `multiSelect: true` on this question so the user can select multiple steps. Do not skip this.
 
-**Which step(s) do you want to run?**
+**Which step(s) do you want to run?** (`multiSelect: true`)
 
 | Option | Description |
 |--------|-------------|
