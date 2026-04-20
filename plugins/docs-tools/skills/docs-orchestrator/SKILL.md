@@ -15,40 +15,15 @@ This skill teaches you how to run a documentation workflow pipeline. You read th
 
 ## Pre-flight
 
-Check if setup has already been completed by an upstream script (e.g., ACP's `setup.sh`):
-
-```bash
-if [[ -f "artifacts/.setup-complete" ]]; then
-  echo "Setup already completed (sentinel found). Skipping pre-flight checks."
-fi
-```
-
-If the sentinel file exists, skip directly to **Parse arguments**. Otherwise, run the full pre-flight:
-
-```bash
-# Source ~/.env if JIRA_API_TOKEN is not set
-if [[ -z "${JIRA_API_TOKEN:-}" ]]; then
-  set -a && source ~/.env 2>/dev/null && set +a
-fi
-```
-
-**This env sourcing runs ONCE during pre-flight only.** Do not prepend `source ~/.env` or `set -a && source ~/.env && set +a` to individual bash commands — Python scripts (jira_reader.py, etc.) load `~/.env` themselves.
-
-1. If `JIRA_API_TOKEN` is still unset:
-   - In interactive mode: **STOP** and ask the user to set it in `~/.env`
-   - In headless mode (no user interaction available, e.g., ACP): log a warning and continue — agents will use `~/.env` credentials for JIRA access (populated by `setup.sh`)
-2. Warn (don't stop) if `GITHUB_TOKEN` or `GITLAB_TOKEN` are unset. Check that `gh` and `glab` CLIs are available — warn if either is missing
-3. Check that `uv` is available (needed by the code-evidence step to manage the `code-finder` dependency):
-   ```bash
-   command -v uv >/dev/null 2>&1
-   ```
-   If not found, **warn**: "uv is not installed. Code evidence retrieval requires uv. Install with: brew install uv (macOS) or see https://docs.astral.sh/uv/getting-started/installation/"
-   This is a warning, not a blocker — the code-evidence step is conditional and may be skipped if no source repo is provided.
-4. Install hooks (safe to re-run):
+Install the workflow completion Stop hook (safe to re-run, skips if already installed):
 
 ```bash
 bash ${CLAUDE_SKILL_DIR}/scripts/setup-hooks.sh
 ```
+
+Skip this step if `artifacts/.setup-complete` exists (ACP's `setup.sh` handles it).
+
+**Do not** source `~/.env` or check for tokens/CLIs here — Python scripts (`jira_reader.py`, `resolve_source.py`, etc.) load `~/.env` and validate prerequisites themselves, producing clear errors on failure.
 
 ## Parse arguments
 
