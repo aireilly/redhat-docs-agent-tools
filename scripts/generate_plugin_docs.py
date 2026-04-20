@@ -34,6 +34,10 @@ SYSTEM_TOOL_INSTALL = {
         "fedora": "sudo dnf install gh",
         "macos": "brew install gh",
     },
+    "uv": {
+        "fedora": "curl -LsSf https://astral.sh/uv/install.sh | sh",
+        "macos": "brew install uv",
+    },
     "glab": {
         "fedora": "sudo dnf install glab",
         "macos": "brew install glab",

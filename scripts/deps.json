@@ -135,6 +135,14 @@
       ]
     },
     {
+      "tool": "uv",
+      "found_in": [
+        "plugins/docs-tools/skills/docs-workflow-code-evidence/scripts/find_evidence.py",
+        "plugins/docs-tools/skills/docs-workflow-code-evidence/SKILL.md",
+        "plugins/docs-tools/skills/code-evidence/SKILL.md"
+      ]
+    },
+    {
       "tool": "vale",
       "found_in": [
         "plugins/dita-tools/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh"
