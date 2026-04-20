@@ -123,6 +123,49 @@ Use `--workflow <name>` to maintain different workflows for different purposes:
 /docs-orchestrator PROJ-123 --workflow full
 ```
 
+## Starting a docs workflow
+
+The easiest way to start a documentation workflow is with `/docs-workflow-start`. This skill provides a guided, interactive experience that builds the right orchestrator command for you — no need to remember CLI flags.
+
+### Why docs-workflow-start exists
+
+The docs orchestrator (`/docs-orchestrator`) is powerful but has many flags: `--repo`, `--pr`, `--mkdocs`, `--create-jira`, `--workflow`, and more. For users who run workflows interactively in Claude Code, remembering the right combination of flags for each situation is unnecessary friction. `/docs-workflow-start` solves this by asking a short series of questions and assembling the orchestrator invocation automatically.
+
+### Basic usage
+
+Invoke the skill from the Claude Code prompt with a JIRA ticket ID:
+
+```bash
+/docs-workflow-start PROJ-123
+```
+
+If you already know the flags you want, pass them directly and the skill skips the questionnaire entirely:
+
+```bash
+/docs-workflow-start PROJ-123 --repo https://github.com/org/repo --mkdocs
+```
+
+When invoked without flags, the skill walks you through five steps:
+
+1. **Ticket ID** — confirms or asks for the JIRA ticket
+2. **Action** — full workflow, specific steps, or resume a previous run
+3. **Configuration** — output format (AsciiDoc or MkDocs), source code repo, file placement, JIRA ticket creation
+4. **Additional context** — PR URLs, repo paths, or other details
+5. **Execute** — assembles the CLI flags and hands off to `docs-orchestrator`
+
+### Running specific steps
+
+When you choose "specific steps" in step 2, the skill shows you the available workflow steps and lets you pick which ones to run. It automatically resolves dependencies — if you choose `writing`, the skill detects that `requirements` and `planning` are prerequisites and includes them. If those prerequisites have already been completed in a previous run, it offers to reuse the existing artifacts or re-run them.
+
+### When to use docs-workflow-start vs. docs-orchestrator
+
+| Scenario | Use |
+|----------|-----|
+| Interactive session, unsure which flags to use | `/docs-workflow-start` |
+| Running a single step with its prerequisites | `/docs-workflow-start` (specific steps mode) |
+| CI/CD pipelines or scripted automation | `/docs-orchestrator` directly |
+| You already know the exact flags | Either — `/docs-workflow-start` passes through to the orchestrator when flags are provided |
+
 ## Using the docs orchestrator locally
 
 Run the docs orchestrator from a Claude Code command prompt in the root of your documentation repository or from the chat panel in Agent mode in Cursor. The orchestrator reads a JIRA ticket, analyzes requirements, plans the documentation structure, writes modules, and runs technical and style reviews.
