@@ -61,6 +61,36 @@ When displaying available options to the user (e.g., on skill load or when askin
 - `--source-code-repo <url-or-path>` — Source code repository for code evidence and requirements enrichment. Accepts remote URLs (https://, git@, ssh:// — shallow-cloned to `.claude/docs/<ticket>/code-repo/`) or local paths (used directly). Passed to requirements, code-evidence, and writing steps (mapped to their internal `--repo` flag). Without `--pr`, the entire repo is the subject matter; with `--pr`, the PR branch is checked out so code-evidence reflects the PR's state. Takes highest priority in source resolution, overriding `source.yaml` and PR-derived URLs
 - `--create-jira <PROJECT>` — Create a linked JIRA ticket in the specified project after the planning step completes. Activates the `create-jira` workflow step (guarded by `when: create_jira_project`). Requires `JIRA_API_TOKEN` to be set
 
+### Examples
+
+```bash
+# Minimal — just a ticket
+/docs-orchestrator PROJ-123
+
+# PR-driven with MkDocs output
+/docs-orchestrator PROJ-123 --pr https://github.com/org/repo/pull/42 --mkdocs
+
+# Multiple PRs from different repos, written to a separate docs repo
+/docs-orchestrator PROJ-123 \
+  --pr https://github.com/org/backend/pull/10 \
+  --pr https://gitlab.example.com/org/frontend/-/merge_requests/5 \
+  --docs-repo-path /home/user/docs-repo
+
+# Source repo without PRs, draft mode, with JIRA ticket creation
+/docs-orchestrator PROJ-123 \
+  --source-code-repo https://github.com/org/operator \
+  --draft \
+  --create-jira DOCS
+
+# Local source repo + PR (checks out PR branch within repo)
+/docs-orchestrator PROJ-123 \
+  --source-code-repo /home/user/local-checkout \
+  --pr https://github.com/org/repo/pull/99
+
+# Custom workflow YAML
+/docs-orchestrator PROJ-123 --workflow quick
+```
+
 ## Resolve source repository
 
 After parsing arguments and before running steps, resolve the source code repository if one is configured. This makes the repo available to all downstream steps that need it (requirements, code-evidence, writing).
