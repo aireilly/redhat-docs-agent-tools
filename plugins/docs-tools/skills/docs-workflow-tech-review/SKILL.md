@@ -14,7 +14,7 @@ This skill performs a single review pass. The iteration loop (re-running with fi
 ## Arguments
 
 - `$1` — JIRA ticket ID (required)
-- `--base-path <path>` — Base output path (e.g., `artifacts/proj-123`)
+- `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 
 ## Input
 

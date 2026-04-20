@@ -183,7 +183,7 @@ The orchestrator validates at load time that every step name in `inputs` exists 
 Every step writes to a predictable folder based on the ticket ID and step name:
 
 ```
-artifacts/<ticket>/<step-name>/
+.claude/docs/<ticket>/<step-name>/
 ```
 
 The ticket ID is converted to **lowercase** for directory names (e.g., `PROJ-123` → `proj-123`).
@@ -193,7 +193,7 @@ The ticket ID is converted to **lowercase** for directory names (e.g., `PROJ-123
 Resolve the base path to an absolute path so agents (which may run in a different working directory) can locate files correctly:
 
 ```bash
-BASE_PATH="$(cd "$(git rev-parse --show-toplevel)" && pwd)/artifacts/${TICKET_LOWER}"
+BASE_PATH="$(cd "$(git rev-parse --show-toplevel)" && pwd)/.claude/docs/${TICKET_LOWER}"
 ```
 
 Use this absolute `BASE_PATH` for the progress file's `base_path` field and for all `--base-path` arguments passed to step skills.
@@ -201,7 +201,7 @@ Use this absolute `BASE_PATH` for the progress file's `base_path` field and for 
 ### Folder structure
 
 ```
-artifacts/proj-123/
+.claude/docs/proj-123/
   source.yaml                        (per-ticket source config, if applicable)
   code-repo/                         (cloned source repo, if applicable)
   requirements/
@@ -229,13 +229,13 @@ artifacts/proj-123/
     docs-workflow_proj-123.json
 ```
 
-Each step skill knows its own output folder and writes there. Each step reads input from upstream step folders referenced in its `inputs` list. The orchestrator passes the base path `artifacts/<ticket>/` — step skills derive everything else by convention.
+Each step skill knows its own output folder and writes there. Each step reads input from upstream step folders referenced in its `inputs` list. The orchestrator passes the base path `.claude/docs/<ticket>/` — step skills derive everything else by convention.
 
 ## Progress file
 
 Claude writes the progress file directly using the Write tool. Create it after parsing arguments, before step 1. Update it after each step.
 
-**Location**: `artifacts/<ticket>/workflow/<workflow-type>_<ticket>.json`
+**Location**: `.claude/docs/<ticket>/workflow/<workflow-type>_<ticket>.json`
 
 The `workflow_type` field and filename prefix match the YAML's `workflow.name`. This allows multiple workflow types to run against the same ticket without conflict.
 
@@ -245,7 +245,7 @@ The `workflow_type` field and filename prefix match the YAML's `workflow.name`. 
 {
   "workflow_type": "<workflow.name from YAML>",
   "ticket": "<TICKET>",
-  "base_path": "/absolute/path/to/artifacts/<ticket>",
+  "base_path": "/absolute/path/to/.claude/docs/<ticket>",
   "status": "in_progress",
   "created_at": "<ISO 8601>",
   "updated_at": "<ISO 8601>",
@@ -266,7 +266,7 @@ The `workflow_type` field and filename prefix match the YAML's `workflow.name`. 
 }
 ```
 
-The `output` field records the step's output folder path (e.g., `artifacts/proj-123/writing/`) once completed.
+The `output` field records the step's output folder path (e.g., `.claude/docs/proj-123/writing/`) once completed.
 
 ### Status values
 
@@ -285,7 +285,7 @@ A top-level array listing steps in canonical order. This field exists so the Sto
 
 ## Check for existing work
 
-Before starting, check for a progress file at `artifacts/<ticket>/workflow/<workflow-type>_<ticket>.json`.
+Before starting, check for a progress file at `.claude/docs/<ticket>/workflow/<workflow-type>_<ticket>.json`.
 
 **If a progress file exists:**
 

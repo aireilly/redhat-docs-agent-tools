@@ -200,7 +200,7 @@ When running individual steps, dependencies are resolved automatically and each 
 
 ```bash
 TICKET_LOWER=$(echo "<ticket>" | tr '[:upper:]' '[:lower:]')
-BASE_PATH="$(cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)" && pwd)/artifacts/${TICKET_LOWER}"
+BASE_PATH="$(cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)" && pwd)/.claude/docs/${TICKET_LOWER}"
 mkdir -p "$BASE_PATH"
 ```
 
@@ -293,9 +293,9 @@ After each step completes:
 After all steps complete, display a summary:
 
 > **Completed steps:**
-> - requirements: artifacts/proj-123/requirements/
-> - planning: artifacts/proj-123/planning/
-> - writing: artifacts/proj-123/writing/
+> - requirements: .claude/docs/proj-123/requirements/
+> - planning: .claude/docs/proj-123/planning/
+> - writing: .claude/docs/proj-123/writing/
 >
 > **Skipped steps:**
 > - code-evidence: no source repository configured

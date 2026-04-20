@@ -15,7 +15,7 @@ Step skill for the docs-orchestrator pipeline. Creates a GitLab MR or GitHub PR 
 ## Arguments
 
 - `$1` — JIRA ticket ID (required)
-- `--base-path <path>` — Base output path (e.g., `artifacts/proj-123`)
+- `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 - `--repo-path <path>` — Accepted for compatibility but unused (context comes from `commit-info.json`)
 - `--draft` — If present, skip MR/PR creation entirely
 

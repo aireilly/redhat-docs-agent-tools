@@ -12,7 +12,7 @@ Step skill for the docs-orchestrator pipeline. Follows the step skill contract: 
 ## Arguments
 
 - `$1` — JIRA ticket ID (required)
-- `--base-path <path>` — Base output path (e.g., `artifacts/proj-123`)
+- `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 - `--format <adoc|mkdocs>` — Documentation format (default: `adoc`)
 
 ## Input

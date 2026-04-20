@@ -15,7 +15,7 @@ Step skill for the docs-orchestrator pipeline. Commits documentation files liste
 ## Arguments
 
 - `$1` — JIRA ticket ID (required)
-- `--base-path <path>` — Base output path (e.g., `artifacts/proj-123`)
+- `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
 - `--repo-path <path>` — Target repository path. If omitted, uses the current working directory
 - `--draft` — If present, skip committing entirely
 

@@ -21,7 +21,7 @@ fi
 
 # Look for progress files
 shopt -s nullglob
-PROGRESS_FILES=(artifacts/*/workflow/*.json)
+PROGRESS_FILES=(.claude/docs/*/workflow/*.json)
 shopt -u nullglob
 if [ ${#PROGRESS_FILES[@]} -eq 0 ]; then
   exit 0
