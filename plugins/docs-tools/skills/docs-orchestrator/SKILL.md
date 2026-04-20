@@ -2,7 +2,7 @@
 name: docs-orchestrator
 description: Documentation workflow orchestrator. Reads the step list from .claude/docs-workflow.yaml (or the plugin default). Runs steps sequentially, manages progress state, handles iteration and confirmation gates. Claude is the orchestrator — the YAML is a step list, not a workflow engine.
 
-argument-hint: <ticket> [--workflow <name>] [--pr <url>]... [--repo <url-or-path>] [--mkdocs] [--draft] [--repo-path <path>] [--create-jira <PROJECT>]
+argument-hint: <ticket> [--workflow <name>] [--pr <url>]... [--source-code-repo <url-or-path>] [--mkdocs] [--draft] [--docs-repo-path <path>] [--create-jira <PROJECT>]
 
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, AskUserQuestion
 ---
@@ -35,7 +35,7 @@ fi
 1. If `JIRA_API_TOKEN` is still unset:
    - In interactive mode: **STOP** and ask the user to set it in `~/.env`
    - In headless mode (no user interaction available, e.g., ACP): log a warning and continue — agents will use `~/.env` credentials for JIRA access (populated by `setup.sh`)
-2. Warn (don't stop) if `GITHUB_TOKEN` or `GITLAB_TOKEN` are unset
+2. Warn (don't stop) if `GITHUB_TOKEN` or `GITLAB_TOKEN` are unset. Check that `gh` and `glab` CLIs are available — warn if either is missing
 3. Check that `uv` is available (needed by the code-evidence step to manage the `code-finder` dependency):
    ```bash
    command -v uv >/dev/null 2>&1
@@ -51,14 +51,13 @@ bash ${CLAUDE_SKILL_DIR}/scripts/setup-hooks.sh
 ## Parse arguments
 
 - `$1` — JIRA ticket ID (required). If missing, STOP and ask the user.
-- `--workflow <name>` — Use `.claude/docs-<name>.yaml` instead of `docs-workflow.yaml`
-- `--pr <url>` — PR/MR URLs (repeatable, accumulated into a list)
-- `--mkdocs` — Use Material for MkDocs format instead of AsciiDoc
-- `--draft` — Write documentation to a staging area instead of directly into the repo. When set, the writing step uses DRAFT placement mode (no framework detection, no branch creation). Without this flag, UPDATE-IN-PLACE is the default
-
-- `--repo-path <path>` — Target repository for UPDATE-IN-PLACE mode. The docs-writer agent explores this directory for framework detection and writes files there, instead of writing to the repository at the current working directory. **Precedence**: if both `--repo-path` and `--draft` are passed, `--repo-path` wins — log a warning and ignore `--draft`
-- `--repo <url-or-path>` — Source code repository. Can be a local path or a remote URL (https://, git@, ssh://). When provided without `--pr`, enables repo-driven documentation mode where the entire repo (or scoped subdirectories) is the subject matter. When provided alongside `--pr`, the PR branch is checked out within the provided repo.
-- `--create-jira <PROJECT>` — Create a linked JIRA ticket in the specified project
+- `--workflow <name>` — Use `.claude/docs-<name>.yaml` instead of `docs-workflow.yaml`. Allows running alternative pipelines (e.g., writing-only, review-only). Falls back to the plugin default at `skills/docs-orchestrator/defaults/docs-workflow.yaml` if no project-level YAML exists
+- `--pr <url>` — PR/MR URLs (repeatable, accumulated into a list). Accepts GitHub PRs (`gh` CLI) and GitLab MRs (`glab` CLI). Used both as requirements input (agent reads diffs/descriptions) and for source repo resolution (repo URL and branch derived from the first PR/MR). When multiple PRs from different repos are provided, all repos are resolved and treated equally as source material
+- `--mkdocs` — Use Material for MkDocs format instead of AsciiDoc. Propagates to the writing step (generates `.md` with MkDocs front matter) and style-review step (applies Markdown-appropriate rules). Sets `options.format` to `"mkdocs"` in the progress file
+- `--draft` — Write documentation to the staging area (`.claude/docs/<ticket>/writing/`) instead of directly into the repo. Uses DRAFT placement mode: no framework detection, no file placement into the target repo. Without this flag, UPDATE-IN-PLACE is the default
+- `--docs-repo-path <path>` — Target documentation repository for UPDATE-IN-PLACE mode. The docs-writer explores this directory for framework detection (Antora, MkDocs, Docusaurus, etc.) and writes files there instead of the current working directory. Propagates to `prepare-branch`, `writing`, `commit`, and `create-mr` steps (mapped to their internal `--repo-path` flag). **Precedence**: if both `--docs-repo-path` and `--draft` are passed, `--docs-repo-path` wins — log a warning and ignore `--draft`
+- `--source-code-repo <url-or-path>` — Source code repository for code evidence and requirements enrichment. Accepts remote URLs (https://, git@, ssh:// — shallow-cloned to `.claude/docs/<ticket>/code-repo/`) or local paths (used directly). Passed to requirements, code-evidence, and writing steps (mapped to their internal `--repo` flag). Without `--pr`, the entire repo is the subject matter; with `--pr`, the PR branch is checked out so code-evidence reflects the PR's state. Takes highest priority in source resolution, overriding `source.yaml` and PR-derived URLs
+- `--create-jira <PROJECT>` — Create a linked JIRA ticket in the specified project after the planning step completes. Activates the `create-jira` workflow step (guarded by `when: create_jira_project`). Requires `JIRA_API_TOKEN` to be set
 
 ## Resolve source repository
 
@@ -79,9 +78,9 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/resolve_source.py \
 
 The script checks sources in priority order:
 
-1. **CLI `--repo` flag** — clone or verify the path
+1. **CLI `--source-code-repo` flag** — clone or verify the path
 2. **Per-ticket `source.yaml`** — read and apply existing config
-3. **PR-derived** — resolve repo URL and branch from `--pr` via `gh pr view`
+3. **PR-derived** — resolve repo URL and branch from `--pr` via `gh pr view` or `glab mr view`
 4. **No source** — exit code 2, defer resolution until after requirements
 
 The script outputs JSON to stdout:
@@ -104,7 +103,7 @@ The script outputs JSON to stdout:
 | 1 | `error` | **STOP** with the error `message` from the JSON |
 | 2 | `no_source` | Mark steps with `when: has_source_repo` as `deferred`. Source resolution will be retried after requirements (see [Post-requirements source resolution](#post-requirements-source-resolution)) |
 
-If `discovered_repos` is present in the result (multiple repos found during scan), log which repo was auto-selected and list the others.
+If `discovered_repos` is present in the result (multiple repos found), log all resolved repos. If `additional_repos` is present, record them in the progress file alongside the primary source. If `warnings` is present, log each warning.
 
 ### Per-ticket source config schema
 
@@ -143,7 +142,7 @@ Read the YAML file and extract the ordered step list. Each step has: `name`, `sk
 
 - `when: create_jira_project` → run this step only if `--create-jira` was passed
 - `when: has_source_repo` → evaluation depends on timing:
-  - If a source repo was already resolved pre-flight (via `--repo`, `--pr`, or `source.yaml`) → step runs normally (`pending`)
+  - If a source repo was already resolved pre-flight (via `--source-code-repo`, `--pr`, or `source.yaml`) → step runs normally (`pending`)
   - If no source is resolved yet but post-requirements discovery is possible (case 4 above) → mark the step `deferred` (not `skipped`). The orchestrator re-evaluates after requirements completes
   - After post-requirements resolution: `deferred` steps become `pending` (source found) or `skipped` (no source found)
 - Steps with no `when` always run
@@ -203,7 +202,8 @@ Use this absolute `BASE_PATH` for the progress file's `base_path` field and for 
 ```
 .claude/docs/proj-123/
   source.yaml                        (per-ticket source config, if applicable)
-  code-repo/                         (cloned source repo, if applicable)
+  code-repo/                         (single repo: flat clone; multi-repo: subdirs)
+    <repo-name>/                     (only when multiple repos are resolved)
   requirements/
     requirements.md
   planning/
@@ -254,7 +254,8 @@ The `workflow_type` field and filename prefix match the YAML's `workflow.name`. 
     "draft": false,
     "create_jira_project": null,
     "pr_urls": [],
-    "source": null
+    "source": null,
+    "additional_sources": []
   },
   "step_order": ["requirements", "planning", "writing", ...],
   "steps": {
@@ -315,7 +316,7 @@ Run steps in the order defined by the YAML. For each step:
 
 ### Construct arguments
 
-Build the args string for the step skill:
+Build the args string for the step skill. The orchestrator maps its user-facing flags to the internal flags that step skills expect: `--source-code-repo` → `--repo`, `--docs-repo-path` → `--repo-path`.
 
 1. **Always**: `<ticket> --base-path <base_path>` — the ticket ID and the **absolute** base output path
 2. **If source repo is resolved**: `--repo <repo_path>` — passed to steps that can use it
@@ -356,21 +357,21 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/resolve_source.py \
   --scan-requirements
 ```
 
-The script scans `requirements.md` for GitHub/GitLab PR/MR URLs, groups them by repo, selects the repo with the most PRs, resolves the branch via `gh pr view`, clones, and writes `source.yaml`.
+The script scans `requirements.md` for GitHub/GitLab PR/MR URLs, groups them by repo, resolves all repos equally (via `gh pr view` or `glab mr view`), clones each into `code-repo/<name>/`, and writes `source.yaml` for the primary repo.
 
 ### 2. Handle the result
 
 | Exit code | `status` | Action |
 |---|---|---|
-| 0 | `resolved` | Record `options.source` in the progress file. Update all `deferred` steps to `pending`. If `discovered_repos` has multiple entries, log which was auto-selected |
-| 1 | `error` / `clone_failed` | Log a warning: "Could not clone `<repo_url>`. Code-evidence will be skipped. To retry, run with `--repo <url-or-local-path>`." Update all `deferred` steps to `skipped` |
+| 0 | `resolved` | Record `options.source` in the progress file (primary repo + any `additional_repos`). Update all `deferred` steps to `pending`. Log all resolved repos |
+| 1 | `error` / `clone_failed` | Log a warning: "Could not clone `<repo_url>`. Code-evidence will be skipped. To retry, run with `--source-code-repo <url-or-local-path>`." Update all `deferred` steps to `skipped` |
 | 2 | `no_source` | Skip code-evidence (see below) |
 
 ### 3. No source found
 
 When the script returns `no_source`, skip code-evidence without prompting.
 
-Update all `deferred` steps to `skipped` and continue without code-evidence. Log: "No source code repository or PR discovered. Skipping code-evidence. To enable it, re-run with `--repo <url-or-path>` or `--pr <url>`."
+Update all `deferred` steps to `skipped` and continue without code-evidence. Log: "No source code repository or PR discovered. Skipping code-evidence. To enable it, re-run with `--source-code-repo <url-or-path>` or `--pr <url>`."
 
 ## Technical review iteration
 
@@ -399,7 +400,7 @@ Before running the `commit` step, check whether this is an interactive session:
 - If `artifacts/.setup-complete` exists (ACP/headless mode): proceed without confirmation
 - Otherwise (interactive/local mode): **ask the user to confirm** before committing. Show:
   - The target branch name
-  - The repository being committed to (current directory or `--repo-path`)
+  - The repository being committed to (current directory or `--docs-repo-path`)
   - The number of files in the writing manifest
 
 If the user declines, mark the `commit` step as `skipped` and also skip the `create-mr` step (its input dependency is unsatisfied).
@@ -440,7 +441,7 @@ Same as new session. The progress file shows which steps completed and which fai
 
 ### Requirements-analyst agent: repo-aware analysis
 
-When `--repo` is passed to the requirements step, the `requirements-analyst` agent should use the repo to enrich its analysis. This is **not yet implemented** — the requirements step currently accepts `--repo` but the agent does not act on it. Future work:
+When `--source-code-repo` is passed to the requirements step, the `requirements-analyst` agent should use the repo to enrich its analysis. This is **not yet implemented** — the requirements step currently accepts `--source-code-repo` but the agent does not act on it. Future work:
 
 - Scan the repo's `README.md`, `CHANGELOG.md`, and `docs/` directory for existing documentation
 - Note what documentation already exists and what gaps remain (feeds directly into the planning step's gap analysis)
@@ -450,6 +451,3 @@ When `--repo` is passed to the requirements step, the `requirements-analyst` age
 
 This work requires changes to the `requirements-analyst` agent definition (`agents/requirements-analyst.md`), not just the step skill.
 
-### GitLab MR resolution
-
-`resolve_source.py` discovers GitLab MRs during requirements scanning but cannot resolve them automatically — `gh pr view` is GitHub-only. When only GitLab MRs are found, the script returns `no_source` with a message prompting the user to provide `--repo` manually. Future work: add `glab` CLI support or GitLab API integration for automatic MR resolution.

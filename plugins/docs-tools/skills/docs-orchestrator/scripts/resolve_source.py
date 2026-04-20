@@ -24,11 +24,9 @@ Exit codes:
     1 — error (message on stderr)
     2 — no source found (not an error; JSON with status "no_source" on stdout)
 
-Limitations:
-    - GitLab MR resolution is not yet supported. MRs are discovered during
-      requirements scanning but cannot be resolved automatically (gh CLI is
-      GitHub-only). Users must provide --repo manually for GitLab repos.
-      Future work: add glab CLI support or GitLab API integration.
+Prerequisites:
+    - gh CLI (for GitHub PR resolution)
+    - glab CLI (for GitLab MR resolution)
 """
 
 import argparse
@@ -77,6 +75,20 @@ def _run_gh(args, check=True):
     if check and result.returncode != 0:
         raise subprocess.CalledProcessError(
             result.returncode, ["gh"] + args, result.stdout, result.stderr
+        )
+    return result.stdout.strip()
+
+
+def _run_glab(args, check=True):
+    """Run a glab CLI command and return stdout."""
+    result = subprocess.run(
+        ["glab"] + args,
+        capture_output=True,
+        text=True,
+    )
+    if check and result.returncode != 0:
+        raise subprocess.CalledProcessError(
+            result.returncode, ["glab"] + args, result.stdout, result.stderr
         )
     return result.stdout.strip()
 
@@ -158,18 +170,20 @@ def _normalize_git_url(url):
 
 
 def _resolve_pr_info(pr_url):
-    """Extract repo URL and branch from a GitHub PR URL using gh CLI.
+    """Extract repo URL and branch from a GitHub PR or GitLab MR URL.
 
-    Derives the clone URL from the PR URL (base repo), not headRepository
-    (which may be a fork).
+    Dispatches to gh CLI for GitHub PRs and glab CLI for GitLab MRs.
+    Derives the clone URL from the PR/MR URL (base repo), not the
+    head/source repository (which may be a fork).
     """
-    # Extract base repo slug from PR URL: https://github.com/org/repo/pull/N
+    if GITLAB_MR_RE.match(pr_url):
+        return _resolve_mr_info(pr_url)
+
     match = GITHUB_PR_RE.match(pr_url)
     if match:
         repo_slug = match.group(1)
         repo_url = f"https://github.com/{repo_slug}.git"
     else:
-        # Fallback for non-standard URLs — ask gh for the PR's base repo
         repo_url = _run_gh([
             "pr", "view", pr_url,
             "--json", "url",
@@ -182,6 +196,44 @@ def _resolve_pr_info(pr_url):
         "--jq", ".headRefName",
     ])
     return repo_url, pr_branch
+
+
+def _resolve_mr_info(mr_url):
+    """Extract repo URL and branch from a GitLab MR URL using glab CLI.
+
+    Parses the project path and MR number from the URL, then uses
+    glab mr view <number> -R <project> with GITLAB_HOST set for the
+    correct instance.
+    """
+    import os
+    from urllib.parse import urlparse
+
+    match = GITLAB_MR_RE.match(mr_url)
+    if not match:
+        raise ValueError(f"Not a valid GitLab MR URL: {mr_url}")
+    project_path = match.group(1)
+    mr_number = match.group(2)
+    hostname = urlparse(mr_url).hostname
+
+    prev_host = os.environ.get("GITLAB_HOST")
+    os.environ["GITLAB_HOST"] = f"https://{hostname}"
+    try:
+        mr_json = _run_glab([
+            "mr", "view", mr_number, "-R", project_path, "--output", "json",
+        ])
+    finally:
+        if prev_host is None:
+            os.environ.pop("GITLAB_HOST", None)
+        else:
+            os.environ["GITLAB_HOST"] = prev_host
+
+    mr_data = json.loads(mr_json)
+    source_branch = mr_data.get("source_branch", "")
+
+    base_url = mr_url.split("/-/merge_requests/")[0]
+    repo_url = f"{base_url}.git"
+
+    return repo_url, source_branch
 
 
 def _scan_requirements_for_prs(base_path):
@@ -306,6 +358,84 @@ def _write_source_yaml(base_path, repo, ref):
     source_file.write_text("\n".join(lines) + "\n")
 
 
+def _resolve_multiple_prs(pr_urls, base_path):
+    """Resolve and clone repos from a list of PR/MR URLs.
+
+    Groups PRs by repo, clones each repo into code-repo/<repo_name>/,
+    and returns a success result with primary + additional repos.
+    """
+    # Group PRs by normalized repo URL
+    repo_groups = {}
+    for url in pr_urls:
+        try:
+            repo_url, branch = _resolve_pr_info(url)
+        except subprocess.CalledProcessError:
+            continue
+        normalized = _normalize_git_url(repo_url)
+        if normalized not in repo_groups:
+            repo_groups[normalized] = {"repo_url": repo_url, "ref": branch, "urls": []}
+        repo_groups[normalized]["urls"].append(url)
+
+    if not repo_groups:
+        return {
+            "status": "error",
+            "message": f"Cannot resolve repo from any of the provided PRs.",
+        }
+
+    resolved_repos = []
+    errors = []
+    use_subdirs = len(repo_groups) > 1
+
+    for normalized, info in repo_groups.items():
+        repo_url = info["repo_url"]
+        ref = info["ref"]
+
+        if use_subdirs:
+            repo_name = normalized.split("/")[-1]
+            repo_clone_dir = base_path / "code-repo" / repo_name
+        else:
+            repo_clone_dir = base_path / "code-repo"
+
+        if repo_clone_dir.exists():
+            if not _verify_existing_clone(repo_clone_dir, ref, expected_repo_url=repo_url):
+                errors.append(f"Existing clone at {repo_clone_dir} is invalid.")
+                continue
+        else:
+            if not _clone_repo(repo_url, repo_clone_dir, ref):
+                errors.append(f"Could not clone {repo_url}.")
+                continue
+
+        resolved_repos.append({
+            "repo_path": str(repo_clone_dir),
+            "repo_url": repo_url,
+            "ref": ref,
+        })
+
+    if not resolved_repos:
+        return {
+            "status": "error",
+            "message": f"Could not clone any repos. Errors: {'; '.join(errors)}",
+        }
+
+    primary = resolved_repos[0]
+    _write_source_yaml(base_path, primary["repo_url"], primary["ref"])
+
+    discovered = {_normalize_git_url(info["repo_url"]): len(info["urls"])
+                  for info in repo_groups.values()}
+
+    result = _success(
+        primary["repo_path"],
+        repo_url=primary["repo_url"],
+        ref=primary["ref"],
+        discovered_repos=discovered if len(repo_groups) > 1 else None,
+    )
+    if len(resolved_repos) > 1:
+        result["additional_repos"] = resolved_repos[1:]
+    if errors:
+        result["warnings"] = errors
+    return result
+
+
 def _success(repo_path, repo_url=None, ref=None, scope=None, discovered_repos=None):
     """Build a success result dict."""
     result = {
@@ -400,26 +530,7 @@ def resolve(args):
 
     # --- Priority 3: PR-derived (--pr without --repo) ---
     if pr_urls:
-        try:
-            repo_url, pr_branch = _resolve_pr_info(pr_urls[0])
-        except subprocess.CalledProcessError as e:
-            return {
-                "status": "error",
-                "message": f"Cannot resolve repo from PR {pr_urls[0]}: {e.stderr}",
-            }
-
-        if clone_dir.exists():
-            if not _verify_existing_clone(clone_dir, pr_branch, expected_repo_url=repo_url):
-                return {"status": "error", "message": f"Existing clone at {clone_dir} is invalid or points to a different repo."}
-        else:
-            if not _clone_repo(repo_url, clone_dir, pr_branch):
-                return {
-                    "status": "error",
-                    "message": f"Cannot clone {repo_url}.",
-                }
-
-        _write_source_yaml(base_path, repo_url, pr_branch)
-        return _success(clone_dir, repo_url=repo_url, ref=pr_branch)
+        return _resolve_multiple_prs(pr_urls, base_path)
 
     # --- Priority 4: Scan requirements for PRs ---
     if args.scan_requirements:
@@ -428,52 +539,9 @@ def resolve(args):
         if not repos:
             return {"status": "no_source"}
 
-        # Select repo with most GitHub PRs (GitLab MRs require glab, not yet supported)
-        github_repos = {
-            slug: [pr for pr in prs if pr["type"] == "github"]
-            for slug, prs in repos.items()
-        }
-        github_repos = {slug: prs for slug, prs in github_repos.items() if prs}
-
-        if not github_repos:
-            # Only GitLab MRs found — cannot resolve via gh CLI
-            gitlab_slugs = list(repos.keys())
-            return {
-                "status": "no_source",
-                "message": f"Only GitLab MRs found ({', '.join(gitlab_slugs)}). GitLab resolution not yet supported. Provide --repo manually.",
-            }
-
-        selected_slug = max(github_repos, key=lambda k: len(github_repos[k]))
-        selected_prs = github_repos[selected_slug]
-        first_pr_url = selected_prs[0]["url"]
-
-        # Build discovered_repos summary for orchestrator logging (all providers)
-        discovered = {slug: len(prs) for slug, prs in repos.items()}
-
-        try:
-            repo_url, pr_branch = _resolve_pr_info(first_pr_url)
-        except subprocess.CalledProcessError as e:
-            return {
-                "status": "error",
-                "message": f"Cannot resolve repo from discovered PR {first_pr_url}: {e.stderr}",
-            }
-
-        if clone_dir.exists():
-            if not _verify_existing_clone(clone_dir, pr_branch, expected_repo_url=repo_url):
-                return {"status": "error", "message": f"Existing clone at {clone_dir} is invalid or points to a different repo."}
-        else:
-            if not _clone_repo(repo_url, clone_dir, pr_branch):
-                return {
-                    "status": "clone_failed",
-                    "message": f"Could not clone {repo_url}. Code-evidence will be skipped.",
-                    "repo_url": repo_url,
-                }
-
-        _write_source_yaml(base_path, repo_url, pr_branch)
-        return _success(
-            clone_dir, repo_url=repo_url, ref=pr_branch,
-            discovered_repos=discovered,
-        )
+        # Collect first PR URL from each discovered repo
+        all_pr_urls = [prs[0]["url"] for prs in repos.values()]
+        return _resolve_multiple_prs(all_pr_urls, base_path)
 
     # --- Priority 5: No source ---
     return {"status": "no_source"}

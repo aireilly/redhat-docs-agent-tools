@@ -1,7 +1,7 @@
 ---
 name: docs-workflow-start
 description: Interactive entry point for the docs workflow. When invoked with no CLI switches, uses AskUserQuestion to gather configuration. Supports full workflow, individual steps with auto-resolved prerequisites, and resuming previous runs. When switches are provided, passes through directly to docs-orchestrator.
-argument-hint: "[<ticket>] [--workflow <name>] [--pr <url>]... [--repo <url-or-path>] [--mkdocs] [--draft] [--repo-path <path>] [--create-jira <PROJECT>]"
+argument-hint: "[<ticket>] [--workflow <name>] [--pr <url>]... [--source-code-repo <url-or-path>] [--mkdocs] [--draft] [--docs-repo-path <path>] [--create-jira <PROJECT>]"
 allowed-tools: Read, Write, Glob, Grep, Bash, Skill, AskUserQuestion
 ---
 
@@ -18,8 +18,8 @@ Same argument set as docs-orchestrator:
 - `--pr <url>` — PR/MR URLs (repeatable)
 - `--mkdocs` — Material for MkDocs format
 - `--draft` — staging area mode
-- `--repo-path <path>` — target docs repo for update-in-place
-- `--repo <url-or-path>` — source code repository
+- `--docs-repo-path <path>` — target docs repo for update-in-place
+- `--source-code-repo <url-or-path>` — source code repository
 - `--create-jira <PROJECT>` — create linked JIRA ticket
 
 ## Determine mode
@@ -139,12 +139,12 @@ Multiple URLs are supported. Each becomes a `--pr <url>` flag.
 Single value. Then follow up:
 > Do you also have PR URL(s) for this repo? If so, enter them one per line (press Enter twice when done). Otherwise, press Enter to skip:
 
-This is because `--repo` and `--pr` can coexist — the PR branch gets checked out within the repo.
+This is because `--source-code-repo` and `--pr` can coexist — the PR branch gets checked out within the repo.
 
 **If "A different repo" was selected for placement**:
 > Enter the target docs repository path:
 
-Maps to `--repo-path <path>`.
+Maps to `--docs-repo-path <path>`.
 
 **If "Yes" was selected for Create JIRA**:
 > Enter the target JIRA project key (e.g., DOCS):
@@ -161,14 +161,14 @@ Build the args string from collected answers:
 |--------|----------|
 | Material for MkDocs | `--mkdocs` |
 | PR URL(s) | `--pr <url>` (repeat for each URL) |
-| Repo URL or path | `--repo <url-or-path>` |
+| Repo URL or path | `--source-code-repo <url-or-path>` |
 | Draft — staging area only | `--draft` |
-| Target docs repo path | `--repo-path <path>` |
+| Target docs repo path | `--docs-repo-path <path>` |
 | Create JIRA = Yes | `--create-jira <PROJECT>` |
 
 AsciiDoc format and current repo placement are defaults — no flags needed.
 
-**Precedence**: If both `--repo-path` and `--draft` would be set, `--repo-path` wins — log a warning and omit `--draft` (matches orchestrator behavior).
+**Precedence**: If both `--docs-repo-path` and `--draft` would be set, `--docs-repo-path` wins — log a warning and omit `--draft` (matches orchestrator behavior).
 
 **NOW invoke the orchestrator** (or run specific steps — see below).
 
