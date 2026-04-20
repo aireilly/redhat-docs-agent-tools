@@ -30,23 +30,23 @@ Same argument set as docs-orchestrator:
 Skill: docs-orchestrator, args: "<all original args>"
 ```
 
-**Interactive mode**: If no `--` switches are present (bare invocation or just a ticket ID), proceed to the interactive input gathering below. **Do NOT invoke the orchestrator until all interactive questions have been answered and CLI flags have been constructed.**
+**Interactive mode**: If no `--` switches are present (bare invocation or just a ticket ID), go to the **Interactive mode — required steps** section below.
 
-## Interactive input gathering
+## Interactive mode — required steps
 
-You MUST complete ALL interactive questions below before invoking the orchestrator or any step skill. Do not skip ahead after obtaining the ticket ID.
+**STOP. You MUST follow steps 1–5 below IN ORDER. Do not skip any step. Do not invoke the orchestrator or any step skill until you reach step 5. Do not assume defaults — ask every question.**
 
-### Get ticket ID
+### Step 1: Get ticket ID
 
 If no ticket ID was provided in args, ask the user conversationally:
 
 > What is the JIRA ticket ID? (e.g., PROJ-123)
 
-The ticket ID is required for all modes. After obtaining it, proceed to Call 1 — do NOT invoke the orchestrator yet.
+The ticket ID is required. After obtaining it, proceed to step 2.
 
-### Call 1 — Action selection (MANDATORY)
+### Step 2: Action selection — call AskUserQuestion
 
-Use AskUserQuestion with 1 question:
+You MUST call the AskUserQuestion tool now with 1 question. Do not skip this.
 
 **What would you like to do?**
 
@@ -56,19 +56,15 @@ Use AskUserQuestion with 1 question:
 | Run specific step(s) | Run one or more individual workflow steps with prerequisites included automatically |
 | Resume existing workflow | Continue a previously started workflow for this ticket |
 
-**If "Resume existing workflow"**: Skip all remaining AskUserQuestion calls. Invoke the orchestrator with just the ticket ID:
+Wait for the user's answer before proceeding.
 
-```
-Skill: docs-orchestrator, args: "<ticket>"
-```
+- If **"Resume existing workflow"**: skip steps 3–4 and go directly to step 5 (resume path).
+- If **"Run full workflow"**: proceed to step 3A.
+- If **"Run specific step(s)"**: proceed to step 3B.
 
-The orchestrator detects the existing progress file and resumes automatically. STOP here — do not continue to Call 2.
+### Step 3A: Full workflow configuration — call AskUserQuestion
 
-### Call 2 — Configuration (MANDATORY for full workflow and specific steps)
-
-#### If "Run full workflow" was selected
-
-Use AskUserQuestion with 4 questions:
+You MUST call the AskUserQuestion tool now with ALL 4 questions at once. Do not skip this.
 
 **Q1: What output format should the documentation use?**
 
@@ -100,11 +96,11 @@ Use AskUserQuestion with 4 questions:
 | No (Recommended) | Skip JIRA ticket creation |
 | Yes | Create a linked ticket in another JIRA project |
 
-After Call 2, proceed to [Free-text follow-ups](#free-text-follow-ups).
+Wait for all answers before proceeding to step 4.
 
-#### If "Run specific step(s)" was selected
+### Step 3B: Specific steps selection — call AskUserQuestion
 
-Use AskUserQuestion with 1 question (multiSelect enabled):
+You MUST call the AskUserQuestion tool now with 1 question (multiSelect enabled). Do not skip this.
 
 **Which step(s) do you want to run?**
 
@@ -119,26 +115,18 @@ For steps not listed (planning, style-review, prepare-branch, commit, create-mr,
 
 **Invalid step names**: If the user enters a step name via "Other" that is not recognized, the dependency resolver will report the error with a list of valid step names. Surface this error to the user and ask them to correct their selection.
 
-After step selection, proceed to Call 3.
-
-### Call 3 — Step-specific configuration (specific steps only)
-
-Determine which configuration questions are relevant based on the selected steps. Only include questions that apply:
+After receiving the answer, determine which configuration questions are relevant:
 
 - **Format?** — include if any of these steps are selected: writing, style-review
 - **Source code?** — include if code-evidence is selected
 - **Placement?** — include if any of these steps are selected: writing, prepare-branch, commit, create-mr
 - **Create JIRA?** — include if create-jira is selected
 
-If no questions are relevant (e.g., user selected only requirements or technical-review), skip Call 3 entirely.
+If any questions are relevant, call AskUserQuestion with those questions (same text and options as step 3A). If no questions are relevant, proceed to step 4.
 
-Use AskUserQuestion with only the relevant questions (1–4). The question text and options are identical to the full-workflow versions in Call 2.
+### Step 4: Free-text follow-ups
 
-After Call 3, proceed to [Free-text follow-ups](#free-text-follow-ups).
-
-### Free-text follow-ups
-
-Collect free-text inputs conversationally (not via AskUserQuestion) based on answers from Call 2 or Call 3. Only ask questions that are needed.
+Based on answers from step 3, collect any needed free-text inputs conversationally (not via AskUserQuestion). Only ask questions that apply:
 
 **If "Yes — I have a PR URL" was selected**:
 > Enter PR/MR URL(s), one per line (press Enter twice when done):
@@ -163,7 +151,9 @@ Maps to `--repo-path <path>`.
 
 Maps to `--create-jira <PROJECT>`.
 
-## Map answers to CLI flags
+If no follow-ups are needed, proceed directly to step 5.
+
+### Step 5: Build CLI flags and execute
 
 Build the args string from collected answers:
 
@@ -180,9 +170,9 @@ AsciiDoc format and current repo placement are defaults — no flags needed.
 
 **Precedence**: If both `--repo-path` and `--draft` would be set, `--repo-path` wins — log a warning and omit `--draft` (matches orchestrator behavior).
 
-## Execute: Full workflow
+**NOW invoke the orchestrator** (or run specific steps — see below).
 
-Only reach this section after ALL interactive questions (Calls 1–2 and free-text follow-ups) have been completed and CLI flags have been constructed.
+#### Full workflow execution
 
 Invoke the orchestrator with the ticket ID and all constructed flags:
 
@@ -196,7 +186,17 @@ Example:
 Skill: docs-orchestrator, args: "PROJ-123 --mkdocs --pr https://github.com/org/repo/pull/42 --draft"
 ```
 
-## Execute: Specific step(s)
+#### Resume execution
+
+For the resume path (user selected "Resume existing workflow" in step 2):
+
+```
+Skill: docs-orchestrator, args: "<ticket>"
+```
+
+The orchestrator detects the existing progress file and resumes automatically.
+
+#### Specific steps execution
 
 When running individual steps, dependencies are resolved automatically and each step skill is invoked directly.
 
