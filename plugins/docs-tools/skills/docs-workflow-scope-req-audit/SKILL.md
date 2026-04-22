@@ -69,10 +69,18 @@ Validate:
 - Verify `$REQUIREMENTS_FILE` exists. If not, STOP with error: "Requirements step must complete before scope-req-audit."
 - Verify the repo path exists and is a directory. If not, STOP with error: "Repo path does not exist: `<path>`."
 
-Locate the `find_evidence.py` script. It lives in the code-evidence skill directory:
+Locate the `find_evidence.py` script from the code-evidence skill.
+
+Claude Code:
 
 ```bash
-FIND_EVIDENCE_SCRIPT="${CLAUDE_SKILL_DIR}/../docs-workflow-code-evidence/scripts/find_evidence.py"
+FIND_EVIDENCE_SCRIPT="${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-code-evidence/scripts/find_evidence.py"
+```
+
+Cursor (paths are relative to the repository root):
+
+```bash
+FIND_EVIDENCE_SCRIPT="plugins/docs-tools/skills/docs-workflow-code-evidence/scripts/find_evidence.py"
 ```
 
 Verify the script exists. If not, STOP with error: "find_evidence.py not found at expected path."
@@ -91,7 +99,7 @@ For each file, extract URLs matching:
 - `https://gitlab.<host>/<path>` (GitLab)
 
 Filter out:
-- The current repo URL (derive from `git remote get-url origin` in the repo directory)
+- The current repo URL (discover the remote via `git remote -v` in the repo directory and use the first available remote's URL)
 - Duplicate URLs
 - URLs that are clearly not repos (e.g., GitHub issue links, badge URLs)
 
@@ -143,7 +151,7 @@ Write the queries to `$QUERIES_FILE` as a JSON array:
 Then run batch retrieval using `find_evidence.py`. First, check if code-finder is already installed:
 
 ```bash
-python3 -c "import claude_context" 2>/dev/null && echo "INSTALLED" || echo "NOT_INSTALLED"
+python3 -c "import claude_context.skills.evidence_retrieval" 2>/dev/null && echo "INSTALLED" || echo "NOT_INSTALLED"
 ```
 
 If **INSTALLED**, run directly:
@@ -188,24 +196,13 @@ For each requirement, record:
 
 ### 6. Generate recommended actions
 
-For each **partial** or **absent** requirement, generate a contextual recommended action and assign a gap category. Use the following as input:
-- The requirement text (title + summary)
-- What was found (if anything) — the key_files and top_score
+For each **partial** or **absent** requirement, generate a contextual recommended action and assign a gap category.
+
+Read the prompt from `${CLAUDE_SKILL_DIR}/prompts/gap-classification.md`. Combine it with:
+- The list of partial and absent requirements (id, title, status, top_score, snippet_count, key_files)
 - The `discovered_repos` list from step 2
 
-Guidelines for recommended actions:
-- If the requirement's topic appears in a `discovered_repos` entry, reference that specific repo (e.g., "eval-hub-sdk (referenced in README.md) may contain Python SDK implementation")
-- If partial evidence exists (stubs, config, tests), note what was found and what is missing
-- If no evidence exists, suggest confirming with SME whether the feature is implemented
-- Keep actions concise — one or two sentences
-
-Assign a `gap_category` to each partial or absent requirement. Use one of:
-- `api_reference` — missing API specs, CRD definitions, or endpoint documentation
-- `implementation` — missing core feature implementation code
-- `sdk` — missing SDK, client library, or CLI tooling
-- `configuration` — missing configuration options, environment variables, or CR fields
-- `architecture` — missing design docs, component relationships, or data flow
-- `examples` — missing sample configurations, tutorials, or quickstart content
+Use the prompt to generate a `recommended_action` and `gap_category` for each partial or absent requirement.
 
 For **grounded** requirements, set `recommended_action` and `gap_category` to `null`.
 
