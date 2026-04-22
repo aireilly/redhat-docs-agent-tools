@@ -13,7 +13,7 @@ Use this checklist to track assessment progress. Mark each parameter as you comp
 - [ ] **P7** Max 3 nesting levels
 - [ ] **P8** Short descriptions are clear and actionable
 - [ ] **P9** Short descriptions: 50-300 chars with `[role="_abstract"]`
-- [ ] **P10** Titles support short, and descriptive forms
+- [ ] **P10** Titles support short and descriptive forms
 - [ ] **P11** Titles are brief, complete, and descriptive
 - [ ] **P12** Prerequisites: `.Prerequisites` label, unordered list, max 10
 - [ ] **P13** Grammatically correct American English

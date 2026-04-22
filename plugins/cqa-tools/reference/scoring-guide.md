@@ -49,7 +49,7 @@ Each parameter assessment must include:
 | P7 | Content not deeply nested (max 3 levels) | Important | `cqa-modularization` |
 | P8 | Short descriptions clear and actionable | Required | `cqa-titles-descriptions` |
 | P9 | Short descriptions: 50-300 chars, `[role="_abstract"]` | Required | `cqa-titles-descriptions` |
-| P10 | Titles: short, and descriptive | Important | `cqa-titles-descriptions` |
+| P10 | Titles: short and descriptive | Important | `cqa-titles-descriptions` |
 | P11 | Titles: brief, complete, and descriptive | Required | `cqa-titles-descriptions` |
 | P12 | Prerequisites: label, formatting, max 10 | Required | `cqa-procedures` |
 | P13 | Grammatically correct, American English | Required | `cqa-editorial` |

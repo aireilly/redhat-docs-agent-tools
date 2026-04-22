@@ -12,7 +12,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 |---|-----------|-------|
 | P8 | Short descriptions are clear and describe why the user should read the content | Required |
 | P9 | Short descriptions: 50-300 chars, `[role="_abstract"]` present | Required |
-| P10 | Titles support short, and descriptive forms (DITA) | Important |
+| P10 | Titles support short and descriptive forms (DITA) | Important |
 | P11 | Titles are brief, complete, and descriptive | Required |
 
 ## Directory note
