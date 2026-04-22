@@ -19,7 +19,7 @@ For technical accuracy and code-aware validation, use `docs-review-technical`.
 | `--pr <url>` | PR/MR review | Review doc changes in a GitHub PR or GitLab MR |
 | `--pr <url> --post-comments` | PR/MR + post | Review and post inline comments to PR/MR |
 | `--action-comments [url]` | Action comments | Fetch and interactively action unresolved PR/MR review comments (auto-detects PR if URL omitted) |
-| *(no arguments)* | Error | Display usage |
+| *(no arguments)* | Interactive | AskUserQuestion gathers mode and options |
 
 ## Global Options
 
@@ -28,7 +28,85 @@ For technical accuracy and code-aware validation, use `docs-review-technical`.
 | `--threshold <0-100>` | Confidence threshold for reporting issues (default: 80) |
 | `--fix` | Auto-fix high-confidence issues (>=65%), then interactively walk through remaining |
 
-If no arguments are provided, display usage and ask the user to specify a mode.
+## Interactive mode — no arguments provided
+
+**STOP. You MUST follow the steps below IN ORDER. Do not skip any step. Do not start the review pipeline until all required inputs are gathered.**
+
+### Step 1: Mode selection — call AskUserQuestion
+
+You MUST call the AskUserQuestion tool now. Do not skip this.
+
+**What type of style review would you like to run?**
+
+| Option | Description |
+|--------|-------------|
+| Review local branch changes | Review doc changes in current branch vs base branch |
+| Review a PR/MR | Review doc changes in a GitHub PR or GitLab MR |
+| Action unresolved review comments | Fetch and interactively action unresolved PR/MR review comments |
+
+Wait for the answer before proceeding.
+
+- If **"Review local branch changes"**: set mode to `--local`. Proceed to Step 3.
+- If **"Review a PR/MR"**: proceed to Step 2A.
+- If **"Action unresolved review comments"**: proceed to Step 2B.
+
+### Step 2A: PR/MR details — call AskUserQuestion
+
+Call AskUserQuestion with `textInput: true`:
+
+> Enter the PR/MR URL (e.g., https://github.com/org/repo/pull/123):
+
+Set mode to `--pr <url>`.
+
+Then call AskUserQuestion:
+
+**Post inline comments to the PR/MR?**
+
+| Option | Description |
+|--------|-------------|
+| No (default) | Review only — results displayed locally |
+| Yes | Post review findings as inline PR/MR comments |
+
+If **"Yes"**: append `--post-comments` to mode.
+
+Proceed to Step 3.
+
+### Step 2B: Action comments — call AskUserQuestion
+
+Call AskUserQuestion with `textInput: true`:
+
+> Enter the PR/MR URL, or leave blank to auto-detect from current branch:
+
+- If blank: set mode to `--action-comments`.
+- If URL provided: set mode to `--action-comments <url>`.
+
+Then call AskUserQuestion:
+
+**Which comments should be included?**
+
+| Option | Description |
+|--------|-------------|
+| Unresolved only (default) | Only show comments that have not been resolved |
+| All comments | Include both resolved and unresolved comments |
+
+- If **"All comments"**: set `INCLUDE_RESOLVED=true`.
+
+Proceed to the **Mode: --action-comments** section (skip Step 3).
+
+### Step 3: Fix mode — call AskUserQuestion
+
+Call AskUserQuestion:
+
+**Apply automatic fixes for high-confidence issues?**
+
+| Option | Description |
+|--------|-------------|
+| No (default) | Report issues only |
+| Yes | Auto-fix issues with confidence >=65%, then walk through the rest interactively |
+
+If **"Yes"**: append `--fix` to mode.
+
+Proceed to the review pipeline with the constructed arguments.
 
 ## Agent Assumptions
 
@@ -279,7 +357,7 @@ Ask user via AskUserQuestion: **Apply** | **Modify** | **Skip** | **Delete secti
 
 # Mode: --action-comments
 
-Fetch unresolved review comments from GitHub PRs or GitLab MRs and interactively action them.
+Fetch unresolved review comments from GitHub PRs or GitLab MRs and interactively action them on local files.
 
 ## Step 1: Resolve PR/MR URL
 
@@ -288,48 +366,150 @@ If URL provided, use directly. If omitted, auto-detect:
 PR_URL=$(python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py detect 2>/dev/null)
 ```
 
-## Step 2: Fetch Unresolved Comments
+If detection fails, stop with:
+
+> Could not detect a PR/MR for the current branch. Please provide a URL and try again.
+
+## Step 2: Get PR info and check out the branch locally
+
+Fetch PR metadata to determine the source branch:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py info "${PR_URL}" --json
+```
+
+From the JSON output, extract `head_ref` (source branch), `base_ref` (target branch), and `title` (PR title).
+
+Check whether the current branch matches `head_ref`:
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+```
+
+**If already on the correct branch**: proceed to Step 3.
+
+**If on a different branch**:
+
+1. Check for uncommitted changes:
+   ```bash
+   git status --porcelain
+   ```
+   If there are uncommitted changes, stop with:
+   > You have uncommitted changes on `{CURRENT_BRANCH}`. Please commit or stash them before switching branches.
+
+2. Fetch and check out the PR branch:
+   ```bash
+   git fetch origin "${HEAD_REF}"
+   git checkout "${HEAD_REF}"
+   ```
+
+   If the branch does not exist locally, create a tracking branch:
+   ```bash
+   git checkout -b "${HEAD_REF}" "origin/${HEAD_REF}"
+   ```
+
+Report to the user:
+
+> Checked out branch `{HEAD_REF}` for PR: {title}
+
+## Step 3: Fetch review comments
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py comments "${PR_URL}" --json
 ```
 
-The script automatically filters bot comments, resolved threads, and returns top-level comments only with: `id`, `path`, `line`, `body`, `author`, `resolved`.
+Add `--include-resolved` if `INCLUDE_RESOLVED=true` (set during interactive mode).
 
-## Step 3: Process Each Comment Interactively
+The script automatically filters bot comments, resolved threads (unless `--include-resolved`), and returns top-level comments with: `id`, `path`, `line`, `body`, `author`, `resolved`.
 
-For each unresolved comment, present:
+If no comments are returned, report:
+
+> No unresolved review comments found on this PR/MR.
+
+And stop.
+
+## Step 4: Categorize comments
+
+Before presenting comments, categorize each one:
+
+| Category | Criteria | Action |
+|----------|----------|--------|
+| **Required** | Style violations, technical errors, broken examples | Must fix |
+| **Suggestion** | Wording improvements, reorganization | User discretion |
+| **Question** | Requests for clarification, questions from reviewer | Present but do not auto-suggest a fix |
+| **Outdated** | Already addressed by subsequent commits | Skip automatically |
+
+For **Outdated** detection: read the file at the comment's `path` and `line`. If the content no longer matches what the comment references (the reviewer's quoted text or the line context), mark as outdated.
+
+## Step 5: Process each comment interactively
+
+For each non-outdated comment, present:
 
 ```markdown
-## Comment from @{author} on `{file_path}:{line}`
+## Comment {N} of {total} from @{author} on `{path}:{line}` [{category}]
 
 > {comment_body}
 
-### Current Content
-{relevant lines from the file}
+### Current content (local file)
+{relevant lines from the local file around the comment's line}
 
-### Suggested Change
-{analysis and proposed change}
+### Suggested change
+{your analysis and proposed edit}
 ```
 
-Ask user via AskUserQuestion: **Apply** | **Edit** | **Skip** | **View context**
+Call AskUserQuestion with these options:
 
-When approved: Read target file, apply Edit, confirm, move to next.
+| Option | Description |
+|--------|-------------|
+| Apply | Apply the suggested change |
+| Edit | Apply with modifications — ask for user's preferred text |
+| Skip | Skip this comment |
+| View context | Show more surrounding lines, then re-ask |
 
-## Step 4: Summary
+**When Apply is selected**: Read the target file, apply the edit using Edit tool, confirm the change was applied, move to next comment.
+
+**When Edit is selected**: Call AskUserQuestion with `textInput: true`:
+
+> Enter the text you'd like to use instead:
+
+Apply the user's text using Edit tool, confirm, move to next.
+
+**When View context is selected**: Read 20 lines before and after the comment's line from the local file, display them, then re-present the same options.
+
+**When Skip is selected**: Move to next comment.
+
+## Step 6: Summary
+
+After all comments are processed, present:
 
 ```markdown
-## Summary
+## Action Comments Summary
+
+**PR/MR**: {PR_URL}
+**Branch**: {HEAD_REF}
 
 | Metric | Count |
 |--------|-------|
 | Total comments | X |
-| Comments addressed | Y |
-| Comments skipped | Z |
-| Bot comments filtered | N |
+| Applied | Y |
+| Edited | Z |
+| Skipped | S |
+| Outdated (auto-skipped) | O |
+| Bot comments (filtered) | B |
+
+### Changes applied
+
+1. `{path}:{line}` — {brief description of change}
+2. ...
+
+### Comments skipped
+
+1. `{path}:{line}` — @{author}: "{truncated comment}" — Reason: {user skipped / outdated}
 ```
 
-Categorize comments: **Required** (style violations, errors — must fix), **Suggestion** (improvements — user discretion), **Question** (needs discussion), **Outdated** (already addressed — skip).
+If any changes were applied, remind the user:
+
+> Changes have been applied to your local files on branch `{HEAD_REF}`. Review them with `git diff` and commit when ready.
 
 ---
 
