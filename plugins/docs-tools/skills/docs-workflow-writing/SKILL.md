@@ -210,3 +210,26 @@ In fix mode, the skill does not create new modules or restructure content.
 If `verify_output` is `true` in the script's JSON output, check that `output_file` exists.
 
 If `verify_output` is `false` (fix mode), no verification is needed — files are edited in place.
+
+### 4. Write step-result.json
+
+Skip this step if `mode` is `"fix"` (fixes edit files in place — no new manifest to parse).
+
+Read the manifest at `<OUTPUT_FILE>` (`_index.md`). Extract every absolute file path from the table rows. These become the `files` array.
+
+Write the sidecar to `<OUTPUT_DIR>/step-result.json` using the `mode` and `format` values from the script's JSON output:
+
+```json
+{
+  "schema_version": 1,
+  "step": "writing",
+  "ticket": "<TICKET>",
+  "completed_at": "<current ISO 8601 timestamp>",
+  "files": [
+    "/absolute/path/to/file1.adoc",
+    "/absolute/path/to/file2.adoc"
+  ],
+  "mode": "<mode from script JSON>",
+  "format": "<format from script JSON>"
+}
+```

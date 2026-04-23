@@ -158,10 +158,22 @@ elif [[ "$PLATFORM" == "gitlab" ]]; then
   ensure_cli glab
 fi
 
-# --- Build MR/PR title ---
+# --- Build MR/PR title (sidecar-first, fallback to heading regex) ---
+REQ_SIDECAR="${BASE_PATH}/requirements/step-result.json"
 REQUIREMENTS_FILE="${BASE_PATH}/requirements/requirements.md"
 SUMMARY=""
-if [[ -f "$REQUIREMENTS_FILE" ]]; then
+
+if [[ -f "$REQ_SIDECAR" ]]; then
+  SUMMARY="$(python3 -c "
+import json, sys
+sidecar = json.load(open(sys.argv[1]))
+title = sidecar.get('title', '')
+if title:
+    print(title[:80])
+" "$REQ_SIDECAR" 2>/dev/null || true)"
+fi
+
+if [[ -z "$SUMMARY" && -f "$REQUIREMENTS_FILE" ]]; then
   SUMMARY="$(python3 -c "
 import sys, re
 with open(sys.argv[1]) as f:

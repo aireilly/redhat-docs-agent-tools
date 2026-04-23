@@ -213,21 +213,27 @@ Use this absolute `BASE_PATH` for the progress file's `base_path` field and for 
     <repo-name>/                     (only when multiple repos are resolved)
   requirements/
     requirements.md
+    step-result.json                 (sidecar: title)
   planning/
     plan.md
+    step-result.json                 (sidecar: module_count)
   code-evidence/                     (if source repo is available)
     evidence.json
     summary.md
   prepare-branch/
     branch-info.md
+    step-result.json                 (sidecar: branch, based_on, skipped)
   writing/
     _index.md
+    step-result.json                 (sidecar: files, mode, format)
     assembly_*.adoc (or docs/*.md for mkdocs)
     modules/
   technical-review/
     review.md
+    step-result.json                 (sidecar: confidence, severity_counts)
   style-review/
     review.md
+    step-result.json                 (sidecar: common fields only)
   commit/
     commit-info.json
   create-mr/
@@ -237,6 +243,10 @@ Use this absolute `BASE_PATH` for the progress file's `base_path` field and for 
 ```
 
 Each step skill knows its own output folder and writes there. Each step reads input from upstream step folders referenced in its `inputs` list. The orchestrator passes the base path `.claude/docs/<ticket>/` — step skills derive everything else by convention.
+
+### Step result sidecars
+
+Every step that produces markdown output also writes a `step-result.json` sidecar with structured metadata. See [reference/step-result-schema.md](reference/step-result-schema.md) for the full schema. Downstream scripts and the orchestrator prefer sidecar data when present, falling back to parsing the markdown output for backward compatibility.
 
 ## Progress file
 
@@ -348,9 +358,10 @@ Skill: <step.skill>, args: "<constructed args>"
 ### After the step
 
 1. Verify the output folder exists (for steps that produce files). If the expected output folder is missing, mark the step as `failed` in the progress file and **STOP**
-2. Update the step's status to `"completed"` with the output folder path in the progress file
-3. Update the progress file's `updated_at` timestamp
-4. **If the just-completed step is `requirements` AND `options.source` is `null`** → run [Post-requirements source resolution](#post-requirements-source-resolution) before continuing to the next step. This may change `deferred` steps to `pending` or `skipped`
+2. Read the step's `step-result.json` sidecar if it exists in the output folder. Log a warning if it is missing (the step still counts as completed — sidecars are expected but not required for backward compatibility)
+3. Update the step's status to `"completed"` with the output folder path in the progress file
+4. Update the progress file's `updated_at` timestamp
+5. **If the just-completed step is `requirements` AND `options.source` is `null`** → run [Post-requirements source resolution](#post-requirements-source-resolution) before continuing to the next step. This may change `deferred` steps to `pending` or `skipped`
 
 ## Post-requirements source resolution
 
@@ -385,12 +396,12 @@ Update all `deferred` steps to `skipped` and continue without code-evidence. Log
 The technical review step runs in a loop until confidence is acceptable or three iterations are exhausted:
 
 1. Invoke `docs-workflow-tech-review` with the standard args
-2. Read the output file and check for `Overall technical confidence: (HIGH|MEDIUM|LOW)`
-   - If the confidence line is **missing** from the output, treat it as a step failure — mark the step `failed` and stop iteration
+2. Read the review metadata. **Prefer the sidecar** (`<base_path>/technical-review/step-result.json`) when present — read `confidence` and `severity_counts` directly. **Fall back** to parsing `review.md` for the `Overall technical confidence: (HIGH|MEDIUM|LOW)` and `Severity counts:` lines if no sidecar exists
+   - If neither the sidecar nor the confidence line is found, treat it as a step failure — mark the step `failed` and stop iteration
 3. If `HIGH` → mark completed, proceed to next step
-4. If `MEDIUM`, check for the `Severity counts:` line in the review output:
-   - If present and both `critical=0` AND `significant=0` → treat as acceptable. Log: "MEDIUM confidence with zero critical/significant issues — proceeding (remaining items require SME review)." Mark completed and proceed to next step.
-   - If the severity line is missing, or either `critical > 0` or `significant > 0` → continue to step 5 for iteration
+4. If `MEDIUM`, check the severity counts (from sidecar `severity_counts` object or from the `Severity counts:` line):
+   - If both `critical=0` AND `significant=0` → treat as acceptable. Log: "MEDIUM confidence with zero critical/significant issues — proceeding (remaining items require SME review)." Mark completed and proceed to next step.
+   - If severity counts are unavailable, or either `critical > 0` or `significant > 0` → continue to step 5 for iteration
 5. If `MEDIUM` (with fixable issues) or `LOW` and fewer than 3 iterations completed → run the fix skill:
    ```
    Skill: docs-tools:docs-workflow-writing, args: "<ticket> --base-path <base_path> --fix-from <base_path>/technical-review/review.md"

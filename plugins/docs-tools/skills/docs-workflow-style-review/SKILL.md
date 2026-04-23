@@ -93,3 +93,16 @@ Note: MkDocs review omits `docs-review-modular-docs` (AsciiDoc-specific) and `rh
 ### 3. Verify output
 
 After the agent completes, verify the review report exists at `<OUTPUT_FILE>`.
+
+### 4. Write step-result.json
+
+Write the sidecar to `<OUTPUT_DIR>/step-result.json`:
+
+```json
+{
+  "schema_version": 1,
+  "step": "style-review",
+  "ticket": "<TICKET>",
+  "completed_at": "<current ISO 8601 timestamp>"
+}
+```

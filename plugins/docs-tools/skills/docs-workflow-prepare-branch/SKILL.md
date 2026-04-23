@@ -48,3 +48,4 @@ The script handles:
 5. **Fetch** — fetches latest from remote; warns but continues if fetch fails (network/auth issues)
 6. **Branch creation** — creates `<ticket-id-lowercase>` branch from remote default; switches to existing branch if it already exists
 7. **Output** — writes `branch-info.md` with branch name, base ref, and timestamp
+8. **Sidecar** — writes `step-result.json` with branch, based_on, skipped, and skip_reason fields

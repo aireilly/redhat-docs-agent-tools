@@ -5,6 +5,7 @@
 # Usage: prepare_branch.sh <ticket-id> --base-path <path> [--draft] [--repo-path <path>]
 #
 # Outputs: <base-path>/prepare-branch/branch-info.md
+#          <base-path>/prepare-branch/step-result.json
 
 set -euo pipefail
 
@@ -56,7 +57,26 @@ fi
 
 OUTPUT_DIR="${BASE_PATH}/prepare-branch"
 OUTPUT_FILE="${OUTPUT_DIR}/branch-info.md"
+SIDECAR_FILE="${OUTPUT_DIR}/step-result.json"
 mkdir -p "$OUTPUT_DIR"
+
+# --- Helper: write step-result.json ---
+write_step_result() {
+  local branch="${1:-}" based_on="${2:-}" skipped="${3:-false}" skip_reason="${4:-}"
+  python3 -c "
+import json, sys, datetime
+print(json.dumps({
+    'schema_version': 1,
+    'step': 'prepare-branch',
+    'ticket': sys.argv[1],
+    'completed_at': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+    'branch': sys.argv[2] or None,
+    'based_on': sys.argv[3] or None,
+    'skipped': sys.argv[4] == 'true',
+    'skip_reason': sys.argv[5] or None
+}, indent=2))
+" "$TICKET" "$branch" "$based_on" "$skipped" "$skip_reason" > "$SIDECAR_FILE"
+}
 
 # --- Skip mode: draft or repo-path ---
 if [[ "$DRAFT" == true ]]; then
@@ -64,6 +84,7 @@ if [[ "$DRAFT" == true ]]; then
 # Branch Preparation — Skipped
 Draft mode: no branch created.
 EOF
+  write_step_result "" "" "true" "draft"
   echo "Draft mode — skipped branch creation."
   exit 0
 fi
@@ -73,6 +94,7 @@ if [[ -n "$REPO_PATH" ]]; then
 # Branch Preparation — Skipped
 Repo-path mode: branch managed externally by repo-setup.sh.
 EOF
+  write_step_result "" "" "true" "repo-path"
   echo "Repo-path mode — skipped branch creation (managed externally)."
   exit 0
 fi
@@ -133,4 +155,5 @@ cat > "$OUTPUT_FILE" <<EOF
 - **Created at**: ${TIMESTAMP}
 EOF
 
+write_step_result "$BRANCH_NAME" "${DEFAULT_REMOTE}/${DEFAULT_BRANCH}" "false" ""
 echo "Branch prepared. Output written to ${OUTPUT_FILE}"

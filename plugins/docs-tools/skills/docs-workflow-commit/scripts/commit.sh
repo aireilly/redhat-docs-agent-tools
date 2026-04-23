@@ -99,18 +99,21 @@ fi
 
 # --- Read manifest ---
 MANIFEST="${BASE_PATH}/writing/_index.md"
-
-if [[ ! -f "$MANIFEST" ]]; then
-  echo "No manifest found at ${MANIFEST}."
-  write_commit_info false
-  exit 0
-fi
-
-# Extract file paths from the manifest table that are under the repo directory.
-# Manifest rows: | /absolute/path/to/file.md | TYPE | Description |
-# Also handles backtick-wrapped paths: | `/absolute/path/to/file.md` | ...
 REPO_DIR_ABS="$(cd "$REPO_DIR" && pwd)"
-readarray -t MANIFEST_FILES < <(python3 -c "
+
+if [[ -f "$SIDECAR" ]]; then
+  echo "Reading file list from step-result.json"
+  readarray -t MANIFEST_FILES < <(python3 -c "
+import json, sys
+sidecar = json.load(open(sys.argv[1]))
+repo = sys.argv[2]
+for f in sidecar.get('files', []):
+    if f.startswith(repo):
+        print(f)
+" "$SIDECAR" "$REPO_DIR_ABS" 2>/dev/null)
+elif [[ -f "$MANIFEST" ]]; then
+  echo "Reading file list from manifest (no step-result.json found)"
+  readarray -t MANIFEST_FILES < <(python3 -c "
 import sys, re
 clone = sys.argv[1]
 with open(sys.argv[2]) as f:
@@ -118,6 +121,11 @@ with open(sys.argv[2]) as f:
         for m in re.findall(r'\|\s*\x60?(' + re.escape(clone) + r'\S+?)\x60?\s*(?:\||$)', line):
             print(m)
 " "$REPO_DIR_ABS" "$MANIFEST" 2>/dev/null)
+else
+  echo "No manifest or step-result.json found."
+  write_commit_info false
+  exit 0
+fi
 
 if [[ ${#MANIFEST_FILES[@]} -eq 0 ]]; then
   echo "No files found in manifest under ${REPO_DIR_ABS}."

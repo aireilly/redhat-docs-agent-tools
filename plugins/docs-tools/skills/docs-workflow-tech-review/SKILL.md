@@ -67,3 +67,31 @@ After the agent completes, verify the review report exists at `<OUTPUT_FILE>`.
 The review report **must** include an `Overall technical confidence: HIGH|MEDIUM|LOW` line. If this line is missing from the output, the orchestrator will treat it as a step failure.
 
 The report should also include a `Severity counts: critical=N significant=N minor=N sme=N` line. This enables the orchestrator to skip unnecessary iteration when only SME-verification items remain.
+
+### 4. Write step-result.json
+
+Parse `<OUTPUT_FILE>` to extract the structured review metadata:
+
+1. Find the `Overall technical confidence: HIGH|MEDIUM|LOW` line. Extract the confidence value
+2. Find the `Severity counts: critical=N significant=N minor=N sme=N` line if present. Extract each count (default to `0` if the line is missing)
+
+Write the sidecar to `${BASE_PATH}/technical-review/step-result.json`:
+
+```json
+{
+  "schema_version": 1,
+  "step": "technical-review",
+  "ticket": "<TICKET>",
+  "completed_at": "<current ISO 8601 timestamp>",
+  "confidence": "<HIGH|MEDIUM|LOW>",
+  "severity_counts": {
+    "critical": "<N>",
+    "significant": "<N>",
+    "minor": "<N>",
+    "sme": "<N>"
+  },
+  "iteration": 1
+}
+```
+
+The `iteration` field is `1` for the first review pass. If the orchestrator re-invokes this skill after a fix cycle, it passes the current iteration count — increment it for the sidecar.
