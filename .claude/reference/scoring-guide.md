@@ -1,1 +1,0 @@
-../../plugins/cqa-tools/reference/scoring-guide.md

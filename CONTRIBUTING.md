@@ -14,6 +14,21 @@ Cursor users follow the same conventions as Claude Code contributors. Start with
 
 In Cursor, use paths relative to the repository root instead of `${CLAUDE_PLUGIN_ROOT}`. See AGENTS.md for examples. The eval runner described in [Evaluating skills](docs/contribute/evaluating-skills.md) is a Claude Code tool. If you use Cursor, keep `evals/evals.json` accurate and explain in your pull request how reviewers can verify behavior.
 
+## Branch policy
+
+This repository uses two long-lived branches:
+
+- **`main`** — CLI-focused. All plugin, skill, agent, and script development targets `main` via pull request.
+- **`acp`** — Ambient Code Platform integration branch. Carries ACP-specific files (`adapters/ambient/`, `.ambient/`, `.claude/skills/` symlinks, `.claude/docs-acp.yaml`, batch-controller) on top of everything in `main`.
+
+A GitHub Actions workflow automatically merges `main` into `acp` on every push, so `acp` always has the latest plugin and skill updates.
+
+**Rules:**
+
+- PRs that change plugins, skills, agents, scripts, or CI target **`main`**.
+- PRs that change ACP-only files (adapters, batch-controller, `.ambient/`, ACP workflow config) target **`acp`**.
+- Never edit shared files (plugins, skills, agents, scripts) directly on `acp` — those changes must flow through `main`.
+
 ## Before you contribute
 
 ### Check for existing capabilities

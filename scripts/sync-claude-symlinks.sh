@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Sync .claude/skills/, .claude/agents/, and .claude/reference/ symlinks
 # to match plugin directories. Adds missing symlinks, removes stale ones,
-# and leaves non-symlink entries (e.g., batch-controller) untouched.
+# and leaves non-symlink entries untouched.
 #
 # Usage: ./scripts/sync-claude-symlinks.sh [--check]
 #   --check   Report what would change without modifying anything (exit 1 if out of sync)
@@ -52,7 +52,7 @@ sync_category() {
     local link="${target_dir}/${name}"
 
     if [ -e "$link" ] && [ ! -L "$link" ]; then
-      # Real directory/file (e.g., batch-controller) — skip
+      # Real directory/file — skip
       continue
     fi
 

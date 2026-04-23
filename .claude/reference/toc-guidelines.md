@@ -1,1 +1,0 @@
-../../plugins/jtbd-tools/reference/toc-guidelines.md

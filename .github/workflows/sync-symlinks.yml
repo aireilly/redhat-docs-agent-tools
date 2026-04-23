@@ -2,7 +2,7 @@ name: Sync .claude symlinks
 on:
   push:
     branches:
-      - main
+      - acp
   pull_request:
 
 jobs:

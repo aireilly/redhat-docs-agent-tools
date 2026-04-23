@@ -1,9 +1,0 @@
-repos:
-  - jira_project: VROOM
-    repo_url: https://gitlab.com/amcleod/sig-docs-ambient
-    default_branch: main
-    format: mkdocs
-  - jira_project: TELCODOCS
-    repo_url: https://github.com/mcljot/openshift-docs
-    default_branch: main
-    format: adoc

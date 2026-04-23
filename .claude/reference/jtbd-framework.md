@@ -1,1 +1,0 @@
-../../plugins/docs-tools/reference/jtbd-framework.md
