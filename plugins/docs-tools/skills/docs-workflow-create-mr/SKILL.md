@@ -16,7 +16,7 @@ Step skill for the docs-orchestrator pipeline. Creates a GitLab MR or GitHub PR 
 
 - `$1` — JIRA ticket ID (required)
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
-- `--repo-path <path>` — Accepted for compatibility but unused (context comes from `commit-info.json`)
+- `--repo-path <path>` — Path to the docs repo (accepted for compatibility; context comes from `commit-info.json`)
 - `--draft` — If present, skip MR/PR creation entirely
 
 ## Input
@@ -49,6 +49,7 @@ The script handles:
 1. **Draft mode check** — writes a skip record and exits if `--draft` is set
 2. **Commit check** — reads `commit-info.json` and skips if branch was not pushed
 3. **Context resolution** — determines platform and repo URL from `commit-info.json`, default branch from `repo-info.json` if available
-4. **Existing MR/PR check** — looks for an open MR/PR from the feature branch before creating a new one
-5. **MR/PR creation** — creates a GitLab MR (via `glab` CLI) or GitHub PR (via `gh` CLI)
-6. **Output** — writes `mr-info.json` with the MR/PR URL and metadata, and `step-result.json` sidecar
+4. **Fork detection** (GitLab) — queries the GitLab API to detect fork relationships and targets the upstream project for cross-fork MRs
+5. **Existing MR/PR check** — looks for an open MR/PR from the feature branch before creating a new one
+6. **MR/PR creation** — creates a GitLab MR (via `glab` CLI) or GitHub PR (via `gh` CLI)
+7. **Output** — writes both `mr-info.json` and `step-result.json` (do NOT write step-result.json separately — the script handles it)

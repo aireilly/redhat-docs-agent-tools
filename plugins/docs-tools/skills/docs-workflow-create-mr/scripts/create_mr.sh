@@ -7,12 +7,13 @@ set -euo pipefail
 # --- Argument parsing ---
 TICKET=""
 BASE_PATH=""
+REPO_PATH=""
 DRAFT=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --base-path) BASE_PATH="$2"; shift 2 ;;
-    --repo-path) shift 2 ;;  # Accepted but unused — context comes from commit-info.json
+    --repo-path) REPO_PATH="$2"; shift 2 ;;
     --draft) DRAFT=true; shift ;;
     -*) echo "ERROR: Unknown option: $1" >&2; exit 1 ;;
     *)
@@ -248,7 +249,19 @@ if [[ "$PLATFORM" == "gitlab" ]]; then
   PROJECT_PATH="$(echo "$REPO_URL" | sed -E 's|https?://[^/]+/||')"
   export GITLAB_HOST="$(echo "$REPO_URL" | sed -E 's|(https?://[^/]+).*|\1|')"
 
-  # Check for existing MR
+  # Fork detection: query GitLab API for fork parent
+  HEAD_PROJECT=""
+  PROJECT_PATH_ENCODED="$(echo "$PROJECT_PATH" | sed 's|/|%2F|g')"
+  UPSTREAM_PROJECT="$(glab api "projects/${PROJECT_PATH_ENCODED}" \
+    --jq '.forked_from_project.path_with_namespace // empty' 2>/dev/null || true)"
+
+  if [[ -n "$UPSTREAM_PROJECT" ]]; then
+    HEAD_PROJECT="$PROJECT_PATH"
+    PROJECT_PATH="$UPSTREAM_PROJECT"
+    echo "Detected fork: ${HEAD_PROJECT} → ${PROJECT_PATH}"
+  fi
+
+  # Check for existing MR (searches upstream project for cross-fork MRs)
   EXISTING_URL="$(glab mr list --source-branch "$BRANCH" --repo "$PROJECT_PATH" -F json 2>/dev/null \
     | python3 -c "
 import json, sys
@@ -266,13 +279,20 @@ else:
     exit 0
   fi
 
-  MR_OUTPUT="$(glab mr create \
-    --source-branch "$BRANCH" \
-    --target-branch "$DEFAULT_BRANCH" \
-    --title "$TITLE" \
-    --description "$DESCRIPTION" \
-    --repo "$PROJECT_PATH" \
-    --no-editor --yes 2>&1)" || {
+  MR_ARGS=(
+    --source-branch "$BRANCH"
+    --target-branch "$DEFAULT_BRANCH"
+    --title "$TITLE"
+    --description "$DESCRIPTION"
+    --repo "$PROJECT_PATH"
+    --no-editor --yes
+  )
+
+  if [[ -n "$HEAD_PROJECT" ]]; then
+    MR_ARGS+=(--head "$HEAD_PROJECT")
+  fi
+
+  MR_OUTPUT="$(glab mr create "${MR_ARGS[@]}" 2>&1)" || {
     echo "ERROR: Failed to create MR: ${MR_OUTPUT}" >&2
     write_mr_info "null" "skipped" "$TITLE"
     write_step_result "null" "skipped" true "create_failed"
@@ -292,6 +312,7 @@ else:
   fi
 
 elif [[ "$PLATFORM" == "github" ]]; then
+  # gh pr create auto-detects fork relationships and targets the upstream repo
   OWNER_REPO="$(echo "$REPO_URL" | sed -E 's|https?://github\.com/||')"
 
   EXISTING_PR="$(gh pr list --head "$BRANCH" --repo "$OWNER_REPO" --json url --jq '.[0].url' 2>/dev/null || echo "")"
