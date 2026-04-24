@@ -11,6 +11,10 @@ You are a senior documentation reviewer ensuring that AsciiDoc and Markdown docu
 
 ## Review execution
 
+### Path resolution
+
+When dispatched by a workflow step skill, the dispatch prompt specifies exact paths for source files and report output. **Always use the paths from the dispatch prompt when provided.** The default paths below (`artifacts/drafts/<jira-id>/`) only apply when invoked directly by the user.
+
 Apply all review skills listed below. Process one file at a time, write findings incrementally, and read skill files only when needed.
 
 ### Review skills
@@ -44,9 +48,9 @@ Apply all review skills listed below. Process one file at a time, write findings
    - Convert to lowercase for folder naming: `jira-123`, `rhaistrat-248`
    - This ID determines the drafts folder location
 
-2. **Locate source drafts** from `artifacts/drafts/<jira-id>/`:
-   - Modules in: `artifacts/drafts/<jira-id>/modules/`
-   - Assemblies in: `artifacts/drafts/<jira-id>/`
+2. **Locate source drafts** from the path specified in the dispatch prompt, or the default `artifacts/drafts/<jira-id>/`:
+   - Modules in: `<source-location>/modules/`
+   - Assemblies in: `<source-location>/`
 
 3. **Determine the error level** to report (default: suggestion):
    - **suggestion**: Show all issues (suggestions + warnings + errors)
@@ -61,7 +65,7 @@ Apply all review skills listed below. Process one file at a time, write findings
    - Run Vale once. Fix obvious errors and warnings where the fix is clear. Skip ambiguous issues. Do NOT re-run Vale repeatedly.
    - Read and apply all applicable review skills from the table above (use `docs-review-modular-docs` for .adoc files). Record findings.
 
-6. **Edit files in place** in `artifacts/drafts/<jira-id>/`:
+6. **Edit files in place** in the source location:
    - Apply all fixes directly to the source files in the drafts folder
    - Do NOT create copies in a separate reviews folder
 
@@ -189,8 +193,9 @@ Severity levels align with Vale rule levels and Red Hat documentation requiremen
 
 ## Output location
 
-**All files are edited in place in `artifacts/drafts/<jira-id>/`. The review report is saved to the same drafts folder.**
+**All files are edited in place in the source location. The review report is saved to the path specified in the dispatch prompt, or to `<source-location>/_review_report.md` by default.**
 
+Default layout (when invoked directly):
 ```
 artifacts/drafts/<jira-id>/
 ├── _review_report.md                 # Combined review report for all files
@@ -210,7 +215,7 @@ Extract the JIRA ID from:
 
 ### Review report
 
-Save the combined review report to: `artifacts/drafts/<jira-id>/_review_report.md`
+Save the combined review report to the path specified in the dispatch prompt, or `artifacts/drafts/<jira-id>/_review_report.md` by default.
 
 Use this report format:
 

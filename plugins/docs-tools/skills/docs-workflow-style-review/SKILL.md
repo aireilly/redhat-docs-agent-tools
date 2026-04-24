@@ -49,15 +49,17 @@ mkdir -p "$OUTPUT_DIR"
 Select the prompt below based on the `--format` flag.
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-reviewer`
+- `subagent_type`: `docs-reviewer`
 - `description`: `Review documentation for <TICKET>`
 
 **Prompt for AsciiDoc** (`--format adoc`) — pass as the `prompt` parameter to the Agent tool:
 
 > Review the AsciiDoc documentation drafts for ticket `<TICKET>`.
-> Source drafts location: `<DRAFTS_DIR>/`
 >
-> **Edit files in place**. Do NOT create copies.
+> **Source files**: `<DRAFTS_DIR>/` — review and edit files at this location only.
+> **Report output**: `<OUTPUT_FILE>` — you MUST save the review report to exactly this path. Do NOT write to any other location.
+>
+> **Edit files in place** at the source path above. Do NOT create copies or write to a drafts/ subfolder.
 >
 > For each file:
 > 1. Run Vale linting once (use the `lint-with-vale` skill)
@@ -67,15 +69,15 @@ Select the prompt below based on the `--format` flag.
 >    - IBM Style Guide: ibm-sg-audience-and-medium, ibm-sg-language-and-grammar, ibm-sg-punctuation, ibm-sg-numbers-and-measurement, ibm-sg-structure-and-format, ibm-sg-references, ibm-sg-technical-elements, ibm-sg-legal-information
 >    - Red Hat SSG: rh-ssg-grammar-and-language, rh-ssg-formatting, rh-ssg-structure, rh-ssg-technical-examples, rh-ssg-gui-and-links, rh-ssg-legal-and-support, rh-ssg-accessibility, rh-ssg-release-notes (if applicable)
 > 4. Skip ambiguous issues requiring broader context
->
-> Save the review report to: `<OUTPUT_FILE>`
 
 **Prompt for MkDocs** (`--format mkdocs`) — pass as the `prompt` parameter to the Agent tool:
 
 > Review the Material for MkDocs Markdown documentation drafts for ticket `<TICKET>`.
-> Source drafts location: `<DRAFTS_DIR>/`
 >
-> **Edit files in place**. Do NOT create copies.
+> **Source files**: `<DRAFTS_DIR>/` — review and edit files at this location only.
+> **Report output**: `<OUTPUT_FILE>` — you MUST save the review report to exactly this path. Do NOT write to any other location.
+>
+> **Edit files in place** at the source path above. Do NOT create copies or write to a drafts/ subfolder.
 >
 > For each file:
 > 1. Run Vale linting once (use the `lint-with-vale` skill)
@@ -85,8 +87,6 @@ Select the prompt below based on the `--format` flag.
 >    - IBM Style Guide: ibm-sg-audience-and-medium, ibm-sg-language-and-grammar, ibm-sg-punctuation, ibm-sg-numbers-and-measurement, ibm-sg-structure-and-format, ibm-sg-references, ibm-sg-technical-elements, ibm-sg-legal-information
 >    - Red Hat SSG: rh-ssg-grammar-and-language, rh-ssg-formatting, rh-ssg-structure, rh-ssg-technical-examples, rh-ssg-gui-and-links, rh-ssg-legal-and-support, rh-ssg-accessibility
 > 4. Skip ambiguous issues requiring broader context
->
-> Save the review report to: `<OUTPUT_FILE>`
 
 Note: MkDocs review omits `docs-review-modular-docs` (AsciiDoc-specific) and `rh-ssg-release-notes`.
 

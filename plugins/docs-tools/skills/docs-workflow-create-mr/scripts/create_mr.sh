@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 # Create or find an existing MR/PR for the published docs branch.
 # Usage: bash create_mr.sh <ticket-id> --base-path <path> [--repo-path <path>] [--draft]
-# Dependencies: python3, glab CLI (for GitLab), gh CLI (for GitHub)
+# Dependencies: python3, jq, glab CLI (for GitLab), gh CLI (for GitHub)
 set -euo pipefail
 
 # --- Argument parsing ---
 TICKET=""
 BASE_PATH=""
+# Parsed for interface consistency with sibling workflow scripts
+# shellcheck disable=SC2034 
+REPO_PATH=""
 DRAFT=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --base-path) BASE_PATH="$2"; shift 2 ;;
-    --repo-path) shift 2 ;;  # Accepted but unused — context comes from commit-info.json
+    --repo-path) REPO_PATH="$2"; shift 2 ;;
     --draft) DRAFT=true; shift ;;
     -*) echo "ERROR: Unknown option: $1" >&2; exit 1 ;;
     *)
@@ -248,16 +251,30 @@ if [[ "$PLATFORM" == "gitlab" ]]; then
   PROJECT_PATH="$(echo "$REPO_URL" | sed -E 's|https?://[^/]+/||')"
   export GITLAB_HOST="$(echo "$REPO_URL" | sed -E 's|(https?://[^/]+).*|\1|')"
 
-  # Check for existing MR
-  EXISTING_URL="$(glab mr list --source-branch "$BRANCH" --repo "$PROJECT_PATH" -F json 2>/dev/null \
-    | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-if isinstance(data, list) and len(data) > 0:
-    print(data[0].get('web_url', ''))
-else:
-    print('')
-" 2>/dev/null || echo "")"
+  # Fork detection: query GitLab API for fork parent
+  HEAD_PROJECT=""
+  PROJECT_PATH_ENCODED="$(echo "$PROJECT_PATH" | sed 's|/|%2F|g')"
+  GLAB_OUTPUT=""
+  GLAB_RC=0
+  GLAB_OUTPUT="$(glab api "projects/${PROJECT_PATH_ENCODED}" 2>&1)" || GLAB_RC=$?
+  if [[ $GLAB_RC -ne 0 ]]; then
+    echo "ERROR: glab api call failed (exit $GLAB_RC): $GLAB_OUTPUT" >&2
+    write_mr_info "null" "skipped" ""
+    write_step_result "null" "skipped" true "glab_api_failed (exit $GLAB_RC)"
+    exit 1
+  fi
+  UPSTREAM_PROJECT="$(echo "$GLAB_OUTPUT" | jq -r '.forked_from_project.path_with_namespace // empty')"
+
+  if [[ -n "$UPSTREAM_PROJECT" ]]; then
+    HEAD_PROJECT="$PROJECT_PATH"
+    PROJECT_PATH="$UPSTREAM_PROJECT"
+    echo "Detected fork: ${HEAD_PROJECT} → ${PROJECT_PATH}"
+  fi
+
+  # Check for existing MR (searches upstream project for cross-fork MRs)
+  UPSTREAM_PATH_ENCODED="$(echo "$PROJECT_PATH" | sed 's|/|%2F|g')"
+  EXISTING_URL="$(glab api "projects/${UPSTREAM_PATH_ENCODED}/merge_requests?source_branch=${BRANCH}&state=opened" \
+    2>/dev/null | jq -r '.[0].web_url // empty' 2>/dev/null || echo "")"
 
   if [[ -n "$EXISTING_URL" ]]; then
     echo "Found existing MR: ${EXISTING_URL}"
@@ -266,13 +283,20 @@ else:
     exit 0
   fi
 
-  MR_OUTPUT="$(glab mr create \
-    --source-branch "$BRANCH" \
-    --target-branch "$DEFAULT_BRANCH" \
-    --title "$TITLE" \
-    --description "$DESCRIPTION" \
-    --repo "$PROJECT_PATH" \
-    --no-editor --yes 2>&1)" || {
+  MR_ARGS=(
+    --source-branch "$BRANCH"
+    --target-branch "$DEFAULT_BRANCH"
+    --title "$TITLE"
+    --description "$DESCRIPTION"
+    --repo "$PROJECT_PATH"
+    --no-editor --yes
+  )
+
+  if [[ -n "$HEAD_PROJECT" ]]; then
+    MR_ARGS+=(--head "$HEAD_PROJECT")
+  fi
+
+  MR_OUTPUT="$(glab mr create "${MR_ARGS[@]}" 2>&1)" || {
     echo "ERROR: Failed to create MR: ${MR_OUTPUT}" >&2
     write_mr_info "null" "skipped" "$TITLE"
     write_step_result "null" "skipped" true "create_failed"
@@ -292,6 +316,7 @@ else:
   fi
 
 elif [[ "$PLATFORM" == "github" ]]; then
+  # gh pr create auto-detects fork relationships and targets the upstream repo
   OWNER_REPO="$(echo "$REPO_URL" | sed -E 's|https?://github\.com/||')"
 
   EXISTING_PR="$(gh pr list --head "$BRANCH" --repo "$OWNER_REPO" --json url --jq '.[0].url' 2>/dev/null || echo "")"
