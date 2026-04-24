@@ -94,10 +94,14 @@ class JiraReader:
 
         for comment in sorted_comments:
             # Get or create anonymous participant label
-            author_key = comment.author.key if hasattr(comment.author, "key") else str(comment.author)
+            author_key = (
+                comment.author.key if hasattr(comment.author, "key") else str(comment.author)
+            )
             if author_key not in user_mapping:
                 participant_counter += 1
-                user_mapping[author_key] = f"Participant {chr(64 + participant_counter)}"  # A, B, C, etc.
+                user_mapping[author_key] = (
+                    f"Participant {chr(64 + participant_counter)}"  # A, B, C, etc.
+                )
 
             participant = user_mapping[author_key]
 
@@ -207,7 +211,9 @@ class JiraReader:
             if hasattr(issue.fields, "customfield_10785") and issue.fields.customfield_10785:
                 release_note_type = issue.fields.customfield_10785.value
                 # Normalize "Feature" to "Enhancement"
-                release_note_type = "Enhancement" if release_note_type == "Feature" else release_note_type
+                release_note_type = (
+                    "Enhancement" if release_note_type == "Feature" else release_note_type
+                )
                 custom_fields["release_note_type"] = release_note_type
 
             # Fix Versions
@@ -282,8 +288,12 @@ class JiraReader:
                         {
                             "issue_key": issue.key,
                             "issue_type": str(issue.fields.issuetype),
-                            "issue_category": self.categorize_issue_type(str(issue.fields.issuetype)),
-                            "priority": str(issue.fields.priority) if issue.fields.priority else "Undefined",
+                            "issue_category": self.categorize_issue_type(
+                                str(issue.fields.issuetype)
+                            ),
+                            "priority": str(issue.fields.priority)
+                            if issue.fields.priority
+                            else "Undefined",
                             "status": str(issue.fields.status),
                             "assignee": assignee,
                             "summary": issue.fields.summary,
@@ -345,7 +355,9 @@ class JiraReader:
     def _fetch_issue_summary(self, jira_id):
         """Fetch basic summary fields for an issue."""
         try:
-            issue = self.jira.issue(jira_id, fields="summary,status,issuetype,description,priority,assignee")
+            issue = self.jira.issue(
+                jira_id, fields="summary,status,issuetype,description,priority,assignee"
+            )
             fields = issue.fields
             return {
                 "key": issue.key,
@@ -510,7 +522,9 @@ class JiraReader:
                     "key": linked_issue.key,
                     "direction": direction,
                     "link_type": link_type.name,
-                    "summary": linked_issue.fields.summary if hasattr(linked_issue.fields, "summary") else None,
+                    "summary": linked_issue.fields.summary
+                    if hasattr(linked_issue.fields, "summary")
+                    else None,
                     "status": str(linked_issue.fields.status)
                     if hasattr(linked_issue.fields, "status") and linked_issue.fields.status
                     else None,
@@ -621,7 +635,9 @@ class JiraReader:
         # Step 5: Fetch siblings (only if parent exists)
         siblings = {"total": 0, "showing": 0, "skipped": 0, "issues": []}
         if parent_key and parent_source:
-            siblings, errors = self._fetch_siblings(ticket_key, parent_key, parent_source, max_siblings)
+            siblings, errors = self._fetch_siblings(
+                ticket_key, parent_key, parent_source, max_siblings
+            )
             all_errors.extend(errors)
 
         # Step 6: Extract issue links (no extra API calls)
@@ -646,20 +662,33 @@ class JiraReader:
 
 def main():
     """Main entry point for the script."""
-    parser = argparse.ArgumentParser(description="Fetch and analyze JIRA issues from Red Hat Issue Tracker")
+    parser = argparse.ArgumentParser(
+        description="Fetch and analyze JIRA issues from Red Hat Issue Tracker"
+    )
     parser.add_argument(
-        "--issue", action="append", help="JIRA issue key (e.g., INFERENG-5233). Can be specified multiple times."
+        "--issue",
+        action="append",
+        help="JIRA issue key (e.g., INFERENG-5233). Can be specified multiple times.",
     )
     parser.add_argument("--jql", help="JQL query to search for issues")
     parser.add_argument(
-        "--graph", help="Traverse the ticket graph for a JIRA issue key (parent, children, siblings, links)"
-    )
-    parser.add_argument("--include-comments", action="store_true", help="Include anonymized comment threads")
-    parser.add_argument(
-        "--git-links", choices=["github", "gitlab", "all"], default="all", help="Filter Git links by type"
+        "--graph",
+        help="Traverse the ticket graph for a JIRA issue key (parent, children, siblings, links)",
     )
     parser.add_argument(
-        "--max-results", type=int, default=50, help="Maximum number of results for JQL search (default: 50)"
+        "--include-comments", action="store_true", help="Include anonymized comment threads"
+    )
+    parser.add_argument(
+        "--git-links",
+        choices=["github", "gitlab", "all"],
+        default="all",
+        help="Filter Git links by type",
+    )
+    parser.add_argument(
+        "--max-results",
+        type=int,
+        default=50,
+        help="Maximum number of results for JQL search (default: 50)",
     )
     parser.add_argument(
         "--fetch-details",
@@ -667,13 +696,22 @@ def main():
         help="Fetch full details for each issue (slow). By default, JQL searches return fast summaries only.",
     )
     parser.add_argument(
-        "--max-children", type=int, default=25, help="Maximum children to fetch in graph mode (default: 25)"
+        "--max-children",
+        type=int,
+        default=25,
+        help="Maximum children to fetch in graph mode (default: 25)",
     )
     parser.add_argument(
-        "--max-siblings", type=int, default=25, help="Maximum siblings to fetch in graph mode (default: 25)"
+        "--max-siblings",
+        type=int,
+        default=25,
+        help="Maximum siblings to fetch in graph mode (default: 25)",
     )
     parser.add_argument(
-        "--max-links", type=int, default=15, help="Maximum issue links to extract in graph mode (default: 15)"
+        "--max-links",
+        type=int,
+        default=15,
+        help="Maximum issue links to extract in graph mode (default: 15)",
     )
 
     args = parser.parse_args()
@@ -702,7 +740,9 @@ def main():
 
         # Handle JQL search
         if args.jql:
-            search_results = reader.search_issues(args.jql, args.max_results, fetch_details=args.fetch_details)
+            search_results = reader.search_issues(
+                args.jql, args.max_results, fetch_details=args.fetch_details
+            )
             if isinstance(search_results, dict) and "error" in search_results:
                 print(json.dumps(search_results, indent=2))
                 sys.exit(1)
@@ -711,7 +751,9 @@ def main():
                 # search_results contains issue keys, fetch details for each
                 for issue_key in search_results:
                     issue_data = reader.get_issue_data(
-                        issue_key, include_comments=args.include_comments, git_link_types=args.git_links
+                        issue_key,
+                        include_comments=args.include_comments,
+                        git_link_types=args.git_links,
                     )
                     results.append(issue_data)
             else:

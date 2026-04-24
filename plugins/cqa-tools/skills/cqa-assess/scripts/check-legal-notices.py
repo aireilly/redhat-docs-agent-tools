@@ -176,7 +176,9 @@ def main():
                 print(f"   {title_name}/: docinfo.xml found but no copyright year detected")
                 issues.append(f"No copyright year in {rel_path}")
             elif year < current_year:
-                print(f"   {title_name}/: docinfo.xml found, copyright year {year} (current: {current_year})")
+                print(
+                    f"   {title_name}/: docinfo.xml found, copyright year {year} (current: {current_year})"
+                )
                 # Outdated year is a warning, not a hard failure
                 # The year might be correct if the guide was last published that year
                 print(f"   NOTE: Copyright year may need updating to {current_year}")

@@ -19,13 +19,23 @@ import sys
 try:
     import requests
 except ImportError:
-    print(json.dumps({"error": "requests package not installed. Run: python3 -m pip install requests"}))
+    print(
+        json.dumps(
+            {"error": "requests package not installed. Run: python3 -m pip install requests"}
+        )
+    )
     sys.exit(1)
 
 try:
     from bs4 import BeautifulSoup
 except ImportError:
-    print(json.dumps({"error": "beautifulsoup4 package not installed. Run: python3 -m pip install beautifulsoup4"}))
+    print(
+        json.dumps(
+            {
+                "error": "beautifulsoup4 package not installed. Run: python3 -m pip install beautifulsoup4"
+            }
+        )
+    )
     sys.exit(1)
 
 
@@ -117,7 +127,13 @@ class ArticleExtractor:
 
         # Remove elements that contain "Copy link" text
         for tag in element.find_all(
-            class_=["copy-link-btn", "copy-link-text", "copy-link-text-confirmation", "tooltip-content", "section-link"]
+            class_=[
+                "copy-link-btn",
+                "copy-link-text",
+                "copy-link-text-confirmation",
+                "tooltip-content",
+                "section-link",
+            ]
         ):
             tag.decompose()
 
@@ -235,7 +251,10 @@ def main():
     parser = argparse.ArgumentParser(description="Extract article content from HTML pages")
     parser.add_argument("--url", required=True, help="URL to fetch HTML from")
     parser.add_argument(
-        "--format", choices=["html", "markdown", "text"], default="markdown", help="Output format (default: markdown)"
+        "--format",
+        choices=["html", "markdown", "text"],
+        default="markdown",
+        help="Output format (default: markdown)",
     )
     parser.add_argument("--output", help="Output file path (default: stdout)")
     parser.add_argument(
@@ -243,8 +262,12 @@ def main():
         default='article[aria-live="polite"]',
         help='CSS selector for article element (default: article[aria-live="polite"])',
     )
-    parser.add_argument("--pretty", action="store_true", help="Pretty-print HTML output (only for HTML format)")
-    parser.add_argument("--strip-links", action="store_true", help="Remove all hyperlinks from output")
+    parser.add_argument(
+        "--pretty", action="store_true", help="Pretty-print HTML output (only for HTML format)"
+    )
+    parser.add_argument(
+        "--strip-links", action="store_true", help="Remove all hyperlinks from output"
+    )
 
     args = parser.parse_args()
 

@@ -55,7 +55,9 @@ def _run_git(args, cwd=None, check=True):
         text=True,
     )
     if check and result.returncode != 0:
-        raise subprocess.CalledProcessError(result.returncode, ["git"] + args, result.stdout, result.stderr)
+        raise subprocess.CalledProcessError(
+            result.returncode, ["git"] + args, result.stdout, result.stderr
+        )
     return result
 
 
@@ -67,7 +69,9 @@ def _run_gh(args, check=True):
         text=True,
     )
     if check and result.returncode != 0:
-        raise subprocess.CalledProcessError(result.returncode, ["gh"] + args, result.stdout, result.stderr)
+        raise subprocess.CalledProcessError(
+            result.returncode, ["gh"] + args, result.stdout, result.stderr
+        )
     return result.stdout.strip()
 
 
@@ -79,7 +83,9 @@ def _run_glab(args, check=True):
         text=True,
     )
     if check and result.returncode != 0:
-        raise subprocess.CalledProcessError(result.returncode, ["glab"] + args, result.stdout, result.stderr)
+        raise subprocess.CalledProcessError(
+            result.returncode, ["glab"] + args, result.stdout, result.stderr
+        )
     return result.stdout.strip()
 
 
@@ -445,7 +451,9 @@ def _resolve_multiple_prs(pr_urls, base_path):
     primary = resolved_repos[0]
     _write_source_yaml(base_path, primary["repo_url"], primary["ref"])
 
-    discovered = {_normalize_git_url(info["repo_url"]): len(info["urls"]) for info in repo_groups.values()}
+    discovered = {
+        _normalize_git_url(info["repo_url"]): len(info["urls"]) for info in repo_groups.values()
+    }
 
     result = _success(
         primary["repo_path"],
@@ -520,7 +528,10 @@ def resolve(args):
             # Local path
             local = Path(repo_value)
             if not local.exists() or not local.is_dir():
-                return {"status": "error", "message": f"Source repo path does not exist: {repo_value}"}
+                return {
+                    "status": "error",
+                    "message": f"Source repo path does not exist: {repo_value}",
+                }
             return _success(local, ref=ref, scope=scope)
 
     # --- Priority 2: source.yaml ---
@@ -555,7 +566,10 @@ def resolve(args):
         else:
             local = Path(repo_value)
             if not local.exists() or not local.is_dir():
-                return {"status": "error", "message": f"Source repo path does not exist: {repo_value}"}
+                return {
+                    "status": "error",
+                    "message": f"Source repo path does not exist: {repo_value}",
+                }
             return _success(local, repo_url=repo_value, ref=ref, scope=scope)
 
     # --- Priority 3: PR-derived (--pr without --repo) ---
@@ -578,7 +592,9 @@ def resolve(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Resolve and clone/verify a source code repository")
+    parser = argparse.ArgumentParser(
+        description="Resolve and clone/verify a source code repository"
+    )
     parser.add_argument(
         "--base-path",
         required=True,

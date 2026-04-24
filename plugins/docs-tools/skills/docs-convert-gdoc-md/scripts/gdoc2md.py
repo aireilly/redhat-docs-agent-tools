@@ -19,7 +19,8 @@ from urllib.request import Request, urlopen
 
 # tolerates trailing segments like /edit, /view, ?usp=sharing
 VALID_URL_RE = re.compile(
-    r"^https://docs\.google\.com/" r"(?P<mode>document|presentation|spreadsheets)/d/(?P<id>[a-zA-Z0-9_-]+)"
+    r"^https://docs\.google\.com/"
+    r"(?P<mode>document|presentation|spreadsheets)/d/(?P<id>[a-zA-Z0-9_-]+)"
 )
 
 MODE_MAP = {
@@ -45,7 +46,8 @@ def parse_and_validate_args():
     match = VALID_URL_RE.match(url)
     if not match:
         print(
-            "Error: URL must be a Google Docs, Slides, or Sheets URL " "(https://docs.google.com/...)",
+            "Error: URL must be a Google Docs, Slides, or Sheets URL "
+            "(https://docs.google.com/...)",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -141,7 +143,11 @@ def download(url: str, token: str, retries: int = 3) -> bytes:
                 time.sleep(wait)
                 continue
             messages = {
-                401: ("Authentication failed (401). " "Try: gcloud auth login " "--enable-gdrive-access"),
+                401: (
+                    "Authentication failed (401). "
+                    "Try: gcloud auth login "
+                    "--enable-gdrive-access"
+                ),
                 403: ("Access denied (403). Check you have " "permission to access this file."),
                 404: "Not found (404). Check the URL is correct.",
             }

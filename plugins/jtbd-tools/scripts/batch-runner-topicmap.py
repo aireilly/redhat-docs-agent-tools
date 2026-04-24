@@ -101,7 +101,9 @@ def run_batch(repo: str, books: list[str], distro: str | None, output: str | Non
 def main():
     parser = argparse.ArgumentParser(description="Batch runner for jtbd-workflow-topicmap skill")
     parser.add_argument("--repo", required=True, help="Path to repo root")
-    parser.add_argument("--books-file", required=True, help="File with book dir names, one per line")
+    parser.add_argument(
+        "--books-file", required=True, help="File with book dir names, one per line"
+    )
     parser.add_argument("--distro", help="Filter by distro")
     parser.add_argument("--output", help="Output base directory")
     parser.add_argument("--batch-size", type=int, default=5, help="Books per batch (default: 5)")
@@ -180,7 +182,9 @@ def main():
             print(f"Batch {i+1} FAILED for: {', '.join(batch)}")
 
         save_state(state_path, state)
-        print(f"Progress: {len(state['completed'])}/{len(all_books)} completed, {len(state['failed'])} failed")
+        print(
+            f"Progress: {len(state['completed'])}/{len(all_books)} completed, {len(state['failed'])} failed"
+        )
 
     # Final report
     print(f"\n{'='*60}")
@@ -192,7 +196,9 @@ def main():
     if state["failed"]:
         print(f"Failed: {len(state['failed'])}")
         print(f"  Books: {', '.join(state['failed'])}")
-        print("\nTo retry failed books, create a new books file with the failed entries and run again.")
+        print(
+            "\nTo retry failed books, create a new books file with the failed entries and run again."
+        )
 
     # Clean up state file on full completion
     if not state["failed"] and not state["remaining"]:

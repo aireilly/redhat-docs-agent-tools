@@ -80,17 +80,25 @@ ENV_VAR_FILE_EXTENSIONS = {
 }
 
 CLI_FRAMEWORK_PATTERNS = {
-    "argparse": {"pattern": re.compile(r"""add_argument\(['"]-{1,2}([a-zA-Z0-9_-]+)"""), "globs": ["**/*.py"]},
+    "argparse": {
+        "pattern": re.compile(r"""add_argument\(['"]-{1,2}([a-zA-Z0-9_-]+)"""),
+        "globs": ["**/*.py"],
+    },
     "click": {
         "pattern": re.compile(r"""@click\.(?:option|argument)\(['"]-{1,2}([a-zA-Z0-9_-]+)"""),
         "globs": ["**/*.py"],
     },
     "cobra": {
-        "pattern": re.compile(r"""Flags\(\)\.(?:String|Bool|Int|Duration)\w*\(['"]([a-zA-Z0-9_-]+)"""),
+        "pattern": re.compile(
+            r"""Flags\(\)\.(?:String|Bool|Int|Duration)\w*\(['"]([a-zA-Z0-9_-]+)"""
+        ),
         "globs": ["**/*.go"],
     },
     "clap": {"pattern": re.compile(r"""Arg::new\(['"]([a-zA-Z0-9_-]+)"""), "globs": ["**/*.rs"]},
-    "commander": {"pattern": re.compile(r"""\.option\(['"]-{1,2}([a-zA-Z0-9_-]+)"""), "globs": ["**/*.js", "**/*.ts"]},
+    "commander": {
+        "pattern": re.compile(r"""\.option\(['"]-{1,2}([a-zA-Z0-9_-]+)"""),
+        "globs": ["**/*.js", "**/*.ts"],
+    },
 }
 
 API_ROUTE_PATTERNS = {
@@ -106,8 +114,14 @@ API_ROUTE_PATTERNS = {
         "pattern": re.compile(r"""(?:app|router)\.(get|post|put|patch|delete)\(['"]([^'"]+)['"]"""),
         "globs": ["**/*.js", "**/*.ts"],
     },
-    "go_net_http": {"pattern": re.compile(r"""(?:HandleFunc|Handle)\(['"]([^'"]+)['"]"""), "globs": ["**/*.go"]},
-    "gin": {"pattern": re.compile(r"""\w+\.(GET|POST|PUT|PATCH|DELETE)\(['"]([^'"]+)['"]"""), "globs": ["**/*.go"]},
+    "go_net_http": {
+        "pattern": re.compile(r"""(?:HandleFunc|Handle)\(['"]([^'"]+)['"]"""),
+        "globs": ["**/*.go"],
+    },
+    "gin": {
+        "pattern": re.compile(r"""\w+\.(GET|POST|PUT|PATCH|DELETE)\(['"]([^'"]+)['"]"""),
+        "globs": ["**/*.go"],
+    },
     "spring": {
         "pattern": re.compile(r"""@(Get|Post|Put|Patch|Delete)Mapping\(['"]([^'"]+)['"]"""),
         "globs": ["**/*.java"],
@@ -115,13 +129,25 @@ API_ROUTE_PATTERNS = {
 }
 
 CONFIG_ACCESS_PATTERNS = {
-    "viper": {"pattern": re.compile(r"""viper\.(?:Get\w*)\(['"]([a-zA-Z0-9._-]+)['"]"""), "globs": ["**/*.go"]},
-    "python_config": {"pattern": re.compile(r"""config\.get\(['"]([a-zA-Z0-9._-]+)['"]"""), "globs": ["**/*.py"]},
-    "python_settings": {"pattern": re.compile(r"""settings\.([A-Z_][A-Z0-9_]*)"""), "globs": ["**/*.py"]},
+    "viper": {
+        "pattern": re.compile(r"""viper\.(?:Get\w*)\(['"]([a-zA-Z0-9._-]+)['"]"""),
+        "globs": ["**/*.go"],
+    },
+    "python_config": {
+        "pattern": re.compile(r"""config\.get\(['"]([a-zA-Z0-9._-]+)['"]"""),
+        "globs": ["**/*.py"],
+    },
+    "python_settings": {
+        "pattern": re.compile(r"""settings\.([A-Z_][A-Z0-9_]*)"""),
+        "globs": ["**/*.py"],
+    },
 }
 
 DATA_MODEL_PATTERNS = {
-    "sqlalchemy": {"pattern": re.compile(r"""class\s+(\w+)\(\s*(?:db\.Model|Base)\s*\)"""), "globs": ["**/*.py"]},
+    "sqlalchemy": {
+        "pattern": re.compile(r"""class\s+(\w+)\(\s*(?:db\.Model|Base)\s*\)"""),
+        "globs": ["**/*.py"],
+    },
     "django": {"pattern": re.compile(r"""class\s+(\w+)\(models\.Model\)"""), "globs": ["**/*.py"]},
     "go_struct": {"pattern": re.compile(r"""type\s+(\w+)\s+struct\s*\{"""), "globs": ["**/*.go"]},
 }
@@ -452,11 +478,15 @@ class Extractor:
         keys = []
         fl = fmt.lower()
         if fl in ("yaml", "yml"):
-            keys = [m.group(1) for m in re.finditer(r"^\s*([a-zA-Z_][a-zA-Z0-9_-]*):", content, re.M)]
+            keys = [
+                m.group(1) for m in re.finditer(r"^\s*([a-zA-Z_][a-zA-Z0-9_-]*):", content, re.M)
+            ]
         elif fl == "json":
             keys = [m.group(1) for m in re.finditer(r'"([a-zA-Z_][a-zA-Z0-9_-]*)"\s*:', content)]
         elif fl == "toml":
-            keys = [m.group(1) for m in re.finditer(r"^([a-zA-Z_][a-zA-Z0-9_-]*)\s*=", content, re.M)]
+            keys = [
+                m.group(1) for m in re.finditer(r"^([a-zA-Z_][a-zA-Z0-9_-]*)\s*=", content, re.M)
+            ]
 
         keys = list(dict.fromkeys(keys))  # dedupe preserving order
         if keys:
@@ -675,7 +705,11 @@ def search_code_blocks(code_blocks: list[dict], repo_paths: list[str]) -> list[d
     results = []
     for block in code_blocks:
         content = block.get("content", "")
-        lines = [ln.strip() for ln in content.splitlines() if ln.strip() and not ln.strip().startswith("#")]
+        lines = [
+            ln.strip()
+            for ln in content.splitlines()
+            if ln.strip() and not ln.strip().startswith("#")
+        ]
         if not lines:
             results.append({**block, "found": False, "matches": []})
             continue
@@ -745,7 +779,13 @@ def search_apis(apis: list[dict], repo_paths: list[str]) -> list[dict]:
             elif api_type == "endpoint":
                 patterns = [name]
             else:
-                patterns = [f"def {name}", f"func {name}", f"function {name}", f"fn {name}", f"void {name}"]
+                patterns = [
+                    f"def {name}",
+                    f"func {name}",
+                    f"function {name}",
+                    f"fn {name}",
+                    f"void {name}",
+                ]
 
             for pattern in patterns:
                 try:
@@ -901,7 +941,8 @@ def cmd_search(args):
         "repos": repo_paths,
         "discovered_cli_definitions": discovered_cli_defs,
         "discovered_schemas": [
-            {"file": s["file"], "format": s["format"], "key_count": len(s["keys"])} for s in discovered_schemas
+            {"file": s["file"], "format": s["format"], "key_count": len(s["keys"])}
+            for s in discovered_schemas
         ],
         "results": {
             "commands": cmd_results,

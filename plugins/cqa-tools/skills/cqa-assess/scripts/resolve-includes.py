@@ -126,7 +126,14 @@ def resolve_include_path(include_path, current_file_dir, base_dir):
 
 
 def resolve_includes(
-    filepath, base_dir, visited=None, depth=0, results=None, tree=None, warnings=None, conditional_context=None
+    filepath,
+    base_dir,
+    visited=None,
+    depth=0,
+    results=None,
+    tree=None,
+    warnings=None,
+    conditional_context=None,
 ):
     """Recursively resolve all includes from a file.
 
@@ -216,7 +223,8 @@ def resolve_includes(
 
         if resolved is None:
             warnings.append(
-                f"Include not found: include::{include_path}[] " f"(in {os.path.relpath(filepath, base_dir)})"
+                f"Include not found: include::{include_path}[] "
+                f"(in {os.path.relpath(filepath, base_dir)})"
             )
             info = {
                 "raw_path": include_path,
@@ -431,7 +439,9 @@ def main():
     elif args.output_format == "tree":
         output = format_tree(tree_data, base_dir, args.include_root, input_file)
     elif args.output_format == "json":
-        output = format_json(results, tree_data, warnings, base_dir, args.include_root, input_file, has_errors)
+        output = format_json(
+            results, tree_data, warnings, base_dir, args.include_root, input_file, has_errors
+        )
 
     if output:
         print(output)

@@ -95,8 +95,12 @@ def parse_code_block_lines(lines):
     current_block = None  # None, "source", or "literal"
     for i, line in enumerate(lines):
         stripped = line.strip()
-        is_source_delim = stripped.startswith("----") and len(stripped) >= 4 and all(c == "-" for c in stripped)
-        is_literal_delim = stripped.startswith("....") and len(stripped) >= 4 and all(c == "." for c in stripped)
+        is_source_delim = (
+            stripped.startswith("----") and len(stripped) >= 4 and all(c == "-" for c in stripped)
+        )
+        is_literal_delim = (
+            stripped.startswith("....") and len(stripped) >= 4 and all(c == "." for c in stripped)
+        )
         if is_source_delim and current_block in (None, "source"):
             code_lines.add(i)
             current_block = None if current_block == "source" else "source"
@@ -251,7 +255,9 @@ def check_file(filepath, rel_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Check for exclusionary language in AsciiDoc docs.")
+    parser = argparse.ArgumentParser(
+        description="Check for exclusionary language in AsciiDoc docs."
+    )
     parser.add_argument(
         "docs_dir",
         help="Path to the documentation repository root",
@@ -260,7 +266,9 @@ def main():
         "--scan-dirs",
         nargs="+",
         default=DEFAULT_SCAN_DIRS,
-        help=("Directories to scan relative to docs_dir " f"(default: {' '.join(DEFAULT_SCAN_DIRS)})"),
+        help=(
+            "Directories to scan relative to docs_dir " f"(default: {' '.join(DEFAULT_SCAN_DIRS)})"
+        ),
     )
     parser.add_argument(
         "--file-list",

@@ -177,7 +177,9 @@ def check_xrefs(xrefs, ids, docs_dir):
                 continue
             # Check anchor exists as an ID (if anchor is provided)
             if anchor and anchor not in ids:
-                broken.append((filepath, lineno, target, f"anchor '{anchor}' not found in {file_part}"))
+                broken.append(
+                    (filepath, lineno, target, f"anchor '{anchor}' not found in {file_part}")
+                )
             continue
 
         # File-based xref without anchor: xref:file.adoc[...]
@@ -265,7 +267,9 @@ def check_images(files, docs_dir, imagesdir):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Validate AsciiDoc cross-references, includes, " "and images.")
+    parser = argparse.ArgumentParser(
+        description="Validate AsciiDoc cross-references, includes, " "and images."
+    )
     parser.add_argument(
         "docs_dir",
         help="Path to the documentation repository root",

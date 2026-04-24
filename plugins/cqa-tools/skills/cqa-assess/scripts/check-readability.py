@@ -402,7 +402,9 @@ def check_file(filepath):
     total_syllables = sum(count_syllables(w) for w in all_words)
 
     if total_sentences > 0 and total_words > 0:
-        grade = 0.39 * (total_words / total_sentences) + 11.8 * (total_syllables / total_words) - 15.59
+        grade = (
+            0.39 * (total_words / total_sentences) + 11.8 * (total_syllables / total_words) - 15.59
+        )
     else:
         grade = 0
 
@@ -415,7 +417,9 @@ def check_file(filepath):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Check readability (Flesch-Kincaid Grade Level) " "in AsciiDoc docs.")
+    parser = argparse.ArgumentParser(
+        description="Check readability (Flesch-Kincaid Grade Level) " "in AsciiDoc docs."
+    )
     parser.add_argument(
         "docs_dir",
         help="Path to the documentation repository root",
@@ -449,7 +453,8 @@ def main():
     ATTR_RESOLVED, ATTR_WORD_COUNTS = build_attr_dicts(docs_dir)
     if not ATTR_RESOLVED:
         print(
-            "Warning: No attributes parsed from attributes.adoc — " "attribute resolution will use fallback values",
+            "Warning: No attributes parsed from attributes.adoc — "
+            "attribute resolution will use fallback values",
             file=sys.stderr,
         )
 
@@ -479,7 +484,9 @@ def main():
     # Compute overall grade from totals
     total_words = sum(w for _, _, _, w in file_grades)
     if all_sentences > 0 and total_words > 0:
-        overall_grade = 0.39 * (total_words / all_sentences) + 11.8 * (all_syllables / total_words) - 15.59
+        overall_grade = (
+            0.39 * (total_words / all_sentences) + 11.8 * (all_syllables / total_words) - 15.59
+        )
     else:
         overall_grade = 0
 
@@ -553,7 +560,9 @@ def main():
         else ""
     )
     print(
-        f"  Files meeting min (<=12):   " f"{meets_min}/{len(file_grades)} " f"({meets_min/len(file_grades)*100:.1f}%)"
+        f"  Files meeting min (<=12):   "
+        f"{meets_min}/{len(file_grades)} "
+        f"({meets_min/len(file_grades)*100:.1f}%)"
         if file_grades
         else ""
     )

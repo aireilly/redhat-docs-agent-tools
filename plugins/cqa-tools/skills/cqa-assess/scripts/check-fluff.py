@@ -48,7 +48,11 @@ FLUFF_PATTERNS = [
         "This procedure/document describes",
         "State the action directly",
     ),
-    (re.compile(r"\b[Ii]n this (chapter|section|topic)\b"), "In this chapter/section/topic", "Remove self-reference"),
+    (
+        re.compile(r"\b[Ii]n this (chapter|section|topic)\b"),
+        "In this chapter/section/topic",
+        "Remove self-reference",
+    ),
     # Forward-referencing
     (
         re.compile(r"\b[Tt]he following (describes|provides|explains|lists|shows)\b"),
@@ -56,12 +60,20 @@ FLUFF_PATTERNS = [
         "State the content directly",
     ),
     # Filler phrases
-    (re.compile(r"\b[Ii]t is important to note that\b"), "It is important to note that", "State the fact directly"),
+    (
+        re.compile(r"\b[Ii]t is important to note that\b"),
+        "It is important to note that",
+        "State the fact directly",
+    ),
     (re.compile(r"\b[Pp]lease note that\b"), "Please note that", "Remove or state directly"),
     # Learning-oriented (not action-oriented)
     (re.compile(r"\b[Ll]earn how to\b"), "Learn how to", "Use action-oriented language"),
     (re.compile(r"\b[Ll]earn about\b"), "Learn about", "State what the content covers directly"),
-    (re.compile(r"\b[Ll]earn more about\b"), "Learn more about", "Replace with 'See' or direct xref"),
+    (
+        re.compile(r"\b[Ll]earn more about\b"),
+        "Learn more about",
+        "Replace with 'See' or direct xref",
+    ),
     # As mentioned
     (
         re.compile(r"\b[Aa]s mentioned (above|below|earlier|previously)\b"),

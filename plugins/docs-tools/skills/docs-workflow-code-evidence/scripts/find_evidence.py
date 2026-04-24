@@ -57,7 +57,9 @@ def main():
         help="Comma-separated directory prefixes to scope search (single mode)",
     )
     parser.add_argument(
-        "--reindex", action="store_true", help="Force re-indexing (applied to first query only in batch mode)"
+        "--reindex",
+        action="store_true",
+        help="Force re-indexing (applied to first query only in batch mode)",
     )
     args = parser.parse_args()
 

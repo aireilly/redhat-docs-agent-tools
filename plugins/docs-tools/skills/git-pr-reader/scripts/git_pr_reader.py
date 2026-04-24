@@ -321,7 +321,9 @@ class GitReviewAPI(ABC):
         ...
 
     @abstractmethod
-    def post_inline_comment(self, comment: ReviewComment, signoff: str = "Claude Code docs review") -> Tuple[bool, str]:
+    def post_inline_comment(
+        self, comment: ReviewComment, signoff: str = "Claude Code docs review"
+    ) -> Tuple[bool, str]:
         """
         Post an inline comment on a specific line.
 
@@ -748,7 +750,12 @@ class GitHubReviewAPI(GitReviewAPI):
             except Exception:
                 break
 
-            threads = data.get("data", {}).get("repository", {}).get("pullRequest", {}).get("reviewThreads", {})
+            threads = (
+                data.get("data", {})
+                .get("repository", {})
+                .get("pullRequest", {})
+                .get("reviewThreads", {})
+            )
             for node in threads.get("nodes", []):
                 if node.get("isResolved"):
                     for c in node.get("comments", {}).get("nodes", []):
@@ -812,7 +819,9 @@ class GitHubReviewAPI(GitReviewAPI):
                 existing.append(f"{path}:{line}")
         return existing
 
-    def post_inline_comment(self, comment: ReviewComment, signoff: str = "Claude Code docs review") -> Tuple[bool, str]:
+    def post_inline_comment(
+        self, comment: ReviewComment, signoff: str = "Claude Code docs review"
+    ) -> Tuple[bool, str]:
         """Post an inline comment on a specific line using PyGithub."""
         try:
             pr_info = self.get_pr_info()
@@ -917,7 +926,9 @@ class GitLabReviewAPI(GitReviewAPI):
         """
         super().__init__(url, config_path=config_path)
         if Gitlab is None:
-            raise ImportError("python-gitlab not installed. Run: python3 -m pip install python-gitlab")
+            raise ImportError(
+                "python-gitlab not installed. Run: python3 -m pip install python-gitlab"
+            )
         self._parse_url()
         self._init_client()
 
@@ -1111,7 +1122,9 @@ class GitLabReviewAPI(GitReviewAPI):
                         existing.append(f"{path}:{line}")
         return existing
 
-    def post_inline_comment(self, comment: ReviewComment, signoff: str = "Claude Code docs review") -> Tuple[bool, str]:
+    def post_inline_comment(
+        self, comment: ReviewComment, signoff: str = "Claude Code docs review"
+    ) -> Tuple[bool, str]:
         """Post an inline comment on a specific line using python-gitlab."""
         try:
             pr_info = self.get_pr_info()
@@ -1222,7 +1235,9 @@ def format_markdown(data: Dict) -> str:
 
     output.append(f"# {data['title']}\n")
     output.append(f"**Source:** {data['url']}")
-    git_type_label = "GitHub Pull Request" if data["git_type"] == "github" else "GitLab Merge Request"
+    git_type_label = (
+        "GitHub Pull Request" if data["git_type"] == "github" else "GitLab Merge Request"
+    )
     output.append(f"**Type:** {git_type_label}\n")
 
     if data.get("description"):

@@ -95,7 +95,11 @@ class JiraWriter:
             }
 
         except Exception as e:
-            return {"success": False, "error": f"Failed to update issue {jira_id}: {str(e)}", "issue_key": jira_id}
+            return {
+                "success": False,
+                "error": f"Failed to update issue {jira_id}: {str(e)}",
+                "issue_key": jira_id,
+            }
 
     def push_release_note(self, jira_id, release_note, status="Proposed"):
         """
@@ -111,7 +115,10 @@ class JiraWriter:
         Returns:
             Dictionary with update results
         """
-        fields = {CUSTOM_FIELD_RELEASE_NOTE_CONTENT: release_note, CUSTOM_FIELD_RELEASE_NOTE_STATUS: {"value": status}}
+        fields = {
+            CUSTOM_FIELD_RELEASE_NOTE_CONTENT: release_note,
+            CUSTOM_FIELD_RELEASE_NOTE_STATUS: {"value": status},
+        }
 
         return self.update_issue(jira_id, fields)
 
@@ -191,7 +198,11 @@ class JiraWriter:
             }
 
         except Exception as e:
-            return {"success": False, "error": f"Failed to update labels on {jira_id}: {str(e)}", "issue_key": jira_id}
+            return {
+                "success": False,
+                "error": f"Failed to update labels on {jira_id}: {str(e)}",
+                "issue_key": jira_id,
+            }
 
 
 def main():
@@ -206,14 +217,25 @@ def main():
     parser.add_argument("--release-note", help="Release note content to push to the issue")
     parser.add_argument("--release-note-file", help="Path to file containing release note content")
     parser.add_argument(
-        "--status", choices=["Proposed", "Approved", "Rejected", "Not Required"], help="Release note status"
+        "--status",
+        choices=["Proposed", "Approved", "Rejected", "Not Required"],
+        help="Release note status",
     )
-    parser.add_argument("--custom-field", help="Custom field ID to update (e.g., customfield_12317313)")
-    parser.add_argument("--value", help="Value for the custom field")
-    parser.add_argument("--dry-run", action="store_true", help="Show what would be updated without making changes")
-    parser.add_argument("--labels-add", action="append", default=[], help="Label to add to the issue (repeatable)")
     parser.add_argument(
-        "--labels-remove", action="append", default=[], help="Label to remove from the issue (repeatable)"
+        "--custom-field", help="Custom field ID to update (e.g., customfield_12317313)"
+    )
+    parser.add_argument("--value", help="Value for the custom field")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Show what would be updated without making changes"
+    )
+    parser.add_argument(
+        "--labels-add", action="append", default=[], help="Label to add to the issue (repeatable)"
+    )
+    parser.add_argument(
+        "--labels-remove",
+        action="append",
+        default=[],
+        help="Label to remove from the issue (repeatable)",
     )
 
     args = parser.parse_args()
@@ -289,7 +311,9 @@ def main():
 
                 # Perform label updates (can run alongside field updates)
                 if has_label_update:
-                    label_result = writer.update_labels(issue_key, args.labels_add, args.labels_remove)
+                    label_result = writer.update_labels(
+                        issue_key, args.labels_add, args.labels_remove
+                    )
                     if result is None:
                         result = label_result
                     else:

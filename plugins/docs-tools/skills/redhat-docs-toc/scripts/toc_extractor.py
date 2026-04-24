@@ -17,13 +17,23 @@ from urllib.parse import urljoin, urlparse
 try:
     import requests
 except ImportError:
-    print(json.dumps({"error": "requests package not installed. Run: python3 -m pip install requests"}))
+    print(
+        json.dumps(
+            {"error": "requests package not installed. Run: python3 -m pip install requests"}
+        )
+    )
     sys.exit(1)
 
 try:
     from bs4 import BeautifulSoup
 except ImportError:
-    print(json.dumps({"error": "beautifulsoup4 package not installed. Run: python3 -m pip install beautifulsoup4"}))
+    print(
+        json.dumps(
+            {
+                "error": "beautifulsoup4 package not installed. Run: python3 -m pip install beautifulsoup4"
+            }
+        )
+    )
     sys.exit(1)
 
 
@@ -109,10 +119,14 @@ class RedHatDocsTOCExtractor:
 
 def main():
     """Main entry point for the script."""
-    parser = argparse.ArgumentParser(description="Extract article URLs from Red Hat documentation table of contents")
+    parser = argparse.ArgumentParser(
+        description="Extract article URLs from Red Hat documentation table of contents"
+    )
     parser.add_argument("--url", required=True, help="Red Hat docs URL to extract TOC from")
     parser.add_argument("--output", help="Output file path (default: stdout)")
-    parser.add_argument("--format", choices=["json", "list"], default="json", help="Output format (default: json)")
+    parser.add_argument(
+        "--format", choices=["json", "list"], default="json", help="Output format (default: json)"
+    )
 
     args = parser.parse_args()
 

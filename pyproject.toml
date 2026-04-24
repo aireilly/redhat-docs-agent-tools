@@ -1,6 +1,6 @@
 [tool.ruff]
 target-version = "py39"
-line-length = 120
+line-length = 100
 src = ["plugins"]
 
 [tool.ruff.lint]

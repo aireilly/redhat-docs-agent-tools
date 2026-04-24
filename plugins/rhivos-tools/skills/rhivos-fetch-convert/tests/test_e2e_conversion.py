@@ -39,7 +39,9 @@ def _has_asciidoctor() -> bool:
 
 
 requires_pandoc = pytest.mark.skipif(not _has_pandoc(), reason="pandoc not installed")
-requires_asciidoctor = pytest.mark.skipif(not _has_asciidoctor(), reason="asciidoctor not installed")
+requires_asciidoctor = pytest.mark.skipif(
+    not _has_asciidoctor(), reason="asciidoctor not installed"
+)
 
 
 def pandoc_convert(md_path: Path, output_path: Path) -> Path:

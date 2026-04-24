@@ -481,7 +481,9 @@ def process_file(filepath: str, base_path: Path | None = None) -> None:
 
 def main() -> None:
     """CLI entry point: parse arguments and run the pre-processor."""
-    parser = argparse.ArgumentParser(description="Pre-process MkDocs Markdown for pandoc conversion to AsciiDoc")
+    parser = argparse.ArgumentParser(
+        description="Pre-process MkDocs Markdown for pandoc conversion to AsciiDoc"
+    )
     parser.add_argument("file", help="Markdown file to process in place")
     parser.add_argument(
         "--base-path",

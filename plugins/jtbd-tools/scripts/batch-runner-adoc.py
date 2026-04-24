@@ -50,7 +50,9 @@ def read_docs_file(docs_file: Path) -> list[str]:
         return [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
 
-def run_batch(docs: list[str], variant: str | None, research: str | None, output: str | None) -> bool:
+def run_batch(
+    docs: list[str], variant: str | None, research: str | None, output: str | None
+) -> bool:
     """Run a single batch of docs through the workflow skill."""
     # Create a temporary docs file for this batch
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as tmp:
@@ -104,7 +106,9 @@ def run_batch(docs: list[str], variant: str | None, research: str | None, output
 
 def main():
     parser = argparse.ArgumentParser(description="Batch runner for jtbd-workflow-adoc skill")
-    parser.add_argument("--docs-file", required=True, help="File with paths to master.adoc files, one per line")
+    parser.add_argument(
+        "--docs-file", required=True, help="File with paths to master.adoc files, one per line"
+    )
     parser.add_argument("--variant", help="Conditional variant (e.g., self-managed, cloud-service)")
     parser.add_argument("--research", help="Research config name")
     parser.add_argument("--output", help="Output base directory")
@@ -181,7 +185,9 @@ def main():
             print(f"Batch {i+1} FAILED")
 
         save_state(state_path, state)
-        print(f"Progress: {len(state['completed'])}/{len(all_docs)} completed, {len(state['failed'])} failed")
+        print(
+            f"Progress: {len(state['completed'])}/{len(all_docs)} completed, {len(state['failed'])} failed"
+        )
 
     # Final report
     print(f"\n{'='*60}")
@@ -195,7 +201,9 @@ def main():
         print(f"Failed: {len(state['failed'])}")
         for doc in state["failed"]:
             print(f"  - {doc}")
-        print("\nTo retry failed docs, create a new docs file with the failed entries and run again.")
+        print(
+            "\nTo retry failed docs, create a new docs file with the failed entries and run again."
+        )
 
     # Clean up state file on full completion
     if not state["failed"] and not state["remaining"]:

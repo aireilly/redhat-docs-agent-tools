@@ -463,7 +463,8 @@ def main():
     ATTR_WORD_COUNTS = parse_attributes_for_word_counts(docs_dir)
     if not ATTR_WORD_COUNTS:
         print(
-            "Warning: No attributes parsed from attributes.adoc — " "attribute word counts will default to 1",
+            "Warning: No attributes parsed from attributes.adoc — "
+            "attribute word counts will default to 1",
             file=sys.stderr,
         )
 
@@ -545,7 +546,10 @@ def main():
     print(f"  Files scanned:              {len(files)}")
     print(f"  Total sentences:            {total_sentences}")
     print(f"  Overall avg words/sentence: {overall_avg:.1f}")
-    print(f"  Sentences <={AVG_LIMIT} words:      " f"{under_target}/{total_sentences} ({pct_under:.1f}%)")
+    print(
+        f"  Sentences <={AVG_LIMIT} words:      "
+        f"{under_target}/{total_sentences} ({pct_under:.1f}%)"
+    )
     print(f"  Sentences >{HARD_LIMIT} words:       {total_violations}")
     print(f"  Files with high avg:        {len(high_avg_files)}")
     print(f"  Long paragraphs:            {total_long_paras}")

@@ -224,7 +224,9 @@ def categorize_domain(domain):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Categorize external links by domain in AsciiDoc docs.")
+    parser = argparse.ArgumentParser(
+        description="Categorize external links by domain in AsciiDoc docs."
+    )
     parser.add_argument(
         "docs_dir",
         help="Path to the documentation repository root",
@@ -233,7 +235,9 @@ def main():
         "--scan-dirs",
         nargs="+",
         default=DEFAULT_SCAN_DIRS,
-        help=("Directories to scan relative to docs_dir " f"(default: {' '.join(DEFAULT_SCAN_DIRS)})"),
+        help=(
+            "Directories to scan relative to docs_dir " f"(default: {' '.join(DEFAULT_SCAN_DIRS)})"
+        ),
     )
     parser.add_argument(
         "--file-list",
@@ -285,7 +289,9 @@ def main():
         items = by_category.get(category, [])
         unique_in_cat = set(u["url"] for u in items)
         domains_in_cat = set(u["domain"] for u in items)
-        print(f"  {category}: {len(unique_in_cat)} unique URLs across {len(domains_in_cat)} domains")
+        print(
+            f"  {category}: {len(unique_in_cat)} unique URLs across {len(domains_in_cat)} domains"
+        )
     print()
 
     # Report domains by category
@@ -328,7 +334,9 @@ def main():
     print(f"Total external links: {len(all_urls)} ({len(unique_urls)} unique URLs)")
     print(f"Total domains: {len(by_domain)}")
     print(f"  Red Hat: {len(set(u['domain'] for u in by_category.get('Red Hat', [])))}")
-    print(f"  Upstream/Community: {len(set(u['domain'] for u in by_category.get('Upstream/Community', [])))}")
+    print(
+        f"  Upstream/Community: {len(set(u['domain'] for u in by_category.get('Upstream/Community', [])))}"
+    )
     print(f"  Authoritative: {len(set(u['domain'] for u in by_category.get('Authoritative', [])))}")
     tp_count = len(set(u["domain"] for u in by_category.get("Third-party", [])))
     print(f"  Third-party: {tp_count}")

@@ -234,7 +234,11 @@ def parse_code_block_lines(lines):
         matched_char = None
         for delim_char in ("-", ".", "+", "/"):
             prefix = delim_char * 4
-            if stripped.startswith(prefix) and len(stripped) >= 4 and all(c == delim_char for c in stripped):
+            if (
+                stripped.startswith(prefix)
+                and len(stripped) >= 4
+                and all(c == delim_char for c in stripped)
+            ):
                 matched_char = delim_char
                 break
 
@@ -495,7 +499,9 @@ def _fix_file(abs_path, product_names, known_exceptions):
         modified_line = line
         for name, replacement in product_names:
             attr = replacement.split(" or ")[0].strip()
-            modified_line, count = _replace_name_in_line(modified_line, name, attr, known_exceptions)
+            modified_line, count = _replace_name_in_line(
+                modified_line, name, attr, known_exceptions
+            )
             replacements_made += count
         new_lines.append(modified_line)
 
@@ -595,11 +601,17 @@ def verify_with_opl(product_names):
                 print(f"  WARNING: '{aname}' is a deprecated/previous " f"name in OPL")
                 issues += 1
             if not alias.get("alias_approved"):
-                print(f"  NOTE: '{aname}' is not an approved alias " f"in OPL (type: {alias.get('alias_type', '?')})")
+                print(
+                    f"  NOTE: '{aname}' is not an approved alias "
+                    f"in OPL (type: {alias.get('alias_type', '?')})"
+                )
 
     for alias in aliases:
         if alias.get("alias_approved") and alias["alias_name"] not in attr_values:
-            print(f"  NOTE: OPL approved alias '{alias['alias_name']}' " f"not found in attributes.adoc")
+            print(
+                f"  NOTE: OPL approved alias '{alias['alias_name']}' "
+                f"not found in attributes.adoc"
+            )
 
     if issues == 0:
         print("  All detected product names verified against OPL.")
@@ -623,7 +635,9 @@ def main():
         "--scan-dirs",
         nargs="+",
         default=DEFAULT_SCAN_DIRS,
-        help=("Directories to scan relative to docs_dir " f"(default: {' '.join(DEFAULT_SCAN_DIRS)})"),
+        help=(
+            "Directories to scan relative to docs_dir " f"(default: {' '.join(DEFAULT_SCAN_DIRS)})"
+        ),
     )
     parser.add_argument(
         "--file-list",
@@ -645,7 +659,8 @@ def main():
     parser.add_argument(
         "--verify-opl",
         action="store_true",
-        help="Cross-check detected product names against the Red Hat " "Official Product List API (VPN required)",
+        help="Cross-check detected product names against the Red Hat "
+        "Official Product List API (VPN required)",
     )
     args = parser.parse_args()
 
@@ -661,7 +676,10 @@ def main():
     skip_files = collect_attribute_filenames(docs_dir)
 
     if not product_names:
-        print("Error: no product name attributes found in " f"{docs_dir}/common/*attributes.adoc", file=sys.stderr)
+        print(
+            "Error: no product name attributes found in " f"{docs_dir}/common/*attributes.adoc",
+            file=sys.stderr,
+        )
         print("Expected attribute files with product name definitions " "like:", file=sys.stderr)
         print("  :prod: Red Hat Product Name", file=sys.stderr)
         print("  :prod-short: Product Name", file=sys.stderr)
@@ -715,7 +733,9 @@ def main():
     all_findings = []
     read_errors = []
     for filepath, rel_path in files:
-        findings, error = check_file(filepath, rel_path, product_names, case_checks, known_exceptions)
+        findings, error = check_file(
+            filepath, rel_path, product_names, case_checks, known_exceptions
+        )
         all_findings.extend(findings)
         if error is not None:
             read_errors.append(error)
@@ -729,7 +749,9 @@ def main():
     violations = [f for f in all_findings if f["classification"] == "PROSE"]
     image_alt = [f for f in all_findings if f["classification"] == "IMAGE_ALT"]
     exceptions = [
-        f for f in all_findings if f["classification"] in ("KNOWN_EXCEPTION", "UI_LABEL", "LINK_TEXT", "XREF_TEXT")
+        f
+        for f in all_findings
+        if f["classification"] in ("KNOWN_EXCEPTION", "UI_LABEL", "LINK_TEXT", "XREF_TEXT")
     ]
     skipped = [f for f in all_findings if f["classification"] in ("COMMENT", "ATTRIBUTE_DEF")]
 

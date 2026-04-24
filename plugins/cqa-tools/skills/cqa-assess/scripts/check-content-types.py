@@ -310,7 +310,9 @@ def check_file(filepath, rel_path, filename, skip_prefix_check=False):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Validate content type compliance in modular docs.")
+    parser = argparse.ArgumentParser(
+        description="Validate content type compliance in modular docs."
+    )
     parser.add_argument(
         "docs_dir",
         help="Path to the documentation repository root",
@@ -326,7 +328,8 @@ def main():
         "--no-prefix-check",
         action="store_true",
         default=False,
-        help="Skip filename prefix check. Detect content type from " ":_mod-docs-content-type: attribute instead.",
+        help="Skip filename prefix check. Detect content type from "
+        ":_mod-docs-content-type: attribute instead.",
     )
     parser.add_argument(
         "--file-list",
@@ -355,7 +358,9 @@ def main():
         files = collect_adoc_files(docs_dir, scan_dirs=args.scan_dirs)
     all_issues = []
     for filepath, rel_path, filename in files:
-        all_issues.extend(check_file(filepath, rel_path, filename, skip_prefix_check=args.no_prefix_check))
+        all_issues.extend(
+            check_file(filepath, rel_path, filename, skip_prefix_check=args.no_prefix_check)
+        )
 
     # Group by check type
     by_check = {}
