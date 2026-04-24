@@ -130,6 +130,7 @@
         "plugins/docs-tools/skills/docs-orchestrator/hooks/workflow-completion-check.sh",
         "plugins/docs-tools/skills/docs-orchestrator/scripts/setup-hooks.sh",
         "plugins/docs-tools/skills/docs-workflow-create-jira/scripts/create-jira-ticket.sh",
+        "plugins/docs-tools/skills/docs-workflow-create-mr/scripts/create_mr.sh",
         "plugins/docs-tools/skills/docs-workflow-jira-ready/scripts/jira-ready-check.sh",
         "plugins/docs-tools/skills/docs-workflow-writing/scripts/build_writing_args.sh"
       ]
