@@ -10,10 +10,10 @@ Uses Atlassian REST API v3. Description and comment fields are returned in
 Atlassian Document Format (ADF) and automatically converted to plain text.
 
 Usage:
-    python3 scripts/jira_reader.py --issue INFERENG-5233
-    python3 scripts/jira_reader.py --issue INFERENG-5233 --include-comments
-    python3 scripts/jira_reader.py --jql "project=INFERENG AND fixVersion='3.4'"
-    python3 scripts/jira_reader.py --graph INFERENG-5233
+    python3 ${CLAUDE_SKILL_DIR}/scripts/jira_reader.py --issue INFERENG-5233
+    python3 ${CLAUDE_SKILL_DIR}/scripts/jira_reader.py --issue INFERENG-5233 --include-comments
+    python3 ${CLAUDE_SKILL_DIR}/scripts/jira_reader.py --jql "project=INFERENG AND fixVersion='3.4'"
+    python3 ${CLAUDE_SKILL_DIR}/scripts/jira_reader.py --graph INFERENG-5233
 """
 
 import argparse
@@ -61,7 +61,13 @@ def adf_to_text(node):
     content = node.get("content", [])
 
     if node_type == "text":
-        return node.get("text", "")
+        text = node.get("text", "")
+        for mark in node.get("marks", []):
+            if mark.get("type") == "link":
+                href = mark.get("attrs", {}).get("href", "")
+                if href and href != text:
+                    return f"{text} ({href})"
+        return text
 
     if node_type == "hardBreak":
         return "\n"
@@ -140,9 +146,8 @@ class JiraReader:
 
         server = server or os.environ.get("JIRA_URL", "https://redhat.atlassian.net")
 
-        options = {"rest_api_version": "3"}
-
         if "atlassian.net" in server:
+            options = {"rest_api_version": "3"}
             email = os.environ.get("JIRA_EMAIL")
             if not email:
                 raise ValueError(
@@ -151,7 +156,7 @@ class JiraReader:
                 )
             self.jira = JIRA(server=server, basic_auth=(email, token), options=options)
         else:
-            self.jira = JIRA(server=server, token_auth=token, options=options)
+            self.jira = JIRA(server=server, token_auth=token)
 
         self.server = server
         self._epic_link_field = None
