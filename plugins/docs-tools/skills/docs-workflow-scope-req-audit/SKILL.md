@@ -38,6 +38,7 @@ This is a tool-only step (no agent dispatch). Claude executes the steps directly
 ```text
 <base-path>/scope-req-audit/evidence-status.json
 <base-path>/scope-req-audit/summary.md
+<base-path>/scope-req-audit/step-result.json
 ```
 
 ## Execution

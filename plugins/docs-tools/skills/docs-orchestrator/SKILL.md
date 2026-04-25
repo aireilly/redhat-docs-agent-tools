@@ -389,7 +389,7 @@ After each step completes, apply the rules below. When rules reference sidecar f
 
 **planning**
 - Log: `"Planning completed: N modules"`
-- If `module_count` is 0, **warn**: `"Planning produced 0 modules — the plan may be empty. Review plan.md before continuing."` Ask the user whether to proceed or stop
+- If `module_count` is 0, **warn**: `"Planning produced 0 modules — the plan may be empty. Review plan.md before continuing."` Ask the user whether to proceed or stop. If the user chooses to stop: mark the planning step as `failed` in the progress file, set the workflow status to `"failed"`, log `"Planning stopped by user after 0 modules — workflow cancelled."`, and halt without running subsequent steps
 
 **code-evidence**
 - Log: `"Code evidence retrieved: N topics, N snippets"`
@@ -399,10 +399,10 @@ After each step completes, apply the rules below. When rules reference sidecar f
 - Record `result.branch` and `result.skipped` — these are used by the [Commit confirmation gate](#commit-confirmation-gate)
 
 **writing**
-- If `result.files` is empty or missing, **warn**: `"Writing step produced no files."` Mark the `commit` step as `skipped` with `skip_reason: "no_files"` and also skip `create-mr`. Log: `"Skipping commit and create-mr: no files to commit."`
+- If `result.files` is empty or missing, **warn**: `"Writing step produced no files."` Mark the `commit` step as `skipped` with `skip_reason: "no_files"` and record `result.skipped: true`, `result.pushed: false`, `result.commit_sha: null`. Also mark `create-mr` as `skipped` with `result.skipped: true`, `result.url: null`, `result.skip_reason: "no_files"`. Log: `"Skipping commit and create-mr: no files to commit."`
 
 **commit**
-- If `result.skipped` is true or `result.pushed` is false, mark `create-mr` as `skipped` in the progress file. Log: `"Skipping create-mr: commit was not pushed (pushed=<value>, skipped=<value>)."`
+- If `result.skipped` is true or `result.pushed` is false, mark `create-mr` as `skipped` in the progress file with `result.skipped: true`, `result.url: null`, `result.skip_reason: "not_pushed"`. Log: `"Skipping create-mr: commit was not pushed (pushed=<value>, skipped=<value>)."`
 
 **create-mr**
 - Record `result.url` for the [Completion](#completion) summary
