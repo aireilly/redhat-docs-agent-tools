@@ -82,7 +82,7 @@ If a concept module is large and complex:
 
 **Subheading options**:
 - **Discrete subheading** (excluded from TOC): `[discrete]` followed by `== Subheading`
-- **Standard subheading** (included in TOC): `== Subheading`
+- **Standard subheading** (included in TOC): `[#anchor-id_{context}]` followed by `== Subheading`
 
 Subheadings are allowed in concept and reference modules, but NOT in procedure modules.
 
@@ -318,7 +318,7 @@ If a reference module is large and complex:
 
 **Subheading options**:
 - **Discrete subheading** (excluded from TOC): `[discrete]` followed by `== Subheading`
-- **Standard subheading** (included in TOC): `== Subheading`
+- **Standard subheading** (included in TOC): `[#anchor-id_{context}]` followed by `== Subheading`
 
 ### Lists vs. tables
 

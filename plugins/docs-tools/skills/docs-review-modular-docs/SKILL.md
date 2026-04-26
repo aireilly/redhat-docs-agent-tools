@@ -20,6 +20,7 @@ For detailed module type guidance, templates, and structural rules, read [asciid
 - [ ] No step-by-step instructions (those belong in procedures)
 - [ ] Actions avoided unless highly context-dependent
 - [ ] If subheadings used, first tried splitting into separate modules
+- [ ] Standard subheadings (included in TOC) have anchor IDs with `_{context}`: `[#anchor-id_{context}]`
 - [ ] Only valid admonition types used: NOTE, IMPORTANT, WARNING, TIP (CAUTION is not supported by the Red Hat Customer Portal)
 - [ ] Additional resources focused on relevant items only
 
@@ -46,6 +47,7 @@ For detailed module type guidance, templates, and structural rules, read [asciid
 - [ ] Body uses tables or labeled lists
 - [ ] Data logically organized (alphabetical, categorical)
 - [ ] Consistent structure for similar data
+- [ ] Standard subheadings (included in TOC) have anchor IDs with `_{context}`: `[#anchor-id_{context}]`
 - [ ] Additional resources focused on relevant items only
 
 ## Assembly checklist
@@ -62,6 +64,7 @@ For detailed module type guidance, templates, and structural rules, read [asciid
 | Issue | Wrong | Correct |
 |-------|-------|---------|
 | Missing context | `[id="my-assembly"]` | `[id="my-module_{context}"]` |
+| Standard subheading without anchor ID | `== Subheading` | `[#anchor-id_{context}]` then `== Subheading` |
 | Procedure title | `= Database Configuration` | `= Configure the database` |
 | Custom subheading in procedure | `== Additional setup` | Use allowed sections only |
 | Instructions in Next steps | Numbered steps | Links only |
