@@ -38,7 +38,7 @@ All sidecars share these fields:
 
 | Field | Type | Description | Consumed by |
 |---|---|---|---|
-| `title` | string | First heading from requirements.md (max 80 chars, ticket prefix stripped) | `create_mr.sh` — PR/MR title |
+| `title` | string | First heading from requirements.md (max 80 chars, ticket prefix stripped) | `create_mr.py` — PR/MR title |
 
 ### scope-req-audit
 

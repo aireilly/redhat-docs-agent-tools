@@ -41,7 +41,7 @@ Produced by the commit step. Must have `pushed: true` for this step to proceed.
 Run the create-mr script, passing through all arguments:
 
 ```bash
-bash ${CLAUDE_SKILL_DIR}/scripts/create_mr.sh <ticket> --base-path <base-path> [--repo-path <path>] [--draft]
+python3 ${CLAUDE_SKILL_DIR}/scripts/create_mr.py <ticket> --base-path <base-path> [--repo-path <path>] [--draft]
 ```
 
 The script handles:
@@ -49,7 +49,7 @@ The script handles:
 1. **Draft mode check** — writes a skip record and exits if `--draft` is set
 2. **Commit check** — reads `commit-info.json` and skips if branch was not pushed
 3. **Context resolution** — determines platform and repo URL from `commit-info.json`, default branch from `repo-info.json` if available
-4. **Fork detection** (GitLab) — queries the GitLab API to detect fork relationships and targets the upstream project for cross-fork MRs
+4. **Fork detection** — checks local git remotes first, then queries the GitLab API (via `python-gitlab`) to detect fork relationships and targets the upstream project for cross-fork MRs. GitHub fork detection is handled automatically by `PyGithub`
 5. **Existing MR/PR check** — looks for an open MR/PR from the feature branch before creating a new one
-6. **MR/PR creation** — creates a GitLab MR (via `glab` CLI) or GitHub PR (via `gh` CLI)
+6. **MR/PR creation** — creates a GitLab MR (via `python-gitlab`) or GitHub PR (via `PyGithub`)
 7. **Output** — writes both `mr-info.json` and `step-result.json` (do NOT write step-result.json separately — the script handles it)
