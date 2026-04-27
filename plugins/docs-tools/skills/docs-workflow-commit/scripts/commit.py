@@ -144,9 +144,21 @@ def main():
         print(msg, file=sys.stderr)
         sys.exit(1)
 
-    _, repo_dir, _ = git("rev-parse", "--show-toplevel", repo_dir=resolve_dir)
-    _, branch, _ = git("rev-parse", "--abbrev-ref", "HEAD", repo_dir=resolve_dir)
-    _, repo_url, _ = git("remote", "get-url", "origin", repo_dir=resolve_dir)
+    rc, repo_dir, err = git("rev-parse", "--show-toplevel", repo_dir=resolve_dir)
+    if rc != 0 or not repo_dir:
+        print(f"ERROR: Could not determine repository root: {err}", file=sys.stderr)
+        sys.exit(1)
+
+    rc, branch, err = git("rev-parse", "--abbrev-ref", "HEAD", repo_dir=resolve_dir)
+    if rc != 0 or not branch:
+        print(f"ERROR: Could not determine current branch: {err}", file=sys.stderr)
+        sys.exit(1)
+
+    rc, repo_url, err = git("remote", "get-url", "origin", repo_dir=resolve_dir)
+    if rc != 0 or not repo_url:
+        print(f"ERROR: Could not get remote URL for 'origin': {err}", file=sys.stderr)
+        sys.exit(1)
+
     platform = detect_platform(repo_url)
 
     print(f"Repo:     {repo_dir}")
@@ -230,9 +242,7 @@ def main():
     # --- Push ---
     git("fetch", "origin", branch, repo_dir=repo_dir_abs)
 
-    rc, out, err = git(
-        "push", "--force-with-lease", "-u", "origin", branch, repo_dir=repo_dir_abs
-    )
+    rc, out, err = git("push", "--force-with-lease", "-u", "origin", branch, repo_dir=repo_dir_abs)
     if rc == 0:
         print(f"Pushed branch '{branch}' to origin")
         write_commit_info(output_dir, branch, commit_sha, staged_files, platform, repo_url, True)
