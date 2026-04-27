@@ -122,8 +122,8 @@ def detect_fork_local(project_path, repo_path):
     """Detect fork via local git remotes (no API call needed)."""
     resolve_dir = repo_path or os.getcwd()
     try:
-        upstream_url = subprocess.run(
-            ["git", "-C", resolve_dir, "remote", "get-url", "upstream"],
+        upstream_url = subprocess.run(  # noqa: S603
+            ["git", "-C", resolve_dir, "remote", "get-url", "upstream"],  # noqa: S607
             capture_output=True, text=True, check=True,
         ).stdout.strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
