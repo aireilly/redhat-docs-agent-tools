@@ -16,7 +16,7 @@ This is a tool-only step (no agent dispatch). Claude executes the steps directly
 ## Prerequisites
 
 - **code-finder** Python package. Install once with `python3 -m pip install code-finder`, or let the step auto-install via `uv run --with code-finder` (requires **uv**: `brew install uv` on macOS, or see https://docs.astral.sh/uv/getting-started/installation/)
-- The `find_evidence.py` wrapper script from the code-evidence step at `plugins/docs-tools/skills/docs-workflow-code-evidence/scripts/find_evidence.py`
+- The `find_evidence.py` wrapper script from the code-evidence step at `plugins/docs-tools/skills/code-evidence/scripts/find_evidence.py`
 
 ## Arguments
 
@@ -75,13 +75,13 @@ Locate the `find_evidence.py` script from the code-evidence skill.
 Claude Code:
 
 ```bash
-FIND_EVIDENCE_SCRIPT="${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-code-evidence/scripts/find_evidence.py"
+FIND_EVIDENCE_SCRIPT="${CLAUDE_PLUGIN_ROOT}/skills/code-evidence/scripts/find_evidence.py"
 ```
 
 Cursor (paths are relative to the repository root):
 
 ```bash
-FIND_EVIDENCE_SCRIPT="plugins/docs-tools/skills/docs-workflow-code-evidence/scripts/find_evidence.py"
+FIND_EVIDENCE_SCRIPT="plugins/docs-tools/skills/code-evidence/scripts/find_evidence.py"
 ```
 
 Verify the script exists. If not, STOP with error: "find_evidence.py not found at expected path."

@@ -19,7 +19,7 @@ The writer typically works from the **documentation repository**, not the code r
 ## Prerequisites
 
 - **code-finder** Python package. Install once with `python3 -m pip install code-finder`, or let the skill auto-install via `uv run --with code-finder` (requires **uv**: `brew install uv` on macOS, or see https://docs.astral.sh/uv/getting-started/installation/)
-- The wrapper script `scripts/find_evidence.py` calls the code-finder Python API directly (no CLI entry point required)
+- The wrapper script `${CLAUDE_PLUGIN_ROOT}/skills/code-evidence/scripts/find_evidence.py` calls the code-finder Python API directly (no CLI entry point required)
 
 ## Arguments
 
@@ -64,7 +64,7 @@ mkdir -p "$OUTPUT_DIR"
 Validate:
 - Verify `--repo` was provided. If not, STOP with error: "code-evidence requires --repo. The orchestrator should provide the repo path."
 - Verify `$PLAN_FILE` exists. If not, STOP with error: "Planning step must complete before code-evidence."
-- Verify the wrapper script exists at `scripts/find_evidence.py` (relative to this skill directory). If not, STOP with error: "find_evidence.py script not found."
+- Verify the wrapper script exists at `${CLAUDE_PLUGIN_ROOT}/skills/code-evidence/scripts/find_evidence.py`. If not, STOP with error: "find_evidence.py script not found."
 
 ### 2. Validate repo path
 
@@ -137,7 +137,7 @@ python3 -c "import claude_context" 2>/dev/null && echo "INSTALLED" || echo "NOT_
 If **INSTALLED**, run directly (avoids re-downloading ~1GB of ML dependencies):
 
 ```bash
-python3 scripts/find_evidence.py \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/code-evidence/scripts/find_evidence.py \
   --repo "$REPO_PATH" \
   --queries-file "${OUTPUT_DIR}/queries.json" \
   --limit <LIMIT>
@@ -146,7 +146,7 @@ python3 scripts/find_evidence.py \
 If **NOT_INSTALLED**, fall back to uv:
 
 ```bash
-uv run --with code-finder python3 scripts/find_evidence.py \
+uv run --with code-finder python3 ${CLAUDE_PLUGIN_ROOT}/skills/code-evidence/scripts/find_evidence.py \
   --repo "$REPO_PATH" \
   --queries-file "${OUTPUT_DIR}/queries.json" \
   --limit <LIMIT>

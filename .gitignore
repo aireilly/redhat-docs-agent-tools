@@ -17,3 +17,5 @@ docs/plugins.md
 docs/plugins/
 docs/install/
 docs/superpowers/
+.vibe2doc
+.ruff_cache

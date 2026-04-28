@@ -14,7 +14,7 @@ Interactive entry point for the documentation workflow.
 Same argument set as docs-orchestrator:
 
 - `$1` — JIRA ticket ID (optional at this stage)
-- `--workflow <name>` — Use `.claude/docs-<name>.yaml` instead of `docs-workflow.yaml`. Allows running alternative pipelines (e.g., writing-only, review-only). Falls back to the plugin default at `skills/docs-orchestrator/defaults/docs-workflow.yaml` if no project-level YAML exists
+- `--workflow <name>` — Use `.claude/docs-<name>.yaml` instead of `docs-workflow.yaml`. Allows running alternative pipelines (e.g., writing-only, review-only). Falls back to the plugin default at `skills/docs-orchestrator/defaults/docs-<name>.yaml` if no project-level YAML exists
 - `--pr <url>` — PR/MR URLs (repeatable, accumulated into a list). Accepts GitHub PRs (`gh` CLI) and GitLab MRs (`glab` CLI). Used both as requirements input (agent reads diffs/descriptions) and for source repo resolution (repo URL and branch derived from the first PR/MR). When multiple PRs from different repos are provided, all repos are resolved and treated equally as source material
 - `--mkdocs` — Use Material for MkDocs format instead of AsciiDoc. Propagates to the writing step (generates `.md` with MkDocs front matter) and style-review step (applies Markdown-appropriate rules). Sets `options.format` to `"mkdocs"` in the progress file
 - `--draft` — Write documentation to the staging area (`.claude/docs/<ticket>/writing/`) instead of directly into the repo. Uses DRAFT placement mode: no framework detection, no file placement into the target repo. Without this flag, UPDATE-IN-PLACE is the default
@@ -181,6 +181,7 @@ Build the args string from collected answers:
 | Draft — staging area only | `--draft` |
 | Target docs repo path | `--docs-repo-path <path>` |
 | Create JIRA = Yes | `--create-jira <PROJECT>` |
+| `--workflow` was provided in args | `--workflow <name>` (pass through) |
 
 AsciiDoc format and current repo placement are defaults — no flags needed.
 
@@ -226,15 +227,27 @@ mkdir -p "$BASE_PATH"
 
 ### 2. Resolve the YAML path
 
-Determine which workflow YAML to use:
+Determine which workflow YAML to use. If `--workflow <name>` was provided (from the parsed args), use the named variant; otherwise use the default:
 
 ```bash
-if [[ -f ".claude/docs-workflow.yaml" ]]; then
-  YAML_PATH=".claude/docs-workflow.yaml"
+if [[ -n "$WORKFLOW_NAME" ]]; then
+  # Named workflow
+  if [[ -f ".claude/docs-${WORKFLOW_NAME}.yaml" ]]; then
+    YAML_PATH=".claude/docs-${WORKFLOW_NAME}.yaml"
+  else
+    YAML_PATH="${CLAUDE_PLUGIN_ROOT}/skills/docs-orchestrator/defaults/docs-${WORKFLOW_NAME}.yaml"
+  fi
 else
-  YAML_PATH="${CLAUDE_PLUGIN_ROOT}/skills/docs-orchestrator/defaults/docs-workflow.yaml"
+  # Default workflow
+  if [[ -f ".claude/docs-workflow.yaml" ]]; then
+    YAML_PATH=".claude/docs-workflow.yaml"
+  else
+    YAML_PATH="${CLAUDE_PLUGIN_ROOT}/skills/docs-orchestrator/defaults/docs-workflow.yaml"
+  fi
 fi
 ```
+
+If the resolved YAML path does not exist, **STOP** with: `"Workflow YAML not found: <path>"`
 
 ### 3. Compute execution plan
 
@@ -253,7 +266,15 @@ If the script exits with code 1, the user entered an invalid step name. Read the
 
 Then re-ask the step selection question via AskUserQuestion.
 
-### 4. Handle existing artifacts (smart hybrid confirmation)
+### 4. Validate `requires` conditions
+
+Check the `requires` field in the resolver's JSON output. If the workflow declares `requires: [has_source_repo]` and no source repo or PR URL was collected in step 3B/4, **STOP** immediately with:
+
+> This workflow requires a source code repository. Pass `--source-code-repo <url-or-path>` or `--pr <url>`, or select a source code option when prompted.
+
+This catches the problem before any steps run — the same early guard the orchestrator applies for full workflow mode.
+
+### 5. Handle existing artifacts (smart hybrid confirmation)
 
 Read the JSON output. If `steps_with_artifacts` is **non-empty**, use AskUserQuestion:
 
@@ -266,14 +287,14 @@ Read the JSON output. If `steps_with_artifacts` is **non-empty**, use AskUserQue
 
 If `steps_with_artifacts` is **empty**, skip this question and run all steps.
 
-### 5. Evaluate `when` conditions
+### 6. Evaluate `when` conditions
 
 For each step in the execution plan with a `when` field:
 
 - `when: has_source_repo` — skip this step if no source repo or PR URL was provided. Log: "Skipping \<step\>: no source repository configured."
 - `when: create_jira_project` — skip this step if create-jira was not selected. Log: "Skipping \<step\>: JIRA creation not requested."
 
-### 6. Run steps sequentially
+### 7. Run steps sequentially
 
 For each step in `execution_plan` order:
 
@@ -302,7 +323,7 @@ Skill: <step.skill>, args: "<ticket> --base-path <BASE_PATH> <step-specific-flag
 
 The format flag defaults to `adoc` unless the user selected Material for MkDocs.
 
-### 7. Verify and report
+### 8. Verify and report
 
 After each step completes:
 

@@ -64,6 +64,11 @@ When displaying available options to the user (e.g., on skill load or when askin
 
 # Custom workflow YAML
 /docs-orchestrator PROJ-123 --workflow quick
+
+# Code-evidence workflow — requires a source repo
+/docs-orchestrator PROJ-123 \
+  --workflow workflow-code-evidence \
+  --source-code-repo https://github.com/org/operator
 ```
 
 ## Resolve source repository
@@ -139,13 +144,21 @@ All fields except `repo` are optional. If `scope` is omitted, the entire reposit
 
 - If `--workflow <name>` was specified → `.claude/docs-<name>.yaml`
 - Otherwise → `.claude/docs-workflow.yaml`
-- If neither exists → use the plugin default at `skills/docs-orchestrator/defaults/docs-workflow.yaml`
+- If the project-level file doesn't exist → fall back to the plugin default at `skills/docs-orchestrator/defaults/docs-<name>.yaml` (or `defaults/docs-workflow.yaml` when no `--workflow` was specified)
 
 ### 2. Read the YAML
 
 Read the YAML file and extract the ordered step list. Each step has: `name`, `skill`, `description`, optional `when`, and optional `inputs`.
 
-### 3. Evaluate `when` conditions
+### 3. Validate `requires` conditions
+
+If the YAML includes a top-level `workflow.requires` list, check each condition **before evaluating steps or running anything**:
+
+- `has_source_repo` → a source repo must be resolvable from the CLI args (`--source-code-repo` or `--pr`). If neither was provided, **STOP** immediately with: `"This workflow requires a source code repository. Pass --source-code-repo <url-or-path> or --pr <url>."`
+
+Unlike `when` (which makes individual steps conditional), `requires` is a workflow-level precondition — the entire workflow fails if a required condition is not met. This prevents users from running a code-evidence-heavy workflow without a repo and only discovering the problem after requirements and planning have already completed.
+
+### 4. Evaluate `when` conditions
 
 - `when: create_jira_project` → run this step only if `--create-jira` was passed
 - `when: has_source_repo` → evaluation depends on timing:
@@ -155,7 +168,7 @@ Read the YAML file and extract the ordered step list. Each step has: `name`, `sk
 - Steps with no `when` always run
 - Steps that don't meet their `when` condition and cannot be deferred are marked `skipped` in the progress file
 
-### 4. Validate the step list
+### 5. Validate the step list
 
 All of the following must be true. If any check fails, **STOP** with a clear error:
 

@@ -45,8 +45,8 @@ The docs orchestrator (`/docs-orchestrator`) runs a YAML-defined step list. You 
 The orchestrator looks for workflow YAML in this order:
 
 1. `.claude/docs-<name>.yaml` — if `--workflow <name>` is passed
-2. `.claude/docs-workflow.yaml` — project-level default
-3. Plugin default — `skills/docs-orchestrator/defaults/docs-workflow.yaml`
+2. `.claude/docs-workflow.yaml` — project-level default (when no `--workflow` is specified)
+3. Plugin default — `skills/docs-orchestrator/defaults/docs-<name>.yaml` (or `defaults/docs-workflow.yaml` when no `--workflow` is specified)
 
 To customize, download the default into your docs repo and edit it:
 
@@ -121,6 +121,39 @@ Use `--workflow <name>` to maintain different workflows for different purposes:
 
 # Uses .claude/docs-full.yaml
 /docs-orchestrator PROJ-123 --workflow full
+```
+
+### Code-evidence workflow
+
+The `workflow-code-evidence` variant adds two code-analysis steps to the standard pipeline: **scope-req-audit** (classifies each JIRA requirement as grounded, partial, or absent in the codebase) and **code-evidence** (retrieves relevant code snippets for each topic in the documentation plan). This workflow requires a source code repository — the orchestrator fails at load time if neither `--source-code-repo` nor `--pr` is provided.
+
+```bash
+/docs-orchestrator PROJ-123 \
+  --workflow workflow-code-evidence \
+  --source-code-repo https://github.com/org/operator
+```
+
+The workflow runs the following steps in order:
+
+1. **requirements** — analyze documentation requirements from the JIRA ticket
+2. **scope-req-audit** — query the code-finder index to classify each requirement as grounded, partial, or absent
+3. **planning** — create the documentation plan, scoping modules based on evidence status
+4. **code-evidence** — retrieve code snippets (function signatures, class definitions, configuration) for each plan topic
+5. **prepare-branch** — create a branch in the documentation repository
+6. **writing** — write documentation grounded in the retrieved code evidence
+7. **technical-review** — verify technical accuracy against the source code
+8. **style-review** — check style guide compliance
+9. **commit** — commit and push changes
+10. **create-mr** — open a merge request or pull request
+
+Compared to the default workflow, the code-evidence variant produces documentation with fewer technical review issues because the writer has actual function signatures and implementation details to work from, rather than generating from the JIRA description alone.
+
+To use this workflow without the plugin default, download it into your docs repo:
+
+```bash
+mkdir -p .claude
+curl -sL https://raw.githubusercontent.com/redhat-documentation/redhat-docs-agent-tools/main/plugins/docs-tools/skills/docs-orchestrator/defaults/docs-workflow-code-evidence.yaml \
+   -o .claude/docs-workflow-code-evidence.yaml
 ```
 
 ## Starting a docs workflow

@@ -43,19 +43,25 @@ def parse_args():
 def parse_workflow_yaml(path):
     """Parse the constrained workflow YAML format without PyYAML.
 
-    Handles:
+    Handles top-level workflow fields:
+      - requires: [condition1, condition2]
+
+    And step list items (lines starting with '- name:'):
       - name: value
       - skill: value
       - description: value
       - when: value
       - inputs: [a, b, c]
-    within step list items (lines starting with '- name:').
+
+    Returns (steps, requires) where requires is a list of condition strings.
     """
     with open(path) as f:
         lines = f.readlines()
 
     steps = []
+    requires = []
     current = None
+    in_requires_block = False
 
     for line in lines:
         stripped = line.strip()
@@ -63,6 +69,7 @@ def parse_workflow_yaml(path):
             continue
 
         if stripped.startswith("- name:"):
+            in_requires_block = False
             if current:
                 steps.append(current)
             current = {
@@ -75,6 +82,22 @@ def parse_workflow_yaml(path):
             continue
 
         if current is None:
+            if in_requires_block and stripped.startswith("- "):
+                requires.append(stripped[2:].strip())
+                continue
+
+            if ":" in stripped:
+                key, value = stripped.split(":", 1)
+                key = key.strip()
+                value = value.strip()
+                if key == "requires":
+                    in_requires_block = True
+                    match = re.match(r"\[(.*)\]", value)
+                    if match:
+                        requires = [s.strip() for s in match.group(1).split(",") if s.strip()]
+                        in_requires_block = False
+                else:
+                    in_requires_block = False
             continue
 
         if ":" in stripped and not stripped.startswith("-"):
@@ -94,7 +117,7 @@ def parse_workflow_yaml(path):
     if current:
         steps.append(current)
 
-    return steps
+    return steps, requires
 
 
 def validate_inputs(steps_list, step_map):
@@ -146,7 +169,7 @@ def check_existing_artifacts(step_names, base_path):
 def main():
     args = parse_args()
 
-    steps_list = parse_workflow_yaml(args.yaml)
+    steps_list, requires = parse_workflow_yaml(args.yaml)
     step_map = {s["name"]: s for s in steps_list}
     valid_names = sorted(s["name"] for s in steps_list)
 
@@ -199,6 +222,7 @@ def main():
             "execution_plan": plan,
             "prereq_steps": [p["name"] for p in plan if p["is_prereq"]],
             "steps_with_artifacts": [n for n, exists in existing.items() if exists],
+            "requires": requires,
         },
         sys.stdout,
         indent=2,

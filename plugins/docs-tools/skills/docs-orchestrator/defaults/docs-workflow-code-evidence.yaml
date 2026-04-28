@@ -1,6 +1,9 @@
 workflow:
   name: docs-workflow
-  description: Multi-stage documentation workflow for a JIRA ticket. Requirements analysis, planning, writing, technical review, style review, and optionally JIRA creation.
+  description: Code-evidence-grounded documentation workflow. Requires a source code repository. Adds scope-req-audit and code-evidence steps to classify requirements by implementation status and ground documentation in actual source code.
+
+  requires:
+    - has_source_repo
 
   # All step outputs go to: .claude/docs/<ticket>/<step-name>/
   # Each step reads its inputs from upstream step folders by convention.
@@ -9,10 +12,22 @@ workflow:
       skill: docs-workflow-requirements
       description: Analyze documentation requirements
 
+    - name: scope-req-audit
+      skill: docs-workflow-scope-req-audit
+      description: Classify requirements by code evidence status
+      when: has_source_repo
+      inputs: [requirements]
+
     - name: planning
       skill: docs-workflow-planning
       description: Create documentation plan
-      inputs: [requirements]
+      inputs: [requirements, scope-req-audit]
+
+    - name: code-evidence
+      skill: docs-workflow-code-evidence
+      description: Retrieve code evidence from source repository
+      when: has_source_repo
+      inputs: [planning]
 
     - name: prepare-branch
       skill: docs-workflow-prepare-branch
@@ -22,7 +37,7 @@ workflow:
     - name: writing
       skill: docs-workflow-writing
       description: Write documentation
-      inputs: [planning, prepare-branch]
+      inputs: [planning, prepare-branch, code-evidence]
 
     - name: technical-review
       skill: docs-workflow-tech-review

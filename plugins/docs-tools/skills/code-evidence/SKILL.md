@@ -17,7 +17,7 @@ Uses hybrid search: BM25 for exact keyword matches + vector embeddings for seman
 ## Prerequisites
 
 - **code-finder** Python package. Install once with `python3 -m pip install code-finder`, or let the skill auto-install via `uv run --with code-finder` (requires **uv**: `brew install uv` on macOS, or see https://docs.astral.sh/uv/getting-started/installation/)
-- The wrapper script at `${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-code-evidence/scripts/find_evidence.py` calls the code-finder Python API directly (no CLI entry point required)
+- The wrapper script at `${CLAUDE_SKILL_DIR}/scripts/find_evidence.py` calls the code-finder Python API directly (no CLI entry point required)
 
 ## Arguments
 
@@ -51,7 +51,7 @@ Use the appropriate command based on the result. If **INSTALLED**, run directly 
 **Direct (code-finder installed):**
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-code-evidence/scripts/find_evidence.py \
+python3 ${CLAUDE_SKILL_DIR}/scripts/find_evidence.py \
   --repo "<REPO_PATH>" \
   --query "<QUERY>" \
   --limit <LIMIT>
@@ -60,7 +60,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-code-evidence/scripts/find_ev
 **Fallback (via uv):**
 
 ```bash
-uv run --with code-finder python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-workflow-code-evidence/scripts/find_evidence.py \
+uv run --with code-finder python3 ${CLAUDE_SKILL_DIR}/scripts/find_evidence.py \
   --repo "<REPO_PATH>" \
   --query "<QUERY>" \
   --limit <LIMIT>
