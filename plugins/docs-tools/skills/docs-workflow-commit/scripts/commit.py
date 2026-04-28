@@ -21,11 +21,6 @@ def write_json(path, data):
     path.write_text(json.dumps(data, indent=2) + "\n")
 
 
-def fail(msg):
-    print(f"ERROR: {msg}", file=sys.stderr)
-    sys.exit(1)
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("ticket", help="JIRA ticket ID")
@@ -40,14 +35,32 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     cwd = args.repo_path or None
 
-    empty_info = {"branch": None, "commit_sha": None, "files_committed": [],
-                  "platform": None, "repo_url": None, "pushed": False}
+    empty_info = {
+        "branch": None,
+        "commit_sha": None,
+        "files_committed": [],
+        "platform": None,
+        "repo_url": None,
+        "pushed": False,
+    }
 
     def step_result(sha=None, branch=None, pushed=False, skipped=False, reason=None):
-        return {"schema_version": 1, "step": "commit", "ticket": ticket,
-                "completed_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "commit_sha": sha, "branch": branch, "pushed": pushed,
-                "skipped": skipped, "skip_reason": reason}
+        return {
+            "schema_version": 1,
+            "step": "commit",
+            "ticket": ticket,
+            "completed_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "commit_sha": sha,
+            "branch": branch,
+            "pushed": pushed,
+            "skipped": skipped,
+            "skip_reason": reason,
+        }
+
+    def fatal(msg, branch=None):
+        print(f"ERROR: {msg}", file=sys.stderr)
+        write_json(out / "step-result.json", step_result(branch=branch))
+        sys.exit(1)
 
     # Draft mode — skip
     if args.draft:
@@ -59,37 +72,43 @@ def main():
     # Resolve git context
     rc, repo_dir, err = git("rev-parse", "--show-toplevel", cwd=cwd)
     if rc != 0:
-        fail(f"Not a git repository: {err}")
+        fatal(f"Not a git repository: {err}")
     rc, branch, err = git("rev-parse", "--abbrev-ref", "HEAD", cwd=cwd)
     if rc != 0:
-        fail(f"Could not determine branch: {err}")
+        fatal(f"Could not determine branch: {err}")
     rc, repo_url, err = git("remote", "get-url", "origin", cwd=cwd)
     if rc != 0:
-        fail(f"Could not get remote URL: {err}")
+        fatal(f"Could not get remote URL: {err}", branch=branch)
 
-    platform = "github" if "github.com" in repo_url.lower() else (
-        "gitlab" if "gitlab" in repo_url.lower() else "unknown")
+    platform = (
+        "github"
+        if "github.com" in repo_url.lower()
+        else ("gitlab" if "gitlab" in repo_url.lower() else "unknown")
+    )
 
     if branch in ("main", "master"):
-        fail(f"Refusing to push to '{branch}'.")
+        fatal(f"Refusing to push to '{branch}'.", branch=branch)
 
     # Read manifest from writing step sidecar
     sidecar = base / "writing" / "step-result.json"
     if not sidecar.exists():
         print("No writing step-result.json found — nothing to commit.")
-        write_json(out / "commit-info.json", {**empty_info, "branch": branch,
-                   "platform": platform, "repo_url": repo_url})
-        write_json(out / "step-result.json", step_result(branch=branch, skipped=True, reason="no_changes"))
+        info = {**empty_info, "branch": branch, "platform": platform, "repo_url": repo_url}
+        result = step_result(branch=branch, skipped=True, reason="no_changes")
+        write_json(out / "commit-info.json", info)
+        write_json(out / "step-result.json", result)
         return
 
     repo_prefix = str(Path(repo_dir).resolve())
-    files = [f for f in json.loads(sidecar.read_text()).get("files", [])
-             if f.startswith(repo_prefix)]
+    files = [
+        f for f in json.loads(sidecar.read_text()).get("files", []) if f.startswith(repo_prefix)
+    ]
     if not files:
         print(f"No files in manifest under {repo_prefix}.")
-        write_json(out / "commit-info.json", {**empty_info, "branch": branch,
-                   "platform": platform, "repo_url": repo_url})
-        write_json(out / "step-result.json", step_result(branch=branch, skipped=True, reason="no_changes"))
+        info = {**empty_info, "branch": branch, "platform": platform, "repo_url": repo_url}
+        result = step_result(branch=branch, skipped=True, reason="no_changes")
+        write_json(out / "commit-info.json", info)
+        write_json(out / "step-result.json", result)
         return
 
     # Stage files
@@ -107,18 +126,21 @@ def main():
     rc, _, _ = git("diff", "--cached", "--quiet", cwd=repo_dir)
     if not staged or rc == 0:
         print("No changes to commit.")
-        write_json(out / "commit-info.json", {**empty_info, "branch": branch,
-                   "platform": platform, "repo_url": repo_url})
-        write_json(out / "step-result.json", step_result(branch=branch, skipped=True, reason="no_changes"))
+        info = {**empty_info, "branch": branch, "platform": platform, "repo_url": repo_url}
+        result = step_result(branch=branch, skipped=True, reason="no_changes")
+        write_json(out / "commit-info.json", info)
+        write_json(out / "step-result.json", result)
         return
 
     # Commit
     file_list = "\n".join(f"  - {f}" for f in staged)
-    msg = (f"docs({ticket.lower()}): add generated documentation\n\n"
-           f"Files:\n{file_list}\n\nGenerated by docs-pipeline for {ticket}")
+    msg = (
+        f"docs({ticket.lower()}): add generated documentation\n\n"
+        f"Files:\n{file_list}\n\nGenerated by docs-pipeline for {ticket}"
+    )
     rc, commit_out, err = git("commit", "-m", msg, cwd=repo_dir)
     if rc != 0:
-        fail(f"git commit failed: {err}")
+        fatal(f"git commit failed: {err}", branch=branch)
     print(commit_out)
 
     _, sha, _ = git("rev-parse", "HEAD", cwd=repo_dir)
@@ -128,14 +150,28 @@ def main():
     rc, _, err = git("push", "--force-with-lease", "-u", "origin", branch, cwd=repo_dir)
     if rc != 0:
         print(f"ERROR: Push failed: {err}", file=sys.stderr)
-        write_json(out / "commit-info.json", {"branch": branch, "commit_sha": sha,
-                   "files_committed": staged, "platform": platform, "repo_url": repo_url, "pushed": False})
+        info = {
+            "branch": branch,
+            "commit_sha": sha,
+            "files_committed": staged,
+            "platform": platform,
+            "repo_url": repo_url,
+            "pushed": False,
+        }
+        write_json(out / "commit-info.json", info)
         write_json(out / "step-result.json", step_result(sha, branch, pushed=False))
         sys.exit(1)
 
     print(f"Pushed {branch} ({sha})")
-    write_json(out / "commit-info.json", {"branch": branch, "commit_sha": sha,
-               "files_committed": staged, "platform": platform, "repo_url": repo_url, "pushed": True})
+    info = {
+        "branch": branch,
+        "commit_sha": sha,
+        "files_committed": staged,
+        "platform": platform,
+        "repo_url": repo_url,
+        "pushed": True,
+    }
+    write_json(out / "commit-info.json", info)
     write_json(out / "step-result.json", step_result(sha, branch, pushed=True))
 
 
