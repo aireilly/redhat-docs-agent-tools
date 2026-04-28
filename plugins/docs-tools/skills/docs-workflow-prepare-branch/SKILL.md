@@ -36,14 +36,14 @@ Contains the branch name created and the base ref used.
 Run the branch preparation script, passing through all arguments:
 
 ```bash
-bash ${CLAUDE_SKILL_DIR}/scripts/prepare_branch.sh <ticket> --base-path <base-path> [--draft] [--repo-path <path>]
+python3 ${CLAUDE_SKILL_DIR}/scripts/prepare_branch.py <ticket> --base-path <base-path> [--draft] [--repo-path <path>]
 ```
 
 The script handles:
 
 1. **Argument parsing** — extracts ticket ID, `--base-path`, `--draft`, and `--repo-path` flags
 2. **Skip mode** — writes a skip note and exits early if `--draft` or `--repo-path` is set
-3. **Default branch detection** — tries `upstream` remote first, falls back to `origin`, detects HEAD branch with fallback to `main`/`master`
+3. **Default branch detection** — tries `upstream` remote first, falls back to first available remote; detects default branch locally (`main`/`master` ref check, then `symbolic-ref` fallback) without contacting the remote
 4. **Uncommitted changes check** — stops with an error if working tree is dirty (never force-checkouts)
 5. **Fetch** — fetches latest from remote; warns but continues if fetch fails (network/auth issues)
 6. **Branch creation** — creates `<ticket-id-lowercase>` branch from remote default; switches to existing branch if it already exists
