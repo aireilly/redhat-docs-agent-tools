@@ -161,8 +161,8 @@ Use for: Understanding ticket context, documentation workflows, relationship map
   "jira_url": "https://redhat.atlassian.net",
   "parent": {"key": "INFERENG-5049", "summary": "...", "status": "New", "issuetype": "Epic"},
   "ancestors": [
-    {"key": "INFERENG-5049", "summary": "...", "status": "New", "issuetype": "Epic", "source": "parent_field"},
-    {"key": "INFERENG-5000", "summary": "...", "status": "In Progress", "issuetype": "Feature", "source": "parent_link_custom_field"}
+    {"key": "INFERENG-5049", "summary": "...", "status": "New", "issuetype": "Epic", "priority": "Medium", "assignee": null, "description": "...", "source": "parent_field"},
+    {"key": "INFERENG-5000", "summary": "...", "status": "In Progress", "issuetype": "Feature", "priority": "High", "assignee": "John Doe", "description": "...", "source": "parent_link_custom_field"}
   ],
   "children": {"total": 0, "showing": 0, "skipped": 0, "issues": []},
   "siblings": {"total": 0, "showing": 0, "skipped": 0, "issues": []},

@@ -384,6 +384,12 @@ class JiraReader:
                 }
             return {"key": jira_id, "error": str(e)}
 
+    @sleep_and_retry
+    @limits(calls=2, period=5)
+    def _fetch_issue(self, jira_id):
+        """Rate-limited full issue fetch (returns the JIRA issue object)."""
+        return self.jira.issue(jira_id)
+
     def _fetch_ancestor_chain(self, issue, max_depth=2):
         """
         Walk the parent chain from an issue, returning a list of ancestors.
@@ -409,7 +415,7 @@ class JiraReader:
             seen_keys.add(parent_key)
 
             try:
-                parent_issue = self.jira.issue(parent_key)
+                parent_issue = self._fetch_issue(parent_key)
             except Exception as e:
                 if "403" in str(e) or "Forbidden" in str(e):
                     ancestors.append({
