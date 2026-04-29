@@ -83,11 +83,12 @@ If access to JIRA or Git is needed for supplemental research and fails, **STOP I
    - Identify undocumented features, outdated content, incomplete procedures
    - Check content journey phase distribution for gaps
 
-7. **Classify audience per capability** (see "Audience classification" below):
-   - For each capability or feature identified in the requirements, determine whether it targets administrators, users/developers, or both
-   - Use code evidence and requirement context (CRDs, APIs, operator configs, user-facing resources) to make the classification
-   - When a capability targets both audiences, plan separate modules for each — do not collapse admin setup and user consumption into a single module
-
+7. **Plan modules and assemblies**:
+   - Recommend module types (CONCEPT, PROCEDURE, REFERENCE)
+   - Organize into user story assemblies by Main Jobs
+   - **Do not merge user stories from different personas into a single module.** If an admin's user story (e.g., "configure the operator") and a developer's user story (e.g., "create application resources") relate to the same feature, they remain separate modules under their respective jobs. Cross-reference between them so each audience caN find the other's prerequisites.
+   - Define reading order and shared prerequisites
+   - Apply theme clustering when multiple related requirements exist
 8. **Plan modules and assemblies**:
    - Recommend module types (CONCEPT, PROCEDURE, REFERENCE)
    - Organize into user story assemblies by Main Jobs
