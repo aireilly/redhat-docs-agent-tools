@@ -62,6 +62,17 @@ If access to JIRA or Git is needed for supplemental research and fails, **STOP I
 
 5. **Apply JTBD framework** (from reference file):
    - Define job statements for each documentation need
+   - **When a capability serves multiple personas, define separate job
+     statements for each persona.** An admin installing an operator and a
+     developer consuming the API it exposes have different situations,
+     motivations, and outcomes — these are different jobs, not one job
+     with two audiences. Use code evidence (CRD scope, RBAC requirements,
+     API surface) to identify when this applies.
+   - Map to JTBD hierarchy (Category → Main Job → User Stories)
+   - Check for existing jobs before creating new parent topics
+   - Plan Parent Topics for major jobs
+   - Tag each planned module with its content journey phase
+   - Define job statements for each documentation need
    - Map to JTBD hierarchy (Category → Main Job → User Stories)
    - Check for existing jobs before creating new parent topics
    - Plan Parent Topics for major jobs
