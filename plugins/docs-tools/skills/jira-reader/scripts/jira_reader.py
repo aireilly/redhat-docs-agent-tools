@@ -421,34 +421,38 @@ class JiraReader:
                 parent_issue = self._fetch_issue(parent_key)
             except Exception as e:
                 if "403" in str(e) or "Forbidden" in str(e):
-                    ancestors.append({
-                        "key": parent_key,
-                        "summary": None,
-                        "status": None,
-                        "issuetype": None,
-                        "priority": None,
-                        "assignee": None,
-                        "description": None,
-                        "source": parent_source,
-                        "error": "exists but not accessible (HTTP 403)",
-                    })
+                    ancestors.append(
+                        {
+                            "key": parent_key,
+                            "summary": None,
+                            "status": None,
+                            "issuetype": None,
+                            "priority": None,
+                            "assignee": None,
+                            "description": None,
+                            "source": parent_source,
+                            "error": "exists but not accessible (HTTP 403)",
+                        }
+                    )
                 else:
                     errors.append(f"Ancestor fetch for {parent_key}: {e}")
                 break
 
             f = parent_issue.fields
-            ancestors.append({
-                "key": parent_issue.key,
-                "summary": f.summary,
-                "status": str(f.status) if f.status else None,
-                "issuetype": str(f.issuetype) if f.issuetype else None,
-                "priority": str(f.priority) if f.priority else None,
-                "assignee": f.assignee.displayName
-                if f.assignee and hasattr(f.assignee, "displayName")
-                else None,
-                "description": f.description or "",
-                "source": parent_source,
-            })
+            ancestors.append(
+                {
+                    "key": parent_issue.key,
+                    "summary": f.summary,
+                    "status": str(f.status) if f.status else None,
+                    "issuetype": str(f.issuetype) if f.issuetype else None,
+                    "priority": str(f.priority) if f.priority else None,
+                    "assignee": f.assignee.displayName
+                    if f.assignee and hasattr(f.assignee, "displayName")
+                    else None,
+                    "description": f.description or "",
+                    "source": parent_source,
+                }
+            )
 
             current_issue = parent_issue
 
