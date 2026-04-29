@@ -103,13 +103,14 @@ Run the ticket graph traversal to discover related tickets:
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --graph ${TICKET}
 ```
 
-The `--graph` flag discovers custom field IDs, fetches the parent, children, siblings, issue links, and web/remote links, then classifies URLs by type. It loads `JIRA_API_TOKEN`, `JIRA_EMAIL`, and `JIRA_URL` from `~/.env` automatically.
+The `--graph` flag discovers custom field IDs, walks the full ancestor chain (parent, grandparent, etc.), fetches children, siblings, issue links, and web/remote links, then classifies URLs by type. It loads `JIRA_API_TOKEN`, `JIRA_EMAIL`, and `JIRA_URL` from `~/.env` automatically.
 
 **Using the output:**
 
 | JSON field | How to use |
 |---|---|
-| `parent` | Include in the "Related tickets > Parent" section. If `parent.error` is set, note the access issue |
+| `parent` | Immediate parent (first entry in `ancestors`). Include in the "Related tickets > Parent" section. If `parent.error` is set, note the access issue |
+| `ancestors` | Full ancestor chain (parent, grandparent, etc.) ordered from nearest to farthest. Include all ancestors in "Related tickets > Ancestors" section. Fetch details (`--issue`) for each ancestor to capture descriptions and context that inform documentation scope |
 | `children` | Include in "Related tickets > Children" section |
 | `siblings` | Include in "Related tickets > Siblings" section |
 | `issue_links` | Include in "Related tickets > Linked tickets" section |

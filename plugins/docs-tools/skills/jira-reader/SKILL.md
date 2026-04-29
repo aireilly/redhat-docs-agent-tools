@@ -97,10 +97,10 @@ Fetches full details for each issue (N+1 API calls, ~2.5 seconds per issue):
 Use for: Deep analysis, comment threads, Git link extraction
 
 ### Graph Mode (`--graph`)
-Traverses ticket relationships bounded to 1 level deep:
-- Parent detection (standard parent field + Parent Link custom field)
-- Children (via parent and Epic Link JQL queries)
-- Siblings (active statuses under same parent)
+Traverses ticket relationships:
+- Ancestor chain — walks the parent chain (up to 2 levels by default) via standard parent field + Parent Link custom field. This means a task under an Epic under a Feature will return both the Epic and the Feature
+- Children (via parent and Epic Link JQL queries, 1 level deep)
+- Siblings (active statuses under same parent, 1 level deep)
 - Issue links (blocks, clones, relates to)
 - Remote/web links (classified as PRs, Google Docs, or other)
 
@@ -160,6 +160,10 @@ Use for: Understanding ticket context, documentation workflows, relationship map
   "ticket": "INFERENG-5233",
   "jira_url": "https://redhat.atlassian.net",
   "parent": {"key": "INFERENG-5049", "summary": "...", "status": "New", "issuetype": "Epic"},
+  "ancestors": [
+    {"key": "INFERENG-5049", "summary": "...", "status": "New", "issuetype": "Epic", "priority": "Medium", "assignee": null, "description": "...", "source": "parent_field"},
+    {"key": "INFERENG-5000", "summary": "...", "status": "In Progress", "issuetype": "Feature", "priority": "High", "assignee": "John Doe", "description": "...", "source": "parent_link_custom_field"}
+  ],
   "children": {"total": 0, "showing": 0, "skipped": 0, "issues": []},
   "siblings": {"total": 0, "showing": 0, "skipped": 0, "issues": []},
   "issue_links": {"total": 1, "showing": 1, "skipped": 0, "links": [...]},

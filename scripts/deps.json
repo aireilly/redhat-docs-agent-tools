@@ -13,8 +13,8 @@
       "import_name": "claude_context",
       "found_in": [
         "plugins/docs-tools/skills/code-evidence/SKILL.md",
-        "plugins/docs-tools/skills/docs-workflow-code-evidence/SKILL.md",
-        "plugins/docs-tools/skills/code-evidence/scripts/find_evidence.py"
+        "plugins/docs-tools/skills/code-evidence/scripts/find_evidence.py",
+        "plugins/docs-tools/skills/docs-workflow-code-evidence/SKILL.md"
       ]
     },
     {
@@ -36,6 +36,7 @@
       "package": "PyGithub",
       "import_name": "github",
       "found_in": [
+        "plugins/docs-tools/skills/docs-workflow-create-mr/scripts/create_mr.py",
         "plugins/docs-tools/skills/git-pr-reader/scripts/git_pr_reader.py"
       ]
     },
@@ -43,6 +44,7 @@
       "package": "python-gitlab",
       "import_name": "gitlab",
       "found_in": [
+        "plugins/docs-tools/skills/docs-workflow-create-mr/scripts/create_mr.py",
         "plugins/docs-tools/skills/git-pr-reader/scripts/git_pr_reader.py"
       ]
     },
@@ -115,15 +117,11 @@
     },
     {
       "tool": "gh",
-      "found_in": [
-        "plugins/docs-tools/skills/docs-workflow-create-mr/scripts/create_mr.sh"
-      ]
+      "found_in": []
     },
     {
       "tool": "glab",
-      "found_in": [
-        "plugins/docs-tools/skills/docs-workflow-create-mr/scripts/create_mr.sh"
-      ]
+      "found_in": []
     },
     {
       "tool": "jq",
@@ -131,7 +129,6 @@
         "plugins/docs-tools/skills/docs-orchestrator/hooks/workflow-completion-check.sh",
         "plugins/docs-tools/skills/docs-orchestrator/scripts/setup-hooks.sh",
         "plugins/docs-tools/skills/docs-workflow-create-jira/scripts/create-jira-ticket.sh",
-        "plugins/docs-tools/skills/docs-workflow-create-mr/scripts/create_mr.sh",
         "plugins/docs-tools/skills/docs-workflow-jira-ready/scripts/jira-ready-check.sh",
         "plugins/docs-tools/skills/docs-workflow-writing/scripts/build_writing_args.sh"
       ]

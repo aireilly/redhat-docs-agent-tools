@@ -384,6 +384,80 @@ class JiraReader:
                 }
             return {"key": jira_id, "error": str(e)}
 
+    @sleep_and_retry
+    @limits(calls=2, period=5)
+    def _fetch_issue(self, jira_id):
+        """Rate-limited full issue fetch (returns the JIRA issue object)."""
+        return self.jira.issue(jira_id)
+
+    def _fetch_ancestor_chain(self, issue, max_depth=2):
+        """
+        Walk the parent chain from an issue, returning a list of ancestors.
+
+        Each ancestor includes summary fields plus a 'source' indicating how
+        the parent link was detected. Stops when no parent is found, an error
+        occurs, or max_depth is reached.
+
+        Returns:
+            Tuple of (ancestors_list, errors_list). ancestors_list is ordered
+            from immediate parent to most distant ancestor.
+        """
+        ancestors = []
+        errors = []
+        current_issue = issue
+        seen_keys = {issue.key}
+
+        for _ in range(max_depth):
+            parent_key, parent_source = self._detect_parent(current_issue)
+            if not parent_key:
+                break
+            if parent_key in seen_keys:
+                errors.append(f"Cycle detected in ancestor chain: {parent_key} already visited")
+                break
+
+            seen_keys.add(parent_key)
+
+            try:
+                parent_issue = self._fetch_issue(parent_key)
+            except Exception as e:
+                if "403" in str(e) or "Forbidden" in str(e):
+                    ancestors.append(
+                        {
+                            "key": parent_key,
+                            "summary": None,
+                            "status": None,
+                            "issuetype": None,
+                            "priority": None,
+                            "assignee": None,
+                            "description": None,
+                            "source": parent_source,
+                            "error": "exists but not accessible (HTTP 403)",
+                        }
+                    )
+                else:
+                    errors.append(f"Ancestor fetch for {parent_key}: {e}")
+                break
+
+            f = parent_issue.fields
+            ancestors.append(
+                {
+                    "key": parent_issue.key,
+                    "summary": f.summary,
+                    "status": str(f.status) if f.status else None,
+                    "issuetype": str(f.issuetype) if f.issuetype else None,
+                    "priority": str(f.priority) if f.priority else None,
+                    "assignee": f.assignee.displayName
+                    if f.assignee and hasattr(f.assignee, "displayName")
+                    else None,
+                    "description": f.description or "",
+                    "source": parent_source,
+                }
+            )
+
+            current_issue = parent_issue
+
+        return ancestors, errors
+
     def _fetch_children(self, ticket_key, max_children=25):
         """
         Fetch children via parent = KEY and "Epic Link" = KEY JQL queries.
@@ -596,9 +670,10 @@ class JiraReader:
 
     def get_ticket_graph(self, ticket_key, max_children=25, max_siblings=25, max_links=15):
         """
-        Traverse the JIRA ticket graph: parent, children, siblings, issue links, web links.
+        Traverse the JIRA ticket graph: ancestors, children, siblings, issue links, web links.
 
-        All traversal is bounded to 1 level deep from the primary ticket.
+        Upward traversal walks the parent chain (up to 2 levels by default).
+        Downward/lateral traversal is bounded to 1 level deep.
 
         Args:
             ticket_key: JIRA issue key (e.g., "INFERENG-5233")
@@ -620,16 +695,14 @@ class JiraReader:
         except Exception as e:
             return {"ticket": ticket_key, "error": f"Failed to fetch primary ticket: {e}"}
 
-        # Step 3: Detect parent
-        parent_key, parent_source = self._detect_parent(issue)
-        parent_info = None
+        # Step 3: Walk the ancestor chain (parent, grandparent, etc.)
+        ancestors, errors = self._fetch_ancestor_chain(issue)
+        all_errors.extend(errors)
 
-        if parent_key:
-            parent_info = self._fetch_issue_summary(parent_key)
-            if parent_info and "error" not in parent_info:
-                parent_info["source"] = parent_source
-            elif parent_info:
-                parent_info["source"] = parent_source
+        # Backward compat: parent is the first ancestor (or None)
+        parent_info = ancestors[0] if ancestors else None
+        parent_key = parent_info["key"] if parent_info else None
+        parent_source = parent_info.get("source") if parent_info else None
 
         # Step 4: Fetch children
         children, errors = self._fetch_children(ticket_key, max_children)
@@ -654,6 +727,7 @@ class JiraReader:
             "ticket": ticket_key,
             "jira_url": self.server,
             "parent": parent_info,
+            "ancestors": ancestors,
             "children": children,
             "siblings": siblings,
             "issue_links": issue_links,
