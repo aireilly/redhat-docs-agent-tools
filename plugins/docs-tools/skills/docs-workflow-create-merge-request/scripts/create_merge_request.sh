@@ -128,7 +128,9 @@ if [[ "$branch" == "main" || "$branch" == "master" ]]; then
     git_cmd fetch "$base_remote" "$branch"
 
     # Stash working tree (includes untracked files from writing step)
+    stash_count_before=$(git_cmd stash list 2>/dev/null | wc -l)
     git_cmd stash push --include-untracked -m "docs-pipeline: pre-branch stash" 2>/dev/null || true
+    stash_count_after=$(git_cmd stash list 2>/dev/null | wc -l)
 
     git_cmd reset --hard "${base_remote}/${branch}"
 
@@ -140,8 +142,8 @@ if [[ "$branch" == "main" || "$branch" == "master" ]]; then
         git_cmd checkout -b "$TICKET_LOWER"
     fi
 
-    # Restore written files (only if we actually stashed something)
-    if git_cmd stash list 2>/dev/null | grep -q "docs-pipeline: pre-branch stash"; then
+    # Restore written files (only if this run actually stashed something)
+    if [[ $stash_count_after -gt $stash_count_before ]]; then
         git_cmd stash pop
     fi
 
@@ -289,13 +291,13 @@ if [[ "$platform" == "github" ]]; then
 
 elif [[ "$platform" == "gitlab" ]]; then
     is_fork=false
-    origin_project=$(echo "$remote_url" | sed 's|\.git$||' | sed 's|.*[:/]\([^/]*/[^/]*\)$|\1|')
+    origin_project=$(echo "$remote_url" | sed 's|\.git$||' | sed 's|^https\?://[^/]*/||; s|^[^:]*:||; s|^//[^/]*/||')
 
     if git_cmd remote get-url upstream &>/dev/null; then
         is_fork=true
         upstream_url=$(git_cmd remote get-url upstream)
         upstream_project=$(echo "$upstream_url" | sed 's|\.git$||' \
-            | sed 's|.*[:/]\([^/]*/[^/]*\)$|\1|')
+            | sed 's|^https\?://[^/]*/||; s|^[^:]*:||; s|^//[^/]*/||')
     fi
 
     # Check for existing MRs
