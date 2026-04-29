@@ -266,7 +266,8 @@ Workflow:
 
 2. **Extract references** from doc files:
    ```bash
-   python3 ${CLAUDE_SKILL_DIR}/scripts/extract_refs.py $(cat /tmp/docs-review-doc-files.txt) --output /tmp/tech-review-refs.json
+   mapfile -t DOC_FILES < /tmp/docs-review-doc-files.txt
+   python3 ${CLAUDE_SKILL_DIR}/scripts/extract_refs.py "${DOC_FILES[@]}" --output /tmp/tech-review-refs.json
    ```
 
 3. **Validate claims against code** — Run grounded review on each doc file against the cloned repos. First check if code-finder is installed:
