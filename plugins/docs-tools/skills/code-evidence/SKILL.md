@@ -1,6 +1,6 @@
 ---
 name: code-evidence
-description: Search a code repository for evidence matching a natural language query. Uses AST chunking and hybrid search (BM25 + vector) to find relevant functions, classes, methods, configuration, and documentation. Returns ranked code snippets with file paths, signatures, and relevance scores.
+description: Search a code repository for evidence matching a natural language query, validate document claims against source code, and extract public API surfaces. Uses AST chunking and hybrid search (BM25 + vector) via the code-finder package. Returns ranked code snippets, grounded review verdicts, and API surface inventories.
 argument-hint: --repo <path> --query "<search query>" [--filter-paths <dirs>] [--limit N] [--reindex]
 allowed-tools: Read, Bash
 dependencies:
@@ -17,7 +17,10 @@ Uses hybrid search: BM25 for exact keyword matches + vector embeddings for seman
 ## Prerequisites
 
 - **code-finder** Python package. Install once with `python3 -m pip install code-finder`, or let the skill auto-install via `uv run --with code-finder` (requires **uv**: `brew install uv` on macOS, or see https://docs.astral.sh/uv/getting-started/installation/)
-- The wrapper script at `${CLAUDE_SKILL_DIR}/scripts/find_evidence.py` calls the code-finder Python API directly (no CLI entry point required)
+- Wrapper scripts in `${CLAUDE_SKILL_DIR}/scripts/` call the code-finder Python API directly (no CLI entry point required):
+  - `find_evidence.py` — hybrid search for code snippets matching natural language queries
+  - `grounded_review.py` — validate document claims against source code
+  - `api_surface.py` — extract public API surface (classes, functions, methods) via AST parsing
 
 ## Arguments
 
@@ -117,3 +120,84 @@ Re-index after pulling new changes:
 ```text
 Skill: docs-tools:code-evidence, args: "--repo /path/to/repo --query \"new feature\" --reindex"
 ```
+
+---
+
+## Grounded Review
+
+Validates claims in a draft document against source code. For each claim extracted from the document, returns a verdict (`supported`, `partially_supported`, `unsupported`, or `no_evidence_found`) with supporting code evidence.
+
+Wrapper script: `${CLAUDE_SKILL_DIR}/scripts/grounded_review.py`
+
+### Arguments
+
+- `--repo <path>` — Path to the repository (required)
+- `--draft <path>` — Path to a single draft document (single mode)
+- `--drafts-file <path>` — Path to JSON file with batch drafts (use instead of `--draft` for multiple documents in one invocation). Schema: `[{"draft": "/path/to/file.adoc", "max_evidence": 5}, ...]`
+- `--max-evidence <N>` — Max evidence snippets per claim (default: 5)
+- `--reindex` — Force re-indexing (applied to first draft only in batch mode)
+
+### Execution
+
+Check if code-finder is installed, then run:
+
+**Direct (code-finder installed):**
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/grounded_review.py \
+  --repo "<REPO_PATH>" \
+  --draft "<DRAFT_PATH>" > /tmp/grounded-review.json
+```
+
+**Batch mode:**
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/grounded_review.py \
+  --repo "<REPO_PATH>" \
+  --drafts-file drafts.json \
+  --reindex > /tmp/grounded-review.json
+```
+
+**Fallback (via uv):** prefix with `uv run --with code-finder`.
+
+### Output
+
+Single mode returns a dict with per-claim results. Batch mode returns an array of `{"draft": "<path>", "result": {...}}`.
+
+Each claim includes:
+- **claim_id**, **text** — the extracted claim from the document
+- **verdict** — `supported`, `partially_supported`, `unsupported`, or `no_evidence_found`
+- **confidence** — 0.0–1.0 relevance score
+- **evidence** — array of `{file_path, start_line, end_line, chunk_type, chunk_name, relevance_score, content_snippet}`
+
+---
+
+## API Surface Extraction
+
+Extracts the public API surface from source files using AST parsing. Returns classes, functions, and methods with their signatures and line ranges.
+
+Wrapper script: `${CLAUDE_SKILL_DIR}/scripts/api_surface.py`
+
+### Arguments
+
+- `--target <path>` — Path to a file or directory to analyze (required)
+- `--languages <list>` — Comma-separated language filter (e.g., `python,go,typescript`)
+- `--include-private` — Include private names (prefixed with `_`)
+- `--no-docstrings` — Exclude docstrings from output
+
+### Execution
+
+Check if code-finder is installed, then run:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/api_surface.py \
+  --target "<TARGET_PATH>" > /tmp/api-surface.json
+```
+
+**Fallback (via uv):** prefix with `uv run --with code-finder`.
+
+### Output
+
+Returns a dict with:
+- **api_surface** — per-file map of entities (classes, functions, methods with signatures and line ranges)
+- **total_entities**, **files_processed**, **files_with_api** — summary counts
