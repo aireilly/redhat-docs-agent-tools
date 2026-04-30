@@ -354,7 +354,7 @@ def _discover_from_jira(ticket, base_path, plugin_root):
     git_links = []
     try:
         result = subprocess.run(  # noqa: S603
-            ["python3", str(jira_script), "--issue", ticket],
+            ["python3", str(jira_script), "--issue", ticket],  # noqa: S607
             capture_output=True,
             text=True,
             timeout=60,
@@ -371,7 +371,7 @@ def _discover_from_jira(ticket, base_path, plugin_root):
     auto_prs = []
     try:
         result = subprocess.run(  # noqa: S603
-            ["python3", str(jira_script), "--graph", ticket],
+            ["python3", str(jira_script), "--graph", ticket],  # noqa: S607
             capture_output=True,
             text=True,
             timeout=60,
@@ -561,7 +561,7 @@ def _resolve_multiple_prs(pr_urls, base_path):
 
     resolved_repos = []
     errors = []
-    for normalized, info in repo_groups.items():
+    for _normalized, info in repo_groups.items():
         repo_url = info["repo_url"]
         ref = info["ref"]
 
