@@ -28,22 +28,13 @@ Examples:
 
 ### 2. Run code search
 
-Run the search using the values from the CONFIGURATION block in your prompt. Substitute `<script>`, `<repo>`, and `<query>` with the actual values.
-
-If INSTALL_METHOD is `direct`:
+Run the search using the REPO_PATH from your prompt's CONFIGURATION block:
 
 ```bash
-python3 <script> --repo <repo> --query "<query>" --limit 5
-```
-
-If INSTALL_METHOD is `uv`:
-
-```bash
-uv run --with code-finder python3 <script> --repo <repo> --query "<query>" --limit 5
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/code-evidence/scripts/find_evidence.py --repo <repo> --query "<query>" --limit 5
 ```
 
 Where:
-- `<script>` — the FIND_EVIDENCE_SCRIPT path from CONFIGURATION
 - `<repo>` — the REPO_PATH from CONFIGURATION
 - `<query>` — the search query you built in step 1
 

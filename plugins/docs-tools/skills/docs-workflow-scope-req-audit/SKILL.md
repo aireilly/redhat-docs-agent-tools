@@ -1,6 +1,6 @@
 ---
 name: docs-workflow-scope-req-audit
-description: Classify JIRA requirements by code evidence status before planning. Fans out one subagent per requirement for isolated classification — each subagent queries the code-finder index independently, keeping context clean regardless of requirement count. Prevents hallucinated documentation for unimplemented features and surfaces gaps for implemented ones. Conditional on has_source_repo. Reuses find_evidence.py from the code-evidence step.
+description: Classify JIRA requirements by code evidence status before planning. Fans out one subagent per requirement for isolated classification — each subagent queries the code-finder index independently, keeping context clean regardless of requirement count. Prevents hallucinated documentation for unimplemented features and surfaces gaps for implemented ones. Conditional on has_source_repo.
 argument-hint: <ticket> --base-path <path> --repo <path> [--grounded-threshold <float>] [--absent-threshold <float>]
 allowed-tools: Read, Write, Glob, Grep, Bash, Agent
 ---
@@ -13,8 +13,7 @@ This skill classifies each JIRA requirement from the requirements step as ground
 
 ## Prerequisites
 
-- **code-finder** Python package. Install once with `python3 -m pip install code-finder`, or let the step auto-install via `uv run --with code-finder` (requires **uv**: `brew install uv` on macOS, or see https://docs.astral.sh/uv/getting-started/installation/)
-- The `find_evidence.py` wrapper script from the code-evidence step at `plugins/docs-tools/skills/code-evidence/scripts/find_evidence.py`
+- **code-finder** Python package (install with `python3 -m pip install code-finder`).
 
 ## Arguments
 
@@ -67,11 +66,6 @@ Validate:
 - Verify `$REQUIREMENTS_FILE` exists. If not, STOP with error: "Requirements step must complete before scope-req-audit."
 - Verify the repo path exists and is a directory. If not, STOP with error: "Repo path does not exist: `<path>`."
 
-Locate the `find_evidence.py` script from the code-evidence skill:
-
-```bash
-FIND_EVIDENCE_SCRIPT="${CLAUDE_PLUGIN_ROOT}/skills/code-evidence/scripts/find_evidence.py"
-```
 
 ### 2. Discover related repos
 
@@ -113,28 +107,12 @@ For each requirement, extract:
 
 If no requirements are found matching this pattern, STOP with error: "No requirements found in requirements.md. Expected REQ-NNN pattern."
 
-### 4. Pre-flight: check code-finder installation and warm the index
-
-Determine the install method for code-finder:
-
-```bash
-python3 -c "import claude_context.skills.evidence_retrieval" 2>/dev/null && echo "INSTALLED" || echo "NOT_INSTALLED"
-```
-
-Set `INSTALL_METHOD` to `direct` if INSTALLED, or `uv` if NOT_INSTALLED.
+### 4. Pre-flight: warm the code-finder index
 
 Warm the code-finder index before fanning out. This ensures the index is built once (expensive) and all subagents reuse the cached index at `{repo}/.vibe2doc/index.db`. Run one throwaway query:
 
-If `INSTALL_METHOD` is `direct`:
-
 ```bash
-python3 "$FIND_EVIDENCE_SCRIPT" --repo "$REPO_PATH" --query "initialization" --limit 1
-```
-
-If `INSTALL_METHOD` is `uv`:
-
-```bash
-uv run --with code-finder python3 "$FIND_EVIDENCE_SCRIPT" --repo "$REPO_PATH" --query "initialization" --limit 1
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/code-evidence/scripts/find_evidence.py --repo "$REPO_PATH" --query "initialization" --limit 1
 ```
 
 Discard the output. If this fails, STOP with error including the stderr output — the index cannot be built.
@@ -160,10 +138,8 @@ Agent:
 
     CONFIGURATION:
     - REPO_PATH: <absolute repo path>
-    - FIND_EVIDENCE_SCRIPT: <absolute script path>
     - GROUNDED_THRESHOLD: <threshold>
     - ABSENT_THRESHOLD: <threshold>
-    - INSTALL_METHOD: <direct|uv>
 
     DISCOVERED_REPOS:
     <JSON array of discovered_repos from step 2, or [] if none>
