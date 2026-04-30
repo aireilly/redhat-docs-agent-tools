@@ -1,6 +1,6 @@
 ---
 name: docs-workflow-writing
-description: Write documentation from a documentation plan. Dispatches the docs-writer agent. Supports AsciiDoc (default) and MkDocs formats. Default placement is UPDATE-IN-PLACE; use --draft for staging area. Also supports fix mode for applying technical review corrections.
+description: Write documentation from a documentation plan. Dispatches the docs-tools:docs-writer agent. Supports AsciiDoc (default) and MkDocs formats. Default placement is UPDATE-IN-PLACE; use --draft for staging area. Also supports fix mode for applying technical review corrections.
 argument-hint: <ticket> --base-path <path> --format <adoc|mkdocs> [--draft] [--repo-path <path>] [--fix-from <review_path>]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent
 ---
@@ -39,9 +39,9 @@ Pass through the full args string. The script emits JSON on stdout:
 
 If the script exits non-zero, stop and report the error from stderr.
 
-### 2. Dispatch the docs-writer agent
+### 2. Dispatch the docs-tools:docs-writer agent
 
-**You MUST use the Agent tool** to invoke the `docs-writer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
+**You MUST use the Agent tool** to invoke the `docs-tools:docs-writer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
 
 Select the prompt based on `mode` and `format` from the JSON output. In every prompt below, substitute the `<TICKET>`, `<INPUT_FILE>`, `<OUTPUT_FILE>`, `<OUTPUT_DIR>`, `<REPO_PATH>`, and `<FIX_FROM>` placeholders with the corresponding values from the script's JSON.
 

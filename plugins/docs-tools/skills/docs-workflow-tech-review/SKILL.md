@@ -1,6 +1,6 @@
 ---
 name: docs-workflow-tech-review
-description: Technical accuracy review of documentation drafts. Dispatches the technical-reviewer agent. Output includes confidence rating (HIGH/MEDIUM/LOW) Iteration logic is owned by the orchestrator, not this skill.
+description: Technical accuracy review of documentation drafts. Dispatches the docs-tools:technical-reviewer agent. Output includes confidence rating (HIGH/MEDIUM/LOW) Iteration logic is owned by the orchestrator, not this skill.
 argument-hint: <ticket> --base-path <path>
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---
@@ -45,7 +45,7 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2. Dispatch agent
 
-**You MUST use the Agent tool** to invoke the `technical-reviewer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
+**You MUST use the Agent tool** to invoke the `docs-tools:technical-reviewer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
 
 **Agent tool parameters:**
 - `subagent_type`: `docs-tools:technical-reviewer`

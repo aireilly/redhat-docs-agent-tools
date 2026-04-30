@@ -2,12 +2,14 @@
 name: docs-orchestrator
 description: Documentation workflow orchestrator. Reads the step list from .claude/docs-workflow.yaml (or the plugin default). Runs steps sequentially, manages progress state, handles iteration and confirmation gates. Claude is the orchestrator — the YAML is a step list, not a workflow engine.
 
-argument-hint: <ticket> [--workflow <name>] [--pr <url>]... [--source-code-repo <url-or-path>] [--mkdocs] [--draft] [--docs-repo-path <path>] [--create-jira <PROJECT>] [--create-merge-request]
+argument-hint: <ticket> [--workflow <name>] [--pr <url>...] [--source-code-repo <url-or-path>...] [--mkdocs] [--draft] [--docs-repo-path <path>] [--create-jira <PROJECT>] [--create-merge-request]
 
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, AskUserQuestion
 ---
 
 # Docs Orchestrator
+
+**When the user invokes `/docs-orchestrator` or `/docs-tools:docs-orchestrator`, run THIS skill directly. Do NOT redirect to `docs-workflow-start` or any other skill.**
 
 Claude is the orchestrator. The YAML is a step list. The hook is a safety net.
 
@@ -29,11 +31,11 @@ When displaying available options to the user (e.g., on skill load or when askin
 
 - `$1` — JIRA ticket ID (required). If missing, STOP and ask the user.
 - `--workflow <name>` — Use `.claude/docs-<name>.yaml` instead of `docs-workflow.yaml`. Allows running alternative pipelines (e.g., writing-only, review-only). Falls back to the plugin default at `skills/docs-orchestrator/defaults/docs-workflow.yaml` if no project-level YAML exists
-- `--pr <url>` — PR/MR URLs (repeatable, accumulated into a list). Accepts GitHub PRs (`gh` CLI) and GitLab MRs (`glab` CLI). Used both as requirements input (agent reads diffs/descriptions) and for source repo resolution (repo URL and branch derived from the first PR/MR). When multiple PRs from different repos are provided, all repos are resolved and treated equally as source material
+- `--pr <url>...` — PR/MR URLs (space-delimited, one or more). Accepts GitHub PRs (`gh` CLI) and GitLab MRs (`glab` CLI). Used both as requirements input (agent reads diffs/descriptions) and for source repo resolution (repo URL and branch derived from the first PR/MR). When multiple PRs from different repos are provided, all repos are resolved and treated equally as source material
 - `--mkdocs` — Use Material for MkDocs format instead of AsciiDoc. Propagates to the writing step (generates `.md` with MkDocs front matter) and style-review step (applies Markdown-appropriate rules). Sets `options.format` to `"mkdocs"` in the progress file
 - `--draft` — Write documentation to the staging area (`.claude/docs/<ticket>/writing/`) instead of directly into the repo. Uses DRAFT placement mode: no framework detection, no file placement into the target repo. Without this flag, UPDATE-IN-PLACE is the default
 - `--docs-repo-path <path>` — Target documentation repository for UPDATE-IN-PLACE mode. The docs-writer explores this directory for framework detection (Antora, MkDocs, Docusaurus, etc.) and writes files there instead of the current working directory. Propagates to `writing` and `create-merge-request` steps (mapped to their internal `--repo-path` flag). **Precedence**: if both `--docs-repo-path` and `--draft` are passed, `--docs-repo-path` wins — log a warning and ignore `--draft`
-- `--source-code-repo <url-or-path>` — Source code repository for code evidence and requirements enrichment. Accepts remote URLs (https://, git@, ssh:// — shallow-cloned to `.claude/docs/<ticket>/code-repo/`) or local paths (used directly). Passed to requirements, code-evidence, and writing steps (mapped to their internal `--repo` flag). Without `--pr`, the entire repo is the subject matter; with `--pr`, the PR branch is checked out so code-evidence reflects the PR's state. Takes highest priority in source resolution, overriding `source.yaml` and PR-derived URLs
+- `--source-code-repo <url-or-path>...` — Source code repository/repositories for code evidence and requirements enrichment (space-delimited, one or more). Accepts remote URLs (https://, git@, ssh:// — each shallow-cloned to `.claude/docs/<ticket>/code-repo/<repo_name>/`) or local paths (used directly). The first repo is treated as primary; additional repos are returned as `additional_repos` in the result. Passed to requirements, code-evidence, and writing steps (mapped to their internal `--repo` flag). Without `--pr`, the entire repo is the subject matter; with `--pr`, the PR branch is checked out on the primary repo so code-evidence reflects the PR's state. Takes highest priority in source resolution, overriding `source.yaml` and PR-derived URLs
 - `--create-jira <PROJECT>` — Create a linked JIRA ticket in the specified project after the planning step completes. Runs the standalone `docs-workflow-create-jira` workflow (use `--workflow workflow-create-jira`). Requires `JIRA_API_TOKEN` to be set
 - `--create-merge-request` — Create a branch, commit, push, and open a merge request or pull request after reviews complete. Activates the `create-merge-request` workflow step (guarded by `when: create_merge_request`). Off by default
 
@@ -48,8 +50,7 @@ When displaying available options to the user (e.g., on skill load or when askin
 
 # Multiple PRs from different repos, written to a separate docs repo
 /docs-orchestrator PROJ-123 \
-  --pr https://github.com/org/backend/pull/10 \
-  --pr https://gitlab.example.com/org/frontend/-/merge_requests/5 \
+  --pr https://github.com/org/backend/pull/10 https://gitlab.example.com/org/frontend/-/merge_requests/5 \
   --docs-repo-path /home/user/docs-repo
 
 # Source repo without PRs, draft mode, with merge request creation
@@ -80,13 +81,15 @@ All clone, verify, PR-resolution, and source.yaml logic is handled by the `resol
 
 ### Pre-flight resolution
 
-Run the script with whatever source information is available from CLI args:
+Run the script with whatever source information is available from CLI args. Always pass `--ticket` and `--plugin-root` so the script can attempt JIRA-based discovery if explicit sources are absent:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/resolve_source.py \
   --base-path <base_path> \
-  [--repo <url-or-path>] \
-  [--pr <url>]...
+  --ticket <TICKET> \
+  --plugin-root ${CLAUDE_PLUGIN_ROOT} \
+  [--repo <url-or-path>...] \
+  [--pr <url>...]
 ```
 
 The script checks sources in priority order:
@@ -94,14 +97,15 @@ The script checks sources in priority order:
 1. **CLI `--source-code-repo` flag** — clone or verify the path
 2. **Per-ticket `source.yaml`** — read and apply existing config
 3. **PR-derived** — resolve repo URL and branch from `--pr` via `gh pr view` or `glab mr view`
-4. **No source** — exit code 2, defer resolution until after requirements
+4. **JIRA ticket discovery** — query the ticket's `git_links` and auto-discovered PR URLs, extract repo URLs, and select the primary repo by reference count. If multiple repos tie, return an error listing candidates
+5. **No source** — exit code 2, defer resolution until after requirements
 
 The script outputs JSON to stdout:
 
 ```json
 {
   "status": "resolved",
-  "repo_path": ".claude/docs/proj-123/code-repo",
+  "repo_path": ".claude/docs/proj-123/code-repo/operator",
   "repo_url": "https://github.com/org/operator",
   "ref": "pr-branch-name",
   "scope": null
@@ -155,7 +159,7 @@ Read the YAML file and extract the ordered step list. Each step has: `name`, `sk
 
 If the YAML includes a top-level `workflow.requires` list, check each condition **before evaluating steps or running anything**:
 
-- `has_source_repo` → a source repo must be resolvable from the CLI args (`--source-code-repo` or `--pr`). If neither was provided, **STOP** immediately with: `"This workflow requires a source code repository. Pass --source-code-repo <url-or-path> or --pr <url>."`
+- `has_source_repo` → a source repo must be resolvable. The pre-flight resolution script tries CLI args, `source.yaml`, PR-derived, and JIRA ticket discovery (git links and auto-discovered PRs) in priority order. If **none** of these yield a source repo, **STOP** immediately with: `"This workflow requires a source code repository. No repo could be discovered from the JIRA ticket. Pass --source-code-repo <url-or-path> or --pr <url>."`
 
 Unlike `when` (which makes individual steps conditional), `requires` is a workflow-level precondition — the entire workflow fails if a required condition is not met. This prevents users from running a code-evidence-heavy workflow without a repo and only discovering the problem after requirements and planning have already completed.
 
@@ -223,8 +227,8 @@ Use this absolute `BASE_PATH` for the progress file's `base_path` field and for 
 ```
 .claude/docs/proj-123/
   source.yaml                        (per-ticket source config, if applicable)
-  code-repo/                         (single repo: flat clone; multi-repo: subdirs)
-    <repo-name>/                     (only when multiple repos are resolved)
+  code-repo/
+    <repo-name>/                     (each repo gets its own subdirectory)
   requirements/
     requirements.md
     step-result.json                 (sidecar: title)
@@ -417,10 +421,12 @@ This section triggers **only** when the `requirements` step completes AND `optio
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/resolve_source.py \
   --base-path <base_path> \
+  --ticket <TICKET> \
+  --plugin-root ${CLAUDE_PLUGIN_ROOT} \
   --scan-requirements
 ```
 
-The script scans `requirements.md` for GitHub/GitLab PR/MR URLs, groups them by repo, resolves all repos equally (via `gh pr view` or `glab mr view`), clones each into `code-repo/<name>/`, and writes `source.yaml` for the primary repo.
+The script first attempts JIRA ticket discovery (git links and auto-discovered PRs from the ticket graph), then scans `requirements.md` for GitHub/GitLab PR/MR URLs as a fallback. It groups discovered repos, resolves all repos equally (via `gh pr view` or `glab mr view`), clones each into `code-repo/<name>/`, and writes `source.yaml` for the primary repo.
 
 ### 2. Handle the result
 
