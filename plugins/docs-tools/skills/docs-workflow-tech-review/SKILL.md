@@ -37,13 +37,34 @@ Extract the ticket ID and `--base-path` from the args string.
 Set the paths:
 
 ```bash
-DRAFTS_DIR="${BASE_PATH}/writing"
 OUTPUT_DIR="${BASE_PATH}/technical-review"
 OUTPUT_FILE="${OUTPUT_DIR}/review.md"
 mkdir -p "$OUTPUT_DIR"
 ```
 
-### 2. Dispatch agent
+### 2. Determine source files
+
+Read the writing step's sidecar at `${BASE_PATH}/writing/step-result.json` to determine the writing mode and file list.
+
+**If the sidecar exists and `mode` is `"update-in-place"` with a non-empty `files` array:**
+
+Build a `<SOURCE_FILES_BLOCK>` listing the files explicitly:
+
+```
+Source files — review each of these:
+- `/absolute/path/to/file1.adoc`
+- `/absolute/path/to/file2.adoc`
+```
+
+**Otherwise** (draft mode, missing sidecar, or empty files array):
+
+Set `DRAFTS_DIR="${BASE_PATH}/writing"` and build the block as:
+
+```
+Source drafts location: `<DRAFTS_DIR>/`
+```
+
+### 3. Dispatch agent
 
 **You MUST use the Agent tool** to invoke the `docs-tools:technical-reviewer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
 
@@ -54,13 +75,13 @@ mkdir -p "$OUTPUT_DIR"
 **Prompt** (pass this as the `prompt` parameter to the Agent tool):
 
 > Perform a technical review of the documentation drafts for ticket `<TICKET>`.
-> Source drafts location: `<DRAFTS_DIR>/`
+> <SOURCE_FILES_BLOCK>
 > Review all .adoc and .md files. Follow your standard review methodology.
 > Save your review report to: `<OUTPUT_FILE>`
 >
 > The report must include an `Overall technical confidence: HIGH|MEDIUM|LOW` line.
 
-### 3. Verify output
+### 4. Verify output
 
 After the agent completes, verify the review report exists at `<OUTPUT_FILE>`.
 
@@ -68,7 +89,7 @@ The review report **must** include an `Overall technical confidence: HIGH|MEDIUM
 
 The report should also include a `Severity counts: critical=N significant=N minor=N sme=N` line. This enables the orchestrator to skip unnecessary iteration when only SME-verification items remain.
 
-### 4. Write step-result.json
+### 5. Write step-result.json
 
 Parse `<OUTPUT_FILE>` to extract the structured review metadata:
 

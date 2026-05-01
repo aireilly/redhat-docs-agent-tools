@@ -1,11 +1,12 @@
 """Tests for extract_refs.py — the standalone doc reference extractor."""
-import json
 import sys
-import pytest
 from pathlib import Path
 
 # Add extract_refs's directory to sys.path so we can import it
-_SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "plugins" / "docs-tools" / "skills" / "docs-review-technical" / "scripts"
+_SCRIPTS_DIR = (
+    Path(__file__).resolve().parents[2]
+    / "plugins" / "docs-tools" / "skills" / "docs-review-technical" / "scripts"
+)
 sys.path.insert(0, str(_SCRIPTS_DIR))
 
 from extract_refs import Extractor  # noqa: E402

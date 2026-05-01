@@ -36,30 +36,54 @@ Extract the ticket ID, `--base-path`, and `--format` from the args string.
 Set the paths:
 
 ```bash
-DRAFTS_DIR="${BASE_PATH}/writing"
 OUTPUT_DIR="${BASE_PATH}/style-review"
 OUTPUT_FILE="${OUTPUT_DIR}/review.md"
 mkdir -p "$OUTPUT_DIR"
 ```
 
-### 2. Dispatch agent
+### 2. Determine source files
+
+Read the writing step's sidecar at `${BASE_PATH}/writing/step-result.json` to determine the writing mode and file list.
+
+**If the sidecar exists and `mode` is `"update-in-place"` with a non-empty `files` array:**
+
+Build a `<SOURCE_FILES_BLOCK>` listing the files explicitly:
+
+```
+**Source files** — review and edit each of these files:
+- `/absolute/path/to/file1.adoc`
+- `/absolute/path/to/file2.adoc`
+
+**Edit files in place** at their current paths. Do NOT create copies or move files.
+```
+
+**Otherwise** (draft mode, missing sidecar, or empty files array):
+
+Set `DRAFTS_DIR="${BASE_PATH}/writing"` and build the block as:
+
+```
+**Source files**: `<DRAFTS_DIR>/` — review and edit files at this location only.
+
+**Edit files in place** at the source path above. Do NOT create copies or write to a drafts/ subfolder.
+```
+
+### 3. Dispatch agent
 
 **You MUST use the Agent tool** to invoke the `docs-tools:docs-reviewer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
 
-Select the prompt below based on the `--format` flag.
+Select the prompt below based on the `--format` flag. Substitute `<SOURCE_FILES_BLOCK>` with the block built in step 2.
 
 **Agent tool parameters:**
 - `subagent_type`: `docs-tools:docs-reviewer`
 - `description`: `Review documentation for <TICKET>`
 
-**Prompt for AsciiDoc** (`--format adoc`) — pass as the `prompt` parameter to the Agent tool:
+**Prompt for AsciiDoc** (`--format adoc`):
 
 > Review the AsciiDoc documentation drafts for ticket `<TICKET>`.
 >
-> **Source files**: `<DRAFTS_DIR>/` — review and edit files at this location only.
-> **Report output**: `<OUTPUT_FILE>` — you MUST save the review report to exactly this path. Do NOT write to any other location.
+> <SOURCE_FILES_BLOCK>
 >
-> **Edit files in place** at the source path above. Do NOT create copies or write to a drafts/ subfolder.
+> **Report output**: `<OUTPUT_FILE>` — you MUST save the review report to exactly this path. Do NOT write to any other location.
 >
 > For each file:
 > 1. Run Vale linting once (use the `lint-with-vale` skill)
@@ -70,14 +94,13 @@ Select the prompt below based on the `--format` flag.
 >    - Red Hat SSG: rh-ssg-grammar-and-language, rh-ssg-formatting, rh-ssg-structure, rh-ssg-technical-examples, rh-ssg-gui-and-links, rh-ssg-legal-and-support, rh-ssg-accessibility, rh-ssg-release-notes (if applicable)
 > 4. Skip ambiguous issues requiring broader context
 
-**Prompt for MkDocs** (`--format mkdocs`) — pass as the `prompt` parameter to the Agent tool:
+**Prompt for MkDocs** (`--format mkdocs`):
 
 > Review the Material for MkDocs Markdown documentation drafts for ticket `<TICKET>`.
 >
-> **Source files**: `<DRAFTS_DIR>/` — review and edit files at this location only.
-> **Report output**: `<OUTPUT_FILE>` — you MUST save the review report to exactly this path. Do NOT write to any other location.
+> <SOURCE_FILES_BLOCK>
 >
-> **Edit files in place** at the source path above. Do NOT create copies or write to a drafts/ subfolder.
+> **Report output**: `<OUTPUT_FILE>` — you MUST save the review report to exactly this path. Do NOT write to any other location.
 >
 > For each file:
 > 1. Run Vale linting once (use the `lint-with-vale` skill)
@@ -90,11 +113,11 @@ Select the prompt below based on the `--format` flag.
 
 Note: MkDocs review omits `docs-review-modular-docs` (AsciiDoc-specific) and `rh-ssg-release-notes`.
 
-### 3. Verify output
+### 4. Verify output
 
 After the agent completes, verify the review report exists at `<OUTPUT_FILE>`.
 
-### 4. Write step-result.json
+### 5. Write step-result.json
 
 Write the sidecar to `<OUTPUT_DIR>/step-result.json`:
 

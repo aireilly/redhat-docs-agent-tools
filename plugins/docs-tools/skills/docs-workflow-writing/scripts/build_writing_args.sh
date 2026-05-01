@@ -9,7 +9,7 @@
 # Usage:
 #   build_writing_args.sh <ticket> --base-path <path> \
 #       [--format adoc|mkdocs] [--draft] [--repo-path <path>] \
-#       [--fix-from <path>]
+#       [--repo <path>] [--fix-from <path>]
 #
 # Requires: jq
 
@@ -20,7 +20,8 @@ TICKET=""
 BASE_PATH=""
 FORMAT="adoc"
 DRAFT=false
-REPO_PATH=""
+DOCS_REPO_PATH=""
+SOURCE_REPO=""
 FIX_FROM=""
 
 require_arg() {
@@ -50,7 +51,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --repo-path)
       require_arg "$1" "${2:-}"
-      REPO_PATH="$2"
+      DOCS_REPO_PATH="$2"
+      shift 2
+      ;;
+    --repo)
+      require_arg "$1" "${2:-}"
+      SOURCE_REPO="$2"
       shift 2
       ;;
     --fix-from)
@@ -108,7 +114,7 @@ fi
 MODE=""
 if [[ -n "$FIX_FROM" ]]; then
   MODE="fix"
-elif [[ -n "$REPO_PATH" ]]; then
+elif [[ -n "$DOCS_REPO_PATH" ]]; then
   MODE="update-in-place"
   if [[ "$DRAFT" == true ]]; then
     echo "WARNING: --draft ignored because --repo-path takes precedence." >&2
@@ -130,8 +136,8 @@ if [[ "$MODE" == "fix" && ! -f "$FIX_FROM" ]]; then
   exit 1
 fi
 
-if [[ -n "$REPO_PATH" && ! -d "$REPO_PATH" ]]; then
-  echo "ERROR: Repo path not found or not a directory: ${REPO_PATH}" >&2
+if [[ -n "$DOCS_REPO_PATH" && ! -d "$DOCS_REPO_PATH" ]]; then
+  echo "ERROR: Repo path not found or not a directory: ${DOCS_REPO_PATH}" >&2
   exit 1
 fi
 
@@ -147,27 +153,29 @@ fi
 
 # --- Emit JSON ---
 jq -n \
-  --arg mode          "$MODE" \
-  --arg ticket        "$TICKET" \
-  --arg format        "$FORMAT" \
-  --arg input_file    "$INPUT_FILE" \
-  --arg evidence_file "$EVIDENCE_FILE" \
-  --argjson has_evidence "$HAS_EVIDENCE" \
-  --arg output_dir    "$OUTPUT_DIR" \
-  --arg output_file   "$OUTPUT_FILE" \
-  --arg repo_path     "$REPO_PATH" \
-  --arg fix_from      "$FIX_FROM" \
-  --argjson verify    "$VERIFY" \
+  --arg mode              "$MODE" \
+  --arg ticket            "$TICKET" \
+  --arg format            "$FORMAT" \
+  --arg input_file        "$INPUT_FILE" \
+  --arg evidence_file     "$EVIDENCE_FILE" \
+  --argjson has_evidence  "$HAS_EVIDENCE" \
+  --arg output_dir        "$OUTPUT_DIR" \
+  --arg output_file       "$OUTPUT_FILE" \
+  --arg docs_repo_path    "$DOCS_REPO_PATH" \
+  --arg source_repo_path  "$SOURCE_REPO" \
+  --arg fix_from          "$FIX_FROM" \
+  --argjson verify        "$VERIFY" \
   '{
-    mode:           $mode,
-    ticket:         $ticket,
-    format:         $format,
-    input_file:     $input_file,
-    evidence_file:  (if $evidence_file == "" then null else $evidence_file end),
-    has_evidence:   $has_evidence,
-    output_dir:     $output_dir,
-    output_file:    $output_file,
-    repo_path:      (if $repo_path == "" then null else $repo_path end),
-    fix_from:       (if $fix_from == "" then null else $fix_from end),
-    verify_output:  $verify
+    mode:              $mode,
+    ticket:            $ticket,
+    format:            $format,
+    input_file:        $input_file,
+    evidence_file:     (if $evidence_file == "" then null else $evidence_file end),
+    has_evidence:      $has_evidence,
+    output_dir:        $output_dir,
+    output_file:       $output_file,
+    docs_repo_path:    (if $docs_repo_path == "" then null else $docs_repo_path end),
+    source_repo_path:  (if $source_repo_path == "" then null else $source_repo_path end),
+    fix_from:          (if $fix_from == "" then null else $fix_from end),
+    verify_output:     $verify
   }'

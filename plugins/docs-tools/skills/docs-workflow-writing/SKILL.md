@@ -1,7 +1,7 @@
 ---
 name: docs-workflow-writing
 description: Write documentation from a documentation plan. Dispatches the docs-tools:docs-writer agent. Supports AsciiDoc (default) and MkDocs formats. Default placement is UPDATE-IN-PLACE; use --draft for staging area. Also supports fix mode for applying technical review corrections.
-argument-hint: <ticket> --base-path <path> --format <adoc|mkdocs> [--draft] [--repo-path <path>] [--fix-from <review_path>]
+argument-hint: <ticket> --base-path <path> --format <adoc|mkdocs> [--draft] [--repo-path <path>] [--repo <path>] [--fix-from <review_path>]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent
 ---
 
@@ -23,17 +23,18 @@ Pass through the full args string. The script emits JSON on stdout:
 
 ```json
 {
-  "mode":          "update-in-place | draft | fix",
-  "ticket":        "PROJ-123",
-  "format":        "adoc | mkdocs",
-  "input_file":    "<base-path>/planning/plan.md",
-  "evidence_file": "<base-path>/code-evidence/evidence.json | null",
-  "has_evidence":  true | false,
-  "output_dir":    "<base-path>/writing",
-  "output_file":   "<base-path>/writing/_index.md",
-  "repo_path":     "<path> | null",
-  "fix_from":      "<path> | null",
-  "verify_output": true | false
+  "mode":              "update-in-place | draft | fix",
+  "ticket":            "PROJ-123",
+  "format":            "adoc | mkdocs",
+  "input_file":        "<base-path>/planning/plan.md",
+  "evidence_file":     "<base-path>/code-evidence/evidence.json | null",
+  "has_evidence":      true | false,
+  "output_dir":        "<base-path>/writing",
+  "output_file":       "<base-path>/writing/_index.md",
+  "docs_repo_path":    "<path> | null",
+  "source_repo_path":  "<path> | null",
+  "fix_from":          "<path> | null",
+  "verify_output":     true | false
 }
 ```
 
@@ -43,7 +44,7 @@ If the script exits non-zero, stop and report the error from stderr.
 
 **You MUST use the Agent tool** to invoke the `docs-tools:docs-writer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
 
-Select the prompt based on `mode` and `format` from the JSON output. In every prompt below, substitute the `<TICKET>`, `<INPUT_FILE>`, `<OUTPUT_FILE>`, `<OUTPUT_DIR>`, `<REPO_PATH>`, and `<FIX_FROM>` placeholders with the corresponding values from the script's JSON.
+Select the prompt based on `mode` and `format` from the JSON output. In every prompt below, substitute the `<TICKET>`, `<INPUT_FILE>`, `<OUTPUT_FILE>`, `<OUTPUT_DIR>`, `<DOCS_REPO_PATH>`, `<FIX_FROM>`, and `<EVIDENCE_FILE>` placeholders with the corresponding values from the script's JSON.
 
 **Agent tool parameters for all modes:**
 - `subagent_type`: `docs-tools:docs-writer`
@@ -67,7 +68,7 @@ Select the prompt based on `mode` and `format` from the JSON output. In every pr
 >
 > **Placement mode: UPDATE-IN-PLACE**
 >
-> [If `repo_path` is not null: "The target repository is at `<REPO_PATH>`. Explore **that directory** for framework detection and write files there."]
+> [If `docs_repo_path` is not null: "The target repository is at `<DOCS_REPO_PATH>`. Explore **that directory** for framework detection and write files there."]
 >
 > Place files directly in the repository following existing conventions. Before writing any files:
 > 1. Detect the repository's documentation build framework (Antora, ccutil, Sphinx, etc.)
@@ -78,7 +79,7 @@ Select the prompt based on `mode` and `format` from the JSON output. In every pr
 >
 > Create a manifest at `<OUTPUT_FILE>` listing **all files written and modified** with **absolute paths**. The manifest must include every intentional change — both new files created and existing files modified (e.g., nav/TOC updates).
 >
-> [If `repo_path` is not null: "Record `Target repo: <REPO_PATH>` in the manifest header."]
+> [If `docs_repo_path` is not null: "Record `Target repo: <DOCS_REPO_PATH>` in the manifest header."]
 
 ---
 
@@ -98,7 +99,7 @@ Select the prompt based on `mode` and `format` from the JSON output. In every pr
 >
 > **Placement mode: UPDATE-IN-PLACE**
 >
-> [If `repo_path` is not null: "The target repository is at `<REPO_PATH>`. Explore **that directory** for framework detection and write files there."]
+> [If `docs_repo_path` is not null: "The target repository is at `<DOCS_REPO_PATH>`. Explore **that directory** for framework detection and write files there."]
 >
 > Place files directly in the repository following existing conventions. Before writing any files:
 > 1. Detect the repository's documentation build framework (MkDocs, Docusaurus, Hugo, etc.)
@@ -109,7 +110,7 @@ Select the prompt based on `mode` and `format` from the JSON output. In every pr
 >
 > Create a manifest at `<OUTPUT_FILE>` listing **all files written and modified** with **absolute paths**. The manifest must include every intentional change — both new files created and existing files modified (e.g., `mkdocs.yml` nav updates).
 >
-> [If `repo_path` is not null: "Record `Target repo: <REPO_PATH>` in the manifest header."]
+> [If `docs_repo_path` is not null: "Record `Target repo: <DOCS_REPO_PATH>` in the manifest header."]
 
 ---
 
